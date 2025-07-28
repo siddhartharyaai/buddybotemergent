@@ -42,8 +42,16 @@ class BackendTester:
         """Run all backend tests"""
         logger.info("Starting comprehensive backend API testing...")
         
-        # Test sequence based on dependencies
+        # Test sequence based on dependencies - PRIORITIZING DEEPGRAM REST API VALIDATION
         test_sequence = [
+            # CRITICAL DEEPGRAM REST API VALIDATION TESTS (TOP PRIORITY)
+            ("CRITICAL - Deepgram REST API Compliance Check", self.test_deepgram_rest_api_compliance),
+            ("CRITICAL - STT Nova-3 Multi-Language Endpoint", self.test_stt_nova3_multilang_endpoint),
+            ("CRITICAL - TTS Aura-2-Amalthea Endpoint", self.test_tts_aura2_amalthea_endpoint),
+            ("CRITICAL - Voice Pipeline REST API Integration", self.test_voice_pipeline_rest_integration),
+            ("CRITICAL - Wake Word Detection with REST API", self.test_wake_word_rest_detection),
+            ("CRITICAL - Audio Base64 Processing Validation", self.test_audio_base64_validation),
+            ("CRITICAL - Voice Personalities REST Configuration", self.test_voice_personalities_rest_config),
             ("Health Check", self.test_health_check),
             ("User Profile Creation", self.test_create_user_profile),
             ("User Profile Retrieval", self.test_get_user_profile),
