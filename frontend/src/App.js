@@ -64,15 +64,12 @@ const App = () => {
         localStorage.setItem('ai_companion_user', JSON.stringify(testUser));
         setUser(testUser);
         await createSession(testUser.id);
+        await loadParentalControls(testUser.id);
       } else {
         const userData = JSON.parse(savedUser);
         setUser(userData);
         await createSession(userData.id);
-      }
         await loadParentalControls(userData.id);
-      } else {
-        // No user profile, open setup
-        setIsProfileSetupOpen(true);
       }
     } catch (error) {
       console.error('Error checking user profile:', error);
