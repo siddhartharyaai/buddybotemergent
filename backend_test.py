@@ -68,6 +68,18 @@ class BackendTester:
             ("Agent Status with Memory & Telemetry", self.test_agent_status_enhanced),
             ("Maintenance Cleanup", self.test_maintenance_cleanup),
             ("Ambient Listening Integration", self.test_ambient_listening_integration),
+            # NEW SESSION MANAGEMENT TESTS
+            ("Session Management - Mic Lock Functionality", self.test_mic_lock_functionality),
+            ("Session Management - Break Suggestion Logic", self.test_break_suggestion_logic),
+            ("Session Management - Interaction Rate Limiting", self.test_interaction_rate_limiting),
+            ("Session Management - Session Tracking", self.test_session_tracking),
+            ("Enhanced Conversation Flow - Mic Lock Responses", self.test_enhanced_conversation_mic_lock),
+            ("Enhanced Conversation Flow - Rate Limit Responses", self.test_enhanced_conversation_rate_limit),
+            ("Enhanced Conversation Flow - Break Suggestion Responses", self.test_enhanced_conversation_break_suggestion),
+            ("Enhanced Conversation Flow - Interaction Count Increment", self.test_enhanced_conversation_interaction_count),
+            ("Session Management Integration - Start Ambient with Session Tracking", self.test_start_ambient_with_session_tracking),
+            ("Session Management Integration - Session Store Maintenance", self.test_session_store_maintenance),
+            ("Session Management Integration - Telemetry Events", self.test_session_management_telemetry_events),
             ("Error Handling", self.test_error_handling)
         ]
         
