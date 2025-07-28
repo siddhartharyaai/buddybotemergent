@@ -209,37 +209,62 @@ class ConversationAgent:
         
         return response
 
-    async def generate_response_with_context(self, user_input: str, user_profile: Dict[str, Any], session_id: str, context: List[Dict[str, Any]] = None, dialogue_plan: Dict[str, Any] = None, memory_context: Dict[str, Any] = None) -> str:
-        """Generate response with conversation context for ambient listening"""
+    async def generate_response_with_dialogue_plan(self, user_input: str, user_profile: Dict[str, Any], session_id: str, context: List[Dict[str, Any]] = None, dialogue_plan: Dict[str, Any] = None, memory_context: Dict[str, Any] = None) -> str:
+        """Generate response with conversation context for ambient listening and enhanced content detection"""
         try:
             # Determine age group
             age = user_profile.get('age', 5)
             age_group = self._get_age_group(age)
             
-            # Check if this is a story/content request
-            is_story_request = self._is_story_request(user_input)
-            is_song_request = self._is_song_request(user_input)
-            is_content_request = is_story_request or is_song_request
+            # Check if this is a content request using enhanced detection
+            is_content_request, content_type = self._is_content_request(user_input)
             
             # Build context-aware system message
             system_message = self.system_messages[age_group]
             
             # Enhance system message for content requests
             if is_content_request:
-                if is_story_request:
+                if content_type == "story":
                     system_message += "\n\nIMPORTANT: The user is asking for a story. Please tell a COMPLETE, FULL-LENGTH story with:\n"
                     system_message += "- A clear beginning, middle, and end\n"
                     system_message += "- Detailed characters and settings\n"
                     system_message += "- An engaging plot with dialogue\n"
-                    system_message += "- Age-appropriate length (300-800 words)\n"
+                    system_message += "- Age-appropriate length (400-800 words)\n"
                     system_message += "- Use storytelling language like 'Once upon a time' and 'The End'\n"
                     system_message += "- Include descriptive details to make it engaging\n"
-                elif is_song_request:
+                    system_message += "- End with asking if they want another story\n"
+                elif content_type == "song":
                     system_message += "\n\nIMPORTANT: The user is asking for a song. Please provide a COMPLETE song with:\n"
                     system_message += "- Full verses and chorus\n"
                     system_message += "- Age-appropriate lyrics\n"
                     system_message += "- Rhyming pattern\n"
                     system_message += "- Fun and engaging content\n"
+                    system_message += "- End with asking if they want to sing more\n"
+                elif content_type == "joke":
+                    system_message += "\n\nIMPORTANT: The user wants a joke. Please:\n"
+                    system_message += "- Tell a complete clean joke with setup and punchline\n"
+                    system_message += "- Add a cheerful reaction like 'Haha!' or '😂'\n"
+                    system_message += "- Ask if they want another joke\n"
+                elif content_type == "riddle":
+                    system_message += "\n\nIMPORTANT: The user wants a riddle. Please:\n"
+                    system_message += "- Present the riddle question clearly\n"
+                    system_message += "- Ask them to think and give their answer\n"
+                    system_message += "- Wait for their response before revealing the answer\n"
+                elif content_type == "fact":
+                    system_message += "\n\nIMPORTANT: The user wants a fact. Please:\n"
+                    system_message += "- Share an amazing, age-appropriate fact\n"
+                    system_message += "- Add an enthusiastic reaction\n"
+                    system_message += "- Ask if they want to learn more\n"
+                elif content_type == "rhyme":
+                    system_message += "\n\nIMPORTANT: The user wants a rhyme. Please:\n"
+                    system_message += "- Recite a complete nursery rhyme or poem\n"
+                    system_message += "- Make it age-appropriate and pleasant\n"
+                    system_message += "- Add a gentle, appreciative reaction\n"
+                elif content_type == "game":
+                    system_message += "\n\nIMPORTANT: The user wants to play a game. Please:\n"
+                    system_message += "- Suggest an appropriate game for their age\n"
+                    system_message += "- Explain the rules clearly\n"
+                    system_message += "- Start the first round or ask if they're ready\n"
             
             # Add user context
             enhanced_system_message = f"{system_message}\n\nUser Profile:\n"
@@ -287,7 +312,10 @@ class ConversationAgent:
             # Set token limit based on content type
             max_tokens = 200  # Default for regular conversation
             if is_content_request:
-                max_tokens = 1000  # Much higher for stories and songs
+                if content_type in ["story", "song"]:
+                    max_tokens = 1000  # Much higher for stories and songs
+                elif content_type in ["joke", "riddle", "fact", "rhyme", "game"]:
+                    max_tokens = 400  # Medium for interactive content
             
             # Initialize chat with session
             chat = LlmChat(
