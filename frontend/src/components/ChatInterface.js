@@ -178,16 +178,10 @@ const ChatInterface = ({ user, darkMode, setDarkMode, sessionId, onSendMessage }
 
     ambientRecorderRef.current.ondataavailable = (event) => {
       if (event.data.size > 0) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const base64Audio = reader.result.split(',')[1];
-          
-          // Only process audio if we're still in ambient listening mode
-          if (isAmbientListening && listeningState === 'ambient') {
-            processAmbientAudio(base64Audio);
-          }
-        };
-        reader.readAsDataURL(event.data);
+        // Only process audio if we're still in ambient listening mode
+        if (isAmbientListening && listeningState === 'ambient') {
+          processAmbientAudio(event.data);
+        }
       }
     };
 
