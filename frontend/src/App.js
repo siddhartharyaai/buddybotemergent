@@ -291,7 +291,7 @@ const App = () => {
         onOpenSettings={() => setIsParentalControlsOpen(true)}
       />
       <div className="flex-1 overflow-hidden">
-        <ChatInterface 
+        <SimplifiedChatInterface 
           user={user} 
           sessionId={sessionId}
           darkMode={darkMode}
