@@ -150,87 +150,6 @@ class VoiceAgent:
         
         return ' '.join(corrected_words)
     
-    async def text_to_speech_with_prosody(self, text: str, personality: str = "friendly_companion", prosody: Dict[str, Any] = None) -> Optional[str]:
-        """Convert text to speech with prosody adjustments using REST API"""
-        try:
-            # Get voice configuration
-            voice_config = self.voice_personalities.get(personality, self.voice_personalities["friendly_companion"])
-            
-            # Apply prosody adjustments if provided
-            model = voice_config["model"]
-            if prosody:
-                # Adjust model based on prosody tone
-                tone = prosody.get("tone", "friendly")
-                if tone == "soothing":
-                    model = "aura-luna-en"  # Softer voice
-                elif tone == "excited":
-                    model = "aura-asteria-en"  # More energetic
-                elif tone == "narrative":
-                    model = "aura-luna-en"  # Good for storytelling
-                
-                # Adjust text based on prosody pace
-                pace = prosody.get("pace", "normal")
-                if pace == "slow" or pace == "very_slow":
-                    # Add pauses for slower speech
-                    text = text.replace(".", "... ").replace(",", ", ")
-                elif pace == "fast":
-                    # Remove some pauses for faster speech
-                    text = text.replace("... ", ". ")
-                
-                # Adjust emphasis
-                emphasis = prosody.get("emphasis", "balanced")
-                if emphasis == "dramatic":
-                    # Add more emphasis punctuation
-                    text = text.replace("!", "!!").replace("?", "??")
-                elif emphasis == "calming":
-                    # Remove excessive punctuation
-                    text = text.replace("!!", "!").replace("??", "?")
-            
-            # Prepare headers
-            headers = {
-                "Authorization": f"Token {self.api_key}",
-                "Content-Type": "application/json"
-            }
-            
-            # Prepare request body
-            payload = {
-                "text": text
-            }
-            
-            # Prepare query parameters
-            params = {
-                "model": model
-            }
-            
-            # Make REST API call using requests in async context
-            loop = asyncio.get_event_loop()
-            response = await loop.run_in_executor(
-                None,
-                lambda: requests.post(
-                    f"{self.base_url}/speak",
-                    headers=headers,
-                    params=params,
-                    json=payload
-                )
-            )
-            
-            if response.status_code == 200:
-                audio_data = response.content
-                # Convert to base64 for frontend
-                audio_base64 = base64.b64encode(audio_data).decode('utf-8')
-                
-                logger.info(f"TTS with prosody successful for text: {text[:50]}...")
-                return audio_base64
-            else:
-                logger.error(f"TTS API error: {response.status_code} - {response.text}")
-            
-            return None
-            
-        except Exception as e:
-            logger.error(f"TTS with prosody error: {str(e)}")
-            # Fallback to regular TTS
-            return await self.text_to_speech(text, personality)
-
     async def text_to_speech(self, text: str, personality: str = "friendly_companion") -> Optional[str]:
         """Convert text to speech using Deepgram Aura 2 REST API"""
         try:
@@ -253,6 +172,8 @@ class VoiceAgent:
                 "model": voice_config["model"]
             }
             
+            logger.info(f"Making TTS request: {text[:50]}...")
+            
             # Make REST API call using requests in async context
             loop = asyncio.get_event_loop()
             response = await loop.run_in_executor(
@@ -261,7 +182,8 @@ class VoiceAgent:
                     f"{self.base_url}/speak",
                     headers=headers,
                     params=params,
-                    json=payload
+                    json=payload,
+                    timeout=15
                 )
             )
             
@@ -270,12 +192,11 @@ class VoiceAgent:
                 # Convert to base64 for frontend
                 audio_base64 = base64.b64encode(audio_data).decode('utf-8')
                 
-                logger.info(f"TTS successful for text: {text[:50]}...")
+                logger.info(f"TTS successful, audio size: {len(audio_base64)} chars")
                 return audio_base64
             else:
                 logger.error(f"TTS API error: {response.status_code} - {response.text}")
-            
-            return None
+                return None
             
         except Exception as e:
             logger.error(f"TTS error: {str(e)}")
