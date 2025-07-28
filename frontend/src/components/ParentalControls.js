@@ -230,23 +230,130 @@ const ParentalControls = ({ isOpen, onClose, userId, controls, onSave }) => {
 
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-4">Content Restrictions</h3>
-                      <div className="bg-gray-50 p-4 rounded-xl">
-                        <label className="flex items-center space-x-3">
-                          <input
-                            type="checkbox"
-                            className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                          />
-                          <span className="text-gray-900">Block scary content</span>
-                        </label>
-                        <label className="flex items-center space-x-3 mt-3">
-                          <input
-                            type="checkbox"
-                            className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                          />
-                          <span className="text-gray-900">Block mature themes</span>
-                        </label>
+                      <div className="space-y-4">
+                        <div className="bg-red-50 border border-red-200 p-4 rounded-xl">
+                          <h4 className="font-medium text-red-900 mb-3">Restricted Content Types</h4>
+                          <div className="space-y-3">
+                            <label className="flex items-center space-x-3">
+                              <input
+                                {...register('content_restrictions.block_scary')}
+                                type="checkbox"
+                                className="w-5 h-5 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                              />
+                              <div>
+                                <span className="text-gray-900 font-medium">Block scary content</span>
+                                <p className="text-sm text-gray-600">Horror, monsters, frightening themes</p>
+                              </div>
+                            </label>
+                            
+                            <label className="flex items-center space-x-3">
+                              <input
+                                {...register('content_restrictions.block_mature')}
+                                type="checkbox"
+                                className="w-5 h-5 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                              />
+                              <div>
+                                <span className="text-gray-900 font-medium">Block mature themes</span>
+                                <p className="text-sm text-gray-600">Adult topics, complex emotions</p>
+                              </div>
+                            </label>
+                            
+                            <label className="flex items-center space-x-3">
+                              <input
+                                {...register('content_restrictions.block_violence')}
+                                type="checkbox"
+                                className="w-5 h-5 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                              />
+                              <div>
+                                <span className="text-gray-900 font-medium">Block violent content</span>
+                                <p className="text-sm text-gray-600">Fighting, weapons, aggressive behavior</p>
+                              </div>
+                            </label>
+                            
+                            <label className="flex items-center space-x-3">
+                              <input
+                                {...register('content_restrictions.block_inappropriate')}
+                                type="checkbox"
+                                className="w-5 h-5 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                              />
+                              <div>
+                                <span className="text-gray-900 font-medium">Block inappropriate language</span>
+                                <p className="text-sm text-gray-600">Strong language, negative words</p>
+                              </div>
+                            </label>
+                          </div>
+                        </div>
+
+                        <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl">
+                          <h4 className="font-medium text-yellow-900 mb-3">Restricted Keywords</h4>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Blocked Words (comma-separated)
+                              </label>
+                              <textarea
+                                {...register('content_restrictions.blocked_keywords')}
+                                rows={3}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Enter words to block, separated by commas"
+                              />
+                              <p className="text-xs text-gray-500 mt-1">
+                                AI Buddy will avoid using these words in conversations
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-green-50 border border-green-200 p-4 rounded-xl">
+                          <h4 className="font-medium text-green-900 mb-3">Allowed Topics</h4>
+                          <div className="grid grid-cols-2 gap-3">
+                            {[
+                              'Animals', 'Nature', 'Science', 'Math', 'Reading',
+                              'Art', 'Music', 'Sports', 'Friendship', 'Family'
+                            ].map((topic) => (
+                              <label key={topic} className="flex items-center space-x-2">
+                                <input
+                                  {...register('content_restrictions.allowed_topics')}
+                                  type="checkbox"
+                                  value={topic.toLowerCase()}
+                                  className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                />
+                                <span className="text-sm text-gray-700">{topic}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl">
+                          <h4 className="font-medium text-blue-900 mb-3">Content Review Settings</h4>
+                          <div className="space-y-3">
+                            <label className="flex items-center justify-between">
+                              <div>
+                                <span className="text-gray-900 font-medium">Manual content review</span>
+                                <p className="text-sm text-gray-600">Review all AI responses before delivery</p>
+                              </div>
+                              <input
+                                {...register('content_restrictions.manual_review')}
+                                type="checkbox"
+                                className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              />
+                            </label>
+                            
+                            <label className="flex items-center justify-between">
+                              <div>
+                                <span className="text-gray-900 font-medium">Log all conversations</span>
+                                <p className="text-sm text-gray-600">Save conversation history for review</p>
+                              </div>
+                              <input
+                                {...register('content_restrictions.log_conversations')}
+                                type="checkbox"
+                                className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              />
+                            </label>
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    )</div>
                   </motion.div>
                 )}
 
