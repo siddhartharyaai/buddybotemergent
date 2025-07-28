@@ -489,14 +489,6 @@ const ChatInterface = ({ user, darkMode, setDarkMode, sessionId, onSendMessage }
     }
   };
 
-  const suggestions = [
-    "Tell me a story",
-    "Sing a song",
-    "What's a fun fact?",
-    "Let's play a game",
-    "Help me learn something"
-  ];
-
   // Dynamic background based on mood/energy
   const getBackgroundClass = () => {
     const base = darkMode 
