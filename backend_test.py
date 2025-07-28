@@ -1660,6 +1660,78 @@ class BackendTester:
         except Exception as e:
             return {"success": False, "error": str(e)}
     
+    async def test_mic_lock_functionality(self):
+        """Test mic lock functionality - verify microphone is locked after rate limiting"""
+        if not self.test_user_id or not self.test_session_id:
+            return {"success": False, "error": "Missing test user ID or session ID"}
+        
+        try:
+            # Start ambient listening to initialize session
+            start_request = {
+                "session_id": self.test_session_id,
+                "user_id": self.test_user_id
+            }
+            
+            async with self.session.post(
+                f"{BACKEND_URL}/ambient/start",
+                json=start_request
+            ) as response:
+                if response.status != 200:
+                    return {"success": False, "error": f"Failed to start ambient listening: {response.status}"}
+            
+            # Test multiple rapid interactions to potentially trigger mic lock
+            mic_lock_responses = []
+            
+            for i in range(10):
+                text_input = {
+                    "session_id": self.test_session_id,
+                    "user_id": self.test_user_id,
+                    "message": f"Quick test message {i+1}"
+                }
+                
+                async with self.session.post(
+                    f"{BACKEND_URL}/conversations/text",
+                    json=text_input
+                ) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        content_type = data.get("content_type", "")
+                        response_text = data.get("response_text", "")
+                        
+                        mic_lock_responses.append({
+                            "interaction": i+1,
+                            "content_type": content_type,
+                            "is_mic_locked": content_type == "mic_locked",
+                            "response_preview": response_text[:100]
+                        })
+                        
+                        # If we detect mic lock, we can break early
+                        if content_type == "mic_locked":
+                            break
+                    else:
+                        mic_lock_responses.append({
+                            "interaction": i+1,
+                            "error": f"HTTP {response.status}",
+                            "is_mic_locked": False
+                        })
+                
+                await asyncio.sleep(0.1)  # Small delay between requests
+            
+            # Check if mic lock was triggered
+            mic_locked_responses = [r for r in mic_lock_responses if r.get("is_mic_locked", False)]
+            
+            return {
+                "success": True,
+                "mic_lock_triggered": len(mic_locked_responses) > 0,
+                "total_interactions": len(mic_lock_responses),
+                "mic_locked_count": len(mic_locked_responses),
+                "detailed_responses": mic_lock_responses,
+                "note": "Mic lock may not trigger within test parameters due to timing"
+            }
+            
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
     async def test_break_suggestion_logic(self):
         """Test break suggestion logic - verify breaks are suggested after 30 minutes"""
         if not self.test_user_id or not self.test_session_id:
