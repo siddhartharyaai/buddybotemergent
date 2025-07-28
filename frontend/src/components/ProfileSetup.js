@@ -53,6 +53,8 @@ const ProfileSetup = ({ isOpen, onClose, onSave, initialData = null }) => {
     }
   });
 
+  const totalSteps = 5; // Updated to 5 steps
+
   const watchedInterests = watch('interests') || [];
   const watchedLearningGoals = watch('learning_goals') || [];
   
