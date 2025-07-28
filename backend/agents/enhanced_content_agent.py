@@ -135,6 +135,39 @@ class EnhancedContentAgent:
                     "age_groups": ["3-6", "7-9"],
                     "tags": ["animals", "easy", "memory"],
                     "difficulty": "very_easy"
+                },
+                {
+                    "id": "riddle_clock",
+                    "question": "I have hands but cannot clap, I have a face but cannot see. What am I?",
+                    "answer": "A clock!",
+                    "hint": "I help you know what time it is...",
+                    "celebration": "⏰ Brilliant! Clocks have hands that point to numbers and faces we can read!",
+                    "followup": "Time for another riddle? Get it... TIME for another riddle?",
+                    "age_groups": ["5-10"],
+                    "tags": ["objects", "time", "logic"],
+                    "difficulty": "medium"
+                },
+                {
+                    "id": "riddle_rainbow",
+                    "question": "I come after rain and before the sun hides, I have many colors but I'm not alive. What am I?",
+                    "answer": "A rainbow!",
+                    "hint": "Look up in the sky after it rains and the sun comes out...",
+                    "celebration": "🌈 Beautiful! Rainbows are nature's colorful magic in the sky!",
+                    "followup": "Rainbows are so pretty! Ready for another puzzle to solve?",
+                    "age_groups": ["4-8"],
+                    "tags": ["nature", "colors", "weather"],
+                    "difficulty": "easy"
+                },
+                {
+                    "id": "riddle_shadow",
+                    "question": "I follow you everywhere you go, I copy everything you do, but you can never catch me. What am I?",
+                    "answer": "Your shadow!",
+                    "hint": "Look behind you on a sunny day...",
+                    "celebration": "👤 Awesome! Your shadow is always with you, copying your every move!",
+                    "followup": "Have you ever tried to step on your own shadow? Want another riddle?",
+                    "age_groups": ["4-9"],
+                    "tags": ["shadow", "self", "observation"],
+                    "difficulty": "medium"
                 }
             ],
             "facts": [
