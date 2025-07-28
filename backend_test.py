@@ -42,9 +42,10 @@ class BackendTester:
         """Run all backend tests"""
         logger.info("Starting comprehensive backend API testing...")
         
-        # Test sequence based on dependencies - PRIORITIZING SIMPLIFIED VOICE PROCESSING
+        # Test sequence based on dependencies - PRIORITIZING FIXED VOICE PROCESSING
         test_sequence = [
-            # SIMPLIFIED VOICE PROCESSING TESTS (TOP PRIORITY)
+            # FIXED VOICE PROCESSING TESTS (TOP PRIORITY)
+            ("FIXED VOICE - Fixed Voice Endpoint (process_voice_input method)", self.test_fixed_voice_endpoint),
             ("SIMPLIFIED VOICE - New Voice Endpoint", self.test_simplified_voice_endpoint),
             ("SIMPLIFIED VOICE - STT with Various Audio Formats", self.test_stt_audio_formats),
             ("SIMPLIFIED VOICE - TTS with Different Text Inputs", self.test_tts_text_inputs),
