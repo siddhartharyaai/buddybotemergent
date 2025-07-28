@@ -526,15 +526,28 @@ class OrchestratorAgent:
             return {"status": "error", "message": str(e)}
     
     async def process_ambient_audio(self, session_id: str, audio_data: bytes) -> Dict[str, Any]:
-        """Process ambient audio for wake word detection and continuous conversation"""
+        """Process ambient audio for wake word detection and continuous conversation with telemetry"""
         try:
             # Get user profile from session
             user_profile = self.session_store.get(session_id, {}).get("user_profile", {})
+            user_id = user_profile.get('user_id', 'unknown')
             
             # Process audio through voice agent
             result = await self.voice_agent.process_ambient_audio(audio_data, session_id)
             
             if result["status"] == "wake_word_detected":
+                # Track wake word detection event
+                await self.telemetry_agent.track_event(
+                    "wake_word_activation",
+                    user_id,
+                    session_id,
+                    {
+                        "wake_word": result.get("wake_word", "unknown"),
+                        "confidence": result.get("confidence", 0.0),
+                        "feature_name": "wake_word_detection"
+                    }
+                )
+                
                 # Wake word detected, process command if present
                 command = result.get("command", "")
                 
@@ -575,6 +588,23 @@ class OrchestratorAgent:
             
         except Exception as e:
             logger.error(f"Error processing ambient audio: {str(e)}")
+            
+            # Track error event
+            try:
+                user_profile = self.session_store.get(session_id, {}).get("user_profile", {})
+                await self.telemetry_agent.track_event(
+                    "system_error_logged",
+                    user_profile.get('user_id', 'unknown'),
+                    session_id,
+                    {
+                        "error": str(e),
+                        "function": "process_ambient_audio",
+                        "feature_name": "error_handling"
+                    }
+                )
+            except:
+                pass
+            
             return {"status": "error", "message": str(e)}
     
     async def process_conversation_command(self, session_id: str, command: str, user_profile: Dict[str, Any], context: List[Dict[str, Any]]) -> Dict[str, Any]:
