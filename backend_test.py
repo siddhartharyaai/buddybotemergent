@@ -856,6 +856,85 @@ class BackendTester:
         except Exception as e:
             return {"success": False, "error": str(e)}
     
+    async def test_error_handling(self):
+        """Test error handling for invalid requests"""
+        try:
+            error_tests = []
+            
+            # Test 1: Invalid user profile creation (age out of range)
+            try:
+                invalid_profile = {
+                    "name": "Test",
+                    "age": 15,  # Invalid age
+                    "location": "Test"
+                }
+                async with self.session.post(
+                    f"{BACKEND_URL}/users/profile",
+                    json=invalid_profile
+                ) as response:
+                    error_tests.append({
+                        "test": "invalid_age",
+                        "status": response.status,
+                        "handled_correctly": response.status in [400, 422]
+                    })
+            except Exception as e:
+                error_tests.append({"test": "invalid_age", "error": str(e)})
+            
+            # Test 2: Non-existent user profile
+            try:
+                fake_user_id = str(uuid.uuid4())
+                async with self.session.get(
+                    f"{BACKEND_URL}/users/profile/{fake_user_id}"
+                ) as response:
+                    error_tests.append({
+                        "test": "nonexistent_user",
+                        "status": response.status,
+                        "handled_correctly": response.status == 404
+                    })
+            except Exception as e:
+                error_tests.append({"test": "nonexistent_user", "error": str(e)})
+            
+            # Test 3: Invalid conversation input
+            try:
+                invalid_text = {
+                    "session_id": "invalid_session",
+                    "user_id": "invalid_user",
+                    "message": ""
+                }
+                async with self.session.post(
+                    f"{BACKEND_URL}/conversations/text",
+                    json=invalid_text
+                ) as response:
+                    error_tests.append({
+                        "test": "invalid_conversation",
+                        "status": response.status,
+                        "handled_correctly": response.status in [400, 404, 422]
+                    })
+            except Exception as e:
+                error_tests.append({"test": "invalid_conversation", "error": str(e)})
+            
+            # Test 4: Invalid memory snapshot request
+            try:
+                fake_user_id = str(uuid.uuid4())
+                async with self.session.post(
+                    f"{BACKEND_URL}/memory/snapshot/{fake_user_id}"
+                ) as response:
+                    error_tests.append({
+                        "test": "invalid_memory_snapshot",
+                        "status": response.status,
+                        "handled_correctly": response.status in [404, 500]
+                    })
+            except Exception as e:
+                error_tests.append({"test": "invalid_memory_snapshot", "error": str(e)})
+            
+            return {
+                "success": True,
+                "error_tests": error_tests,
+                "properly_handled": sum(1 for test in error_tests if test.get("handled_correctly", False))
+            }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
     def print_test_summary(self):
         """Print comprehensive test summary"""
         print("\n" + "="*80)
