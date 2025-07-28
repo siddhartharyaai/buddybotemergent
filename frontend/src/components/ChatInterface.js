@@ -52,24 +52,10 @@ const ChatInterface = ({ user, darkMode, setDarkMode, sessionId, onSendMessage }
   }, [messages]);
 
   useEffect(() => {
-    // Only start ambient listening if user has granted permission
-    const initializeAmbientListening = async () => {
-      try {
-        // Check if microphone permission is already granted
-        const permissions = await navigator.permissions.query({ name: 'microphone' });
-        if (permissions.state === 'granted') {
-          startAmbientListening();
-        } else {
-          console.log('Microphone permission not granted yet');
-          setListeningState('inactive');
-        }
-      } catch (error) {
-        console.log('Permission check failed, will request on demand');
-        setListeningState('inactive');
-      }
-    };
+    console.log('🎯 ChatInterface component mounted - NOT auto-starting ambient listening');
     
-    initializeAmbientListening();
+    // Don't auto-start ambient listening - wait for user gesture
+    setListeningState('inactive');
     
     // Cleanup on unmount
     return () => {
