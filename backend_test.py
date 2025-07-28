@@ -81,6 +81,17 @@ class BackendTester:
             ("Session Management Integration - Session Store Maintenance", self.test_session_store_maintenance),
             ("Session Management Integration - Telemetry Events", self.test_session_management_telemetry_events),
             ("Error Handling", self.test_error_handling),
+            # CRITICAL VOICE PIPELINE TESTS
+            ("CRITICAL - Deepgram STT Nova 3 Integration", self.test_deepgram_stt_nova3),
+            ("CRITICAL - Deepgram TTS Aura 2 Integration", self.test_deepgram_tts_aura2),
+            ("CRITICAL - Wake Word Detection System", self.test_wake_word_detection),
+            ("CRITICAL - Ambient Listening Pipeline", self.test_ambient_listening_pipeline),
+            ("CRITICAL - Full Voice Pipeline End-to-End", self.test_full_voice_pipeline),
+            ("CRITICAL - Voice Personalities Configuration", self.test_voice_personalities_config),
+            ("CRITICAL - Audio Base64 Processing", self.test_audio_base64_processing),
+            ("CRITICAL - Wake Word Variants", self.test_wake_word_variants),
+            ("CRITICAL - Voice Session Management", self.test_voice_session_management),
+            ("CRITICAL - TTS Audio Quality", self.test_tts_audio_quality),
             # CONTENT LIBRARY EXPANSION TESTS
             ("Content Library - Stories Testing", self.test_stories_content_library),
             ("Content Library - Songs Testing", self.test_songs_content_library),
