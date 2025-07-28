@@ -23,7 +23,6 @@ const ChatInterface = ({ user, darkMode, setDarkMode, sessionId, onSendMessage }
   const [isConversationActive, setIsConversationActive] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [textInput, setTextInput] = useState('');
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [listeningState, setListeningState] = useState('inactive'); // inactive, ambient, active
