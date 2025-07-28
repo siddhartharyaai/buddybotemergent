@@ -52,6 +52,8 @@ class BackendTester:
             ("CRITICAL - Wake Word Detection with REST API", self.test_wake_word_rest_detection),
             ("CRITICAL - Audio Base64 Processing Validation", self.test_audio_base64_validation),
             ("CRITICAL - Voice Personalities REST Configuration", self.test_voice_personalities_rest_config),
+            
+            # STANDARD BACKEND TESTS
             ("Health Check", self.test_health_check),
             ("User Profile Creation", self.test_create_user_profile),
             ("User Profile Retrieval", self.test_get_user_profile),
