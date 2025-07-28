@@ -1,18 +1,20 @@
 """
-Voice Agent - Handles Speech-to-Text and Text-to-Speech using Deepgram
+Voice Agent - Handles Speech-to-Text and Text-to-Speech using Deepgram with Wake Word Detection
 """
 import asyncio
 import logging
 import base64
 import io
-from typing import Optional, Dict, Any
-from deepgram import DeepgramClient, PrerecordedOptions, SpeakOptions
+import re
+import time
+from typing import Optional, Dict, Any, List
+from deepgram import DeepgramClient, PrerecordedOptions, SpeakOptions, LiveTranscriptionEvents, LiveOptions
 from deepgram.clients.speak.v1 import SpeakSource
 
 logger = logging.getLogger(__name__)
 
 class VoiceAgent:
-    """Handles voice processing with Deepgram Nova 3 STT and Aura 2 TTS"""
+    """Handles voice processing with Deepgram Nova 3 STT and Aura 2 TTS with wake word detection"""
     
     def __init__(self, deepgram_api_key: str):
         self.deepgram_client = DeepgramClient(deepgram_api_key)
@@ -34,7 +36,23 @@ class VoiceAgent:
             }
         }
         
-        logger.info("Voice Agent initialized with Deepgram")
+        # Wake word configurations
+        self.wake_words = [
+            "hey buddy",
+            "ai buddy", 
+            "hello buddy",
+            "hi buddy",
+            "buddy"
+        ]
+        
+        # Ambient listening state
+        self.is_listening = False
+        self.context_buffer = []
+        self.last_interaction_time = None
+        self.conversation_active = False
+        self.silence_timeout = 5.0  # seconds
+        
+        logger.info("Voice Agent initialized with Deepgram and Wake Word Detection")
     
     async def speech_to_text(self, audio_data: bytes) -> Optional[str]:
         """Convert speech to text using Deepgram Nova 3"""
