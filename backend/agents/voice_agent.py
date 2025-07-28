@@ -226,11 +226,36 @@ class VoiceAgent:
     async def speech_to_text(self, audio_data: bytes, enhanced_for_children: bool = True) -> Optional[str]:
         """Convert speech to text using Deepgram Nova 3 REST API with enhanced child speech recognition"""
         try:
+            # Log audio details for debugging
+            logger.info(f"STT processing: {len(audio_data)} bytes audio data")
+            
+            # Validate audio data
+            if len(audio_data) < 100:
+                logger.warning(f"Audio data too small for STT: {len(audio_data)} bytes")
+                return None
+            
+            # Check if audio looks like a valid audio format
+            audio_header = audio_data[:12] if len(audio_data) >= 12 else audio_data
+            logger.info(f"Audio header: {audio_header}")
+            
             # Prepare headers
             headers = {
                 "Authorization": f"Token {self.api_key}",
-                "Content-Type": "audio/wav"
+                "Content-Type": "audio/wav"  # Assume WAV format
             }
+            
+            # If the audio data looks like WebM, try to handle it
+            if audio_data.startswith(b'\x1a\x45\xdf\xa3'):  # WebM signature
+                logger.info("Detected WebM audio format")
+                headers["Content-Type"] = "audio/webm"
+            elif audio_data.startswith(b'RIFF'):
+                logger.info("Detected RIFF/WAV audio format")
+                headers["Content-Type"] = "audio/wav"
+            elif audio_data.startswith(b'OggS'):
+                logger.info("Detected OGG audio format")
+                headers["Content-Type"] = "audio/ogg"
+            else:
+                logger.warning("Unknown audio format, assuming WAV")
             
             # Prepare query parameters for STT options
             params = {
@@ -246,6 +271,8 @@ class VoiceAgent:
                 "utterance_end_ms": "1000"  # Shorter utterance end for conversation flow
             }
             
+            logger.info(f"Making STT request to Deepgram: {len(audio_data)} bytes, Content-Type: {headers['Content-Type']}")
+            
             # Make REST API call using requests in async context
             loop = asyncio.get_event_loop()
             response = await loop.run_in_executor(
@@ -258,8 +285,11 @@ class VoiceAgent:
                 )
             )
             
+            logger.info(f"STT response: status={response.status_code}")
+            
             if response.status_code == 200:
                 result = response.json()
+                logger.info(f"STT result structure: {list(result.keys()) if isinstance(result, dict) else 'not dict'}")
                 
                 # Extract transcript
                 if result.get("results") and result["results"].get("channels"):
@@ -270,15 +300,21 @@ class VoiceAgent:
                         transcript = self.enhance_child_speech_recognition(transcript)
                     
                     if transcript.strip():
-                        logger.info(f"STT successful: {transcript[:100]}...")
+                        logger.info(f"STT successful: '{transcript}'")
                         return transcript.strip()
+                    else:
+                        logger.info("STT returned empty transcript")
+                        return None
+                else:
+                    logger.warning(f"STT response missing expected structure: {result}")
+                    return None
             else:
-                logger.error(f"STT API error: {response.status_code} - {response.text}")
-            
-            return None
+                error_text = response.text
+                logger.error(f"STT API error: {response.status_code} - {error_text}")
+                return None
             
         except Exception as e:
-            logger.error(f"STT error: {str(e)}")
+            logger.error(f"STT processing error: {str(e)}", exc_info=True)
             return None
     
     def enhance_child_speech_recognition(self, transcript: str) -> str:
