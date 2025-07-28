@@ -39,6 +39,11 @@ class OrchestratorAgent:
         self.memory_agent = MemoryAgent(db, gemini_api_key)
         self.telemetry_agent = TelemetryAgent(db)
         
+        # Session management settings
+        self.mic_lock_duration = 5  # seconds
+        self.break_suggestion_threshold = 30 * 60  # 30 minutes in seconds
+        self.max_interactions_per_hour = 60  # interactions per hour limit
+        
         logger.info("Enhanced Orchestrator Agent with Memory & Telemetry initialized successfully")
     
     async def process_ambient_audio_enhanced(self, session_id: str, audio_data: bytes) -> Dict[str, Any]:
