@@ -54,6 +54,7 @@ const ProfileSetup = ({ isOpen, onClose, onSave, initialData = null }) => {
   });
 
   const watchedInterests = watch('interests') || [];
+  const watchedLearningGoals = watch('learning_goals') || [];
   
   const voicePersonalities = [
     {
