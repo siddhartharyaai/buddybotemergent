@@ -607,6 +607,98 @@ async def health_check():
         "database": "connected"
     }
 
+# Content API Endpoints
+@api_router.get("/content/stories")
+async def get_stories():
+    """Get all available stories"""
+    try:
+        if not orchestrator:
+            raise HTTPException(status_code=500, detail="Multi-agent system not initialized")
+        
+        # Get stories from the enhanced content agent's local library
+        enhanced_content_agent = orchestrator.enhanced_content_agent
+        local_content = enhanced_content_agent.local_content
+        
+        stories = []
+        for story_data in local_content.get("stories", []):
+            story = {
+                "id": story_data["id"],
+                "title": story_data["title"],
+                "description": story_data.get("description", ""),
+                "content": story_data["content"],
+                "category": story_data.get("category", "general"),
+                "duration": story_data.get("duration", "5 min"),
+                "age_group": story_data.get("age_groups", ["3-12"])[0] if story_data.get("age_groups") else "3-12",
+                "tags": story_data.get("tags", []),
+                "moral": story_data.get("moral", "")
+            }
+            stories.append(story)
+        
+        return {"stories": stories}
+        
+    except Exception as e:
+        logger.error(f"Error fetching stories: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch stories")
+
+@api_router.get("/content/{content_type}")
+async def get_content_by_type(content_type: str):
+    """Get content by type (jokes, riddles, facts, songs, rhymes, stories, games)"""
+    try:
+        if not orchestrator:
+            raise HTTPException(status_code=500, detail="Multi-agent system not initialized")
+        
+        enhanced_content_agent = orchestrator.enhanced_content_agent
+        local_content = enhanced_content_agent.local_content
+        
+        if content_type not in local_content:
+            raise HTTPException(status_code=404, detail=f"Content type '{content_type}' not found")
+        
+        content_list = local_content[content_type]
+        
+        return {
+            "content_type": content_type,
+            "count": len(content_list),
+            "content": content_list
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching {content_type}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch {content_type}")
+
+@api_router.post("/content/generate")
+async def generate_content(request: dict):
+    """Generate content using enhanced content agent"""
+    try:
+        if not orchestrator:
+            raise HTTPException(status_code=500, detail="Multi-agent system not initialized")
+        
+        content_type = request.get("content_type")
+        user_input = request.get("user_input", "")
+        user_id = request.get("user_id")
+        
+        if not content_type or not user_id:
+            raise HTTPException(status_code=400, detail="content_type and user_id are required")
+        
+        # Get user profile
+        user_profile = await db.user_profiles.find_one({"id": user_id})
+        if not user_profile:
+            raise HTTPException(status_code=404, detail="User profile not found")
+        
+        enhanced_content_agent = orchestrator.enhanced_content_agent
+        result = await enhanced_content_agent.get_content_with_3tier_sourcing(
+            content_type, user_profile, user_input
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error generating content: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to generate content")
+
 # WebSocket for real-time communication
 @api_router.websocket("/ws/{user_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: str):
