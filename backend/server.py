@@ -422,31 +422,91 @@ async def get_content_suggestions(user_id: str):
         logger.error(f"Error getting content suggestions: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to get content suggestions")
 
-@api_router.get("/content/{content_type}/{user_id}")
-async def get_content_by_type(content_type: str, user_id: str):
-    """Get content by type for user"""
+@api_router.post("/conversations/voice")
+async def process_voice_input(request: dict):
+    """Process voice input - simple like ChatGPT/Gemini voice bots"""
     try:
         if not orchestrator:
             raise HTTPException(status_code=500, detail="Multi-agent system not initialized")
         
-        # Get user profile
+        session_id = request.get("session_id")
+        user_id = request.get("user_id", "test_user")
+        audio_base64 = request.get("audio_base64")
+        
+        if not audio_base64:
+            raise HTTPException(status_code=400, detail="audio_base64 is required")
+        
+        logger.info(f"🎤 Processing voice input: session={session_id}, audio_length={len(audio_base64)}")
+        
+        # Decode audio data
+        try:
+            audio_data = base64.b64decode(audio_base64)
+            logger.info(f"✅ Decoded audio: {len(audio_data)} bytes")
+        except Exception as decode_error:
+            logger.error(f"❌ Base64 decode error: {str(decode_error)}")
+            raise HTTPException(status_code=400, detail="Invalid base64 audio data")
+        
+        # Get or create user profile
         user_profile = await db.user_profiles.find_one({"id": user_id})
         if not user_profile:
-            raise HTTPException(status_code=404, detail="User profile not found")
+            # Create a default user profile
+            user_profile = {
+                "id": user_id,
+                "name": "Test Child",
+                "age": 8,
+                "language": "english",
+                "voice_personality": "friendly_companion",
+                "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }
+            await db.user_profiles.insert_one(user_profile)
+            logger.info(f"✅ Created default user profile: {user_id}")
         
-        # Get content from content agent
-        content = await orchestrator.content_agent.get_content_by_type(content_type, user_profile)
+        # Process through voice agent (STT)
+        voice_agent = orchestrator.voice_agent
+        transcript = await voice_agent.speech_to_text(audio_data)
         
-        if not content:
-            raise HTTPException(status_code=404, detail="No content found for this type")
+        if not transcript:
+            return {
+                "status": "no_speech",
+                "response_text": "I didn't catch that. Could you please repeat?",
+                "response_audio": None,
+                "transcript": ""
+            }
         
-        return content
+        logger.info(f"🎤 STT result: '{transcript}'")
+        
+        # Process through conversation agent (LLM)
+        conversation_agent = orchestrator.conversation_agent
+        response = await conversation_agent.generate_response(
+            user_input=transcript,
+            user_profile=user_profile,
+            conversation_context=[]  # Simple context for now
+        )
+        
+        # Generate TTS audio
+        response_audio = await voice_agent.text_to_speech(
+            response['text'],
+            user_profile.get('voice_personality', 'friendly_companion')
+        )
+        
+        result = {
+            "status": "success",
+            "response_text": response['text'],
+            "response_audio": response_audio,
+            "transcript": transcript,
+            "content_type": response.get('content_type', 'conversation'),
+            "processing_time": response.get('processing_time', 0.0)
+        }
+        
+        logger.info(f"✅ Voice processing complete: '{response['text'][:100]}...'")
+        return result
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error getting content by type: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to get content")
+        logger.error(f"❌ Voice processing error: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Voice processing failed: {str(e)}")
 
 # Voice Personalities
 @api_router.get("/voice/personalities")
