@@ -94,21 +94,61 @@ class OrchestratorAgent:
             return {"status": "error", "message": str(e)}
     
     async def process_enhanced_conversation(self, session_id: str, user_input: str, user_profile: Dict[str, Any], context: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Enhanced conversation processing with emotional intelligence and repair"""
+        """Enhanced conversation processing with emotional intelligence, memory, and telemetry"""
         try:
-            # Step 1: Emotional analysis
-            emotional_state = await self.emotional_sensing_agent.analyze_emotional_state(
-                user_input, user_profile, {"context": context}
+            user_id = user_profile.get('user_id', 'unknown')
+            
+            # Step 0: Track conversation event
+            await self.telemetry_agent.track_event(
+                "conversation_interaction",
+                user_id,
+                session_id,
+                {
+                    "user_input_length": len(user_input),
+                    "has_context": bool(context),
+                    "feature_name": "enhanced_conversation"
+                }
             )
             
-            # Step 2: Check for repair needs
+            # Step 1: Get user memory context
+            memory_context = await self.memory_agent.get_user_memory_context(user_id, days=7)
+            
+            # Step 2: Emotional analysis
+            emotional_state = await self.emotional_sensing_agent.analyze_emotional_state(
+                user_input, user_profile, {"context": context, "memory": memory_context}
+            )
+            
+            # Track emotion detection
+            await self.telemetry_agent.track_event(
+                "emotion_state_detected",
+                user_id,
+                session_id,
+                {
+                    "emotional_state": emotional_state,
+                    "feature_name": "emotional_sensing"
+                }
+            )
+            
+            # Step 3: Check for repair needs
             stt_confidence = context[-1].get("stt_confidence", 1.0) if context else 1.0
             repair_info = await self.repair_agent.detect_repair_need(
                 user_input, stt_confidence, {"context": context}
             )
             
-            # Step 3: Handle repair if needed
+            # Step 4: Handle repair if needed
             if repair_info.get("repair_needed", False):
+                # Track repair event
+                await self.telemetry_agent.track_event(
+                    "conversation_repair_triggered",
+                    user_id,
+                    session_id,
+                    {
+                        "repair_info": repair_info,
+                        "stt_confidence": stt_confidence,
+                        "feature_name": "conversation_repair"
+                    }
+                )
+                
                 repair_response = await self.repair_agent.generate_repair_response(
                     repair_info, user_profile, {"context": context}
                 )
@@ -120,6 +160,15 @@ class OrchestratorAgent:
                         user_profile.get('voice_personality', 'friendly_companion')
                     )
                     
+                    # Update memory with repair interaction
+                    await self.memory_agent.update_session_memory(session_id, {
+                        "user_input": user_input,
+                        "ai_response": repair_response["repair_response"],
+                        "emotional_state": emotional_state,
+                        "dialogue_mode": "repair",
+                        "content_type": "repair"
+                    })
+                    
                     return {
                         "response_text": repair_response["repair_response"],
                         "response_audio": audio_response,
@@ -127,7 +176,7 @@ class OrchestratorAgent:
                         "metadata": repair_response
                     }
             
-            # Step 4: Check for micro-game trigger
+            # Step 5: Check for micro-game trigger
             engagement_context = {
                 "silence_duration": 0,  # Will be set by frontend
                 "engagement_level": 0.7,  # Will be calculated
@@ -140,6 +189,18 @@ class OrchestratorAgent:
             )
             
             if should_trigger_game:
+                # Track game trigger event
+                await self.telemetry_agent.track_event(
+                    "micro_game_started",
+                    user_id,
+                    session_id,
+                    {
+                        "engagement_context": engagement_context,
+                        "emotional_state": emotional_state,
+                        "feature_name": "micro_games"
+                    }
+                )
+                
                 # Select and start appropriate game
                 selected_game = await self.micro_game_agent.select_appropriate_game(
                     user_profile, emotional_state, engagement_context
@@ -157,6 +218,15 @@ class OrchestratorAgent:
                             user_profile.get('voice_personality', 'friendly_companion')
                         )
                         
+                        # Update memory with game interaction
+                        await self.memory_agent.update_session_memory(session_id, {
+                            "user_input": user_input,
+                            "ai_response": game_result["introduction"],
+                            "emotional_state": emotional_state,
+                            "dialogue_mode": "game",
+                            "content_type": "game"
+                        })
+                        
                         return {
                             "response_text": game_result["introduction"],
                             "response_audio": audio_response,
@@ -164,39 +234,87 @@ class OrchestratorAgent:
                             "metadata": game_result
                         }
             
-            # Step 5: Dialogue orchestration
+            # Step 6: Dialogue orchestration with memory context
             dialogue_plan = await self.dialogue_orchestrator.orchestrate_response(
-                user_input, emotional_state, user_profile, {"context": context}
+                user_input, emotional_state, user_profile, {"context": context, "memory": memory_context}
             )
             
-            # Step 6: Safety check
+            # Step 7: Safety check
             safety_result = await self.safety_agent.check_content_safety(user_input, user_profile.get('age', 5))
             
             if not safety_result.get('is_safe', False):
+                # Track safety violation
+                await self.telemetry_agent.track_event(
+                    "safety_filter_activated",
+                    user_id,
+                    session_id,
+                    {
+                        "safety_result": safety_result,
+                        "user_input": user_input[:100],  # Truncated for privacy
+                        "feature_name": "safety_filter"
+                    }
+                )
+                
+                safety_response = "Let's talk about something else! What would you like to know?"
+                
+                # Update memory with safety interaction
+                await self.memory_agent.update_session_memory(session_id, {
+                    "user_input": user_input,
+                    "ai_response": safety_response,
+                    "emotional_state": emotional_state,
+                    "dialogue_mode": "safety",
+                    "content_type": "safety_response"
+                })
+                
                 return {
-                    "response_text": "Let's talk about something else! What would you like to know?",
+                    "response_text": safety_response,
                     "response_audio": None,
                     "content_type": "safety_response",
                     "metadata": {"safety_result": safety_result}
                 }
             
-            # Step 7: Generate response with dialogue plan
+            # Step 8: Generate response with dialogue plan and memory context
             response = await self.conversation_agent.generate_response_with_context(
-                user_input, user_profile, session_id, context, dialogue_plan
+                user_input, user_profile, session_id, context, dialogue_plan, memory_context
             )
             
-            # Step 8: Content enhancement
+            # Step 9: Content enhancement
             enhanced_response = await self.content_agent.enhance_response(response, user_profile)
             
-            # Step 9: Convert to speech with prosody
+            # Step 10: Convert to speech with prosody
             audio_response = await self.voice_agent.text_to_speech_with_prosody(
                 enhanced_response['text'], 
                 user_profile.get('voice_personality', 'friendly_companion'),
                 dialogue_plan.get('prosody', {})
             )
             
-            # Step 10: Store conversation with emotional context
+            # Step 11: Update memory with enhanced conversation
+            await self.memory_agent.update_session_memory(session_id, {
+                "user_input": user_input,
+                "ai_response": enhanced_response['text'],
+                "emotional_state": emotional_state,
+                "dialogue_mode": dialogue_plan.get("mode", "chat"),
+                "content_type": enhanced_response.get('content_type', 'conversation'),
+                "prosody": dialogue_plan.get('prosody', {}),
+                "cultural_context": dialogue_plan.get('cultural_context', {})
+            })
+            
+            # Step 12: Store conversation with enhanced context
             await self._store_enhanced_conversation(session_id, user_input, enhanced_response['text'], user_profile, emotional_state, dialogue_plan)
+            
+            # Step 13: Track content type usage
+            content_type = enhanced_response.get('content_type', 'conversation')
+            if content_type in ['story', 'song', 'educational']:
+                event_type = f"{content_type}_content_requested"
+                await self.telemetry_agent.track_event(
+                    event_type,
+                    user_id,
+                    session_id,
+                    {
+                        "content_type": content_type,
+                        "feature_name": f"{content_type}_content"
+                    }
+                )
             
             return {
                 "response_text": enhanced_response['text'],
@@ -205,12 +323,29 @@ class OrchestratorAgent:
                 "metadata": {
                     "emotional_state": emotional_state,
                     "dialogue_plan": dialogue_plan,
+                    "memory_context": memory_context,
                     "content_metadata": enhanced_response.get('metadata', {})
                 }
             }
             
         except Exception as e:
             logger.error(f"Error processing enhanced conversation: {str(e)}")
+            
+            # Track error event
+            try:
+                await self.telemetry_agent.track_event(
+                    "system_error_logged",
+                    user_profile.get('user_id', 'unknown'),
+                    session_id,
+                    {
+                        "error": str(e),
+                        "function": "process_enhanced_conversation",
+                        "feature_name": "error_handling"
+                    }
+                )
+            except:
+                pass  # Don't let telemetry errors crash the system
+            
             return {
                 "response_text": "I'm having trouble understanding right now. Can you try again?",
                 "response_audio": None,
