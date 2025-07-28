@@ -168,45 +168,46 @@ const ChatInterface = ({ user, darkMode, setDarkMode, sessionId, onSendMessage }
     }
   };
 
+  // Stop continuous audio processing to prevent re-renders
   const startContinuousAudioProcessing = (stream) => {
-    const mediaRecorder = new MediaRecorder(stream);
-    ambientRecorderRef.current = mediaRecorder;
+    console.log('🎤 Starting continuous audio processing...');
     
-    let audioChunks = [];
-    
-    mediaRecorder.ondataavailable = (event) => {
-      audioChunks.push(event.data);
-    };
-    
-    mediaRecorder.onstop = async () => {
-      const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-      await processAmbientAudio(audioBlob);
-      audioChunks = [];
-      
-      // Continue recording if still in ambient listening mode
-      if (isAmbientListening && mediaRecorder.state === 'inactive') {
-        setTimeout(() => {
-          if (isAmbientListening) {
-            mediaRecorder.start();
+    ambientRecorderRef.current = new MediaRecorder(stream, {
+      mimeType: 'audio/webm;codecs=opus'
+    });
+
+    ambientRecorderRef.current.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64Audio = reader.result.split(',')[1];
+          
+          // Only process audio if we're still in ambient listening mode
+          if (isAmbientListening && listeningState === 'ambient') {
+            processAmbientAudio(base64Audio);
           }
-        }, 100);
+        };
+        reader.readAsDataURL(event.data);
       }
     };
+
+    ambientRecorderRef.current.start(2000); // 2-second chunks
     
-    // Start recording in chunks
-    mediaRecorder.start();
-    
-    // Process audio every 2 seconds
+    // Set up interval to restart recording (prevent memory issues)
     ambientIntervalRef.current = setInterval(() => {
-      if (mediaRecorder.state === 'recording') {
-        mediaRecorder.stop();
-        setTimeout(() => {
-          if (isAmbientListening) {
-            mediaRecorder.start();
-          }
-        }, 100);
+      if (ambientRecorderRef.current && isAmbientListening) {
+        try {
+          ambientRecorderRef.current.stop();
+          setTimeout(() => {
+            if (ambientRecorderRef.current && isAmbientListening) {
+              ambientRecorderRef.current.start(2000);
+            }
+          }, 100);
+        } catch (error) {
+          console.error('Error restarting recorder:', error);
+        }
       }
-    }, 2000);
+    }, 10000); // Restart every 10 seconds instead of processing continuously
   };
 
   const processAmbientAudio = async (audioBlob) => {
