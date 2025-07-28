@@ -207,8 +207,8 @@ const ProfileSetup = ({ isOpen, onClose, onSave, initialData = null }) => {
             <div className="mt-4 bg-gray-200 rounded-full h-2">
               <motion.div
                 className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full"
-                initial={{ width: '33%' }}
-                animate={{ width: `${(step / 3) * 100}%` }}
+                initial={{ width: '20%' }}
+                animate={{ width: `${(step / totalSteps) * 100}%` }}
                 transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               />
             </div>
