@@ -194,7 +194,7 @@ const ProfileSetup = ({ isOpen, onClose, onSave, initialData = null }) => {
                 <h2 className="text-2xl font-bold text-gray-900">
                   {initialData ? 'Edit Profile' : 'Create Profile'}
                 </h2>
-                <p className="text-gray-600">Step {step} of 3</p>
+                <p className="text-gray-600">Step {step} of {totalSteps}</p>
               </div>
               <button
                 onClick={onClose}
