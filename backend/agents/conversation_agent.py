@@ -103,6 +103,32 @@ class ConversationAgent:
                     enhanced_system_message += f"- {ctx.get('text', '')}\n"
                 enhanced_system_message += f"\nContinue this conversation naturally and remember what was said before."
             
+            # Add memory context if available
+            if memory_context and memory_context.get("user_id") != "unknown":
+                enhanced_system_message += f"\n\nLong-term memory context:\n"
+                
+                # Add recent preferences
+                recent_preferences = memory_context.get("recent_preferences", {})
+                if recent_preferences:
+                    enhanced_system_message += f"Recent preferences: {', '.join(f'{k}: {v}' for k, v in list(recent_preferences.items())[:3])}\n"
+                
+                # Add favorite topics
+                favorite_topics = memory_context.get("favorite_topics", [])
+                if favorite_topics:
+                    topics_str = ', '.join([topic[0] if isinstance(topic, tuple) else str(topic) for topic in favorite_topics[:3]])
+                    enhanced_system_message += f"Favorite topics: {topics_str}\n"
+                
+                # Add achievements
+                achievements = memory_context.get("achievements", [])
+                if achievements:
+                    recent_achievements = achievements[-2:]  # Last 2 achievements
+                    for achievement in recent_achievements:
+                        if isinstance(achievement, dict):
+                            achievement_type = achievement.get("type", "unknown")
+                            enhanced_system_message += f"Recent achievement: {achievement_type}\n"
+                
+                enhanced_system_message += "Use this memory context to personalize the conversation and reference past interactions naturally."
+            
             # Add ambient listening context
             enhanced_system_message += f"\n\nNote: This is an ambient listening conversation. The child may have said a wake word like 'Hey Buddy' before this message. Be natural and conversational."
             
