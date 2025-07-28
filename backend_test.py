@@ -19,7 +19,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Get backend URL from environment
-BACKEND_URL = "https://12805ad1-847f-4cc6-8d3f-22976e36496b.preview.emergentagent.com/api"
+BACKEND_URL = "https://b73d3789-cd82-4a76-b86c-0ed43e507d4e.preview.emergentagent.com/api"
 
 class BackendTester:
     """Comprehensive backend API tester"""

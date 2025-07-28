@@ -1,0 +1,104 @@
+<analysis>
+The previous AI engineer meticulously followed the user's iterative development requests for a Multi-Lingual AI Companion Device for Children (renamed Buddy). The process started with a detailed document analysis and culminated in a fully functional MVP. The engineer demonstrated strong planning, problem-solving (e.g., PDF extraction, secure API key handling), and iterative development. Key achievements include a multi-agent backend, a world-class React UI, and initial integrations of Deepgram and Gemini for voice and conversation. The work then shifted to enhancing the core experience by implementing real-time ambient listening and wake word detection, followed by integrating advanced emotional intelligence, dialogue orchestration, and long-term memory features. The engineer is currently in the process of integrating these new addon-plan agents into the main orchestrator, showcasing a systematic approach to complex feature development.
+</analysis>
+
+<product_requirements>
+The user initially requested a multi-agent web app MVP for a Multi-Lingual AI Companion Device for Children based on an uploaded PDF. The app, later named Buddy, aims to be an emotionally intelligent voice companion for children aged 3-12, serving as a friend, teacher, counselor, coach, and playmate.
+
+Core requirements include:
+- **Multi-Agent System**: Main orchestrator with sub-agents for language processing (STT/TTS), conversation, safety, multilingual support, session management, and parental controls.
+- **Voice Interaction**: Real-time wake word (Hey Buddy, Buddy, Hi Buddy) and ambient listening, Deepgram Nova 3 (STT) and Aura 2 (TTS) with child speech pattern understanding, streaming TTS with barge-in detection.
+- **AI Core**: Gemini 2.0 Flash or 2.5 Flash for reasoning, planning, age-adaptive, context-aware, emotionally intelligent responses (sentiment/energy classification), and conversational repair.
+- **Content Library**: Stories, songs, nursery rhymes, educational materials, games. MVP focused on English and free/open-source content, with Hindi/Hinglish understanding via STT. Future expansion to 10+ Indian languages and cultural content.
+- **User Experience**: World-class, professional yet child-friendly UI/UX, responsive design.
+- **Profile Management**: Robust profile section for children (name, age, location, interests, voice personality).
+- **Parental Controls**: Comprehensive dashboard with time limits, content restrictions, quiet hours, activity monitoring, and notifications.
+- **Long-Term Memory**: In-session memory with daily summaries for parent audit.
+- **Telemetry & Flags**: Usage patterns logging and A/B testing support.
+</product_requirements>
+
+<key_technical_concepts>
+- **Multi-Agent Architecture**: Modular system coordinating specialized agents.
+- **FastAPI**: Python framework for backend APIs.
+- **React**: JavaScript library for dynamic frontend UI.
+- **MongoDB**: NoSQL database for flexible data storage.
+- **Deepgram Nova 3 (STT) & Aura 2 (TTS)**: Advanced speech-to-text and text-to-speech services.
+- **Gemini 2.0/2.5 Flash**: Large Language Model for conversational AI.
+- **WebSockets**: Real-time communication for voice interaction.
+- **Environment Variables**: Secure management of API keys ().
+- **PWA (Progressive Web App)**: For potential offline capabilities and enhanced user experience.
+- **Tailwind CSS**: Utility-first CSS framework for styling.
+</key_technical_concepts>
+
+<code_architecture>
+The application follows a full-stack architecture: React for the frontend, FastAPI for the backend, and MongoDB for the database.
+
+
+
+**Key Files and Changes:**
+
+-   :
+    -   **Importance**: Main FastAPI application, defining API routes and integrating the multi-agent system.
+    -   **Changes**: Initially set up with basic routes. Updated to include endpoints for each agent, then further enhanced for ambient listening () and to incorporate new agents like , , , . Imports  for proper timestamp handling.
+-   :
+    -   **Importance**: Contains the modular implementations of various AI agents.
+    -   **Changes**:
+        -   : Central coordinator. Modified multiple times to integrate newly created agents, handle voice input, and manage the overall dialogue flow, including ambient listening logic.
+        -   : Handles STT/TTS. Modified to integrate Deepgram Nova 3 and Aura 2, support child speech patterns, and now includes methods for prosody support and continuous audio processing.
+        -   : Manages AI interactions. Integrated Gemini 2.0 Flash and updated to support context-aware responses and dialogue plans from the orchestrator.
+        -   : Manages the content library (stories, songs).
+        -   : Handles content moderation.
+        -    (New): For sentiment and energy classification.
+        -    (New): Dynamically picks conversation mode, prosody, and token budget.
+        -    (New): For conversational repair (e.g., Did you mean...?).
+        -    (New): For triggering mini-games.
+        -    (New): For long-term memory and session summaries.
+        -    (New): For tracking usage patterns and flags.
+-   :
+    -   **Importance**: Defines Pydantic models for data validation and MongoDB schemas.
+    -   **Changes**: Created initial models for , , , and  to structure data for MongoDB.
+-   :
+    -   **Importance**: Main React component that orchestrates all other components.
+    -   **Changes**: Updated to incorporate , , , , and  components, managing their states and routing.
+-   :
+    -   **Importance**: Reusable UI components for the frontend.
+    -   **Changes**:
+        -   : Provides overall page structure and styling. Initially had a syntax error that was fixed.
+        -   : Top navigation bar, now includes listening status indicators.
+        -   : 3-step form for user onboarding.
+        -   : Dashboard for parental settings.
+        -   : Main chat window. Significantly updated for ambient listening (always-on microphone, wake word detection UI, real-time listening states, continuous audio processing).
+-   :
+    -   **Importance**: Documents project progress, user requirements, and testing outcomes.
+    -   **Changes**: Continuously updated to reflect implemented features, test results (backend 100% pass, frontend components tested), and new tasks/enhancements.
+</code_architecture>
+
+<pending_tasks>
+-   **Test Suite Enhancement**: Ensure comprehensive real-world tests for all logic branches (not just UI smoke tests).
+-   **Edge Fallback Logic**: Implement robust error handling for STT failures, TTS timeouts, or Gemini crashes.
+-   **Multi-lingual Flexibility**: Stress-test Hindi + English handling.
+-   **Guardian Dashboard**: Design and implement the parent-facing memory snapshot interface.
+-   **A/B Testing Experiments**: Implement A/B testing capabilities for features like emoji usage, game frequency, story types.
+-   **Live Usage Logs & Anomalies**: Start tracking and analyzing live usage data.
+-   **Cold Start Edge Cases**: Audit and address issues for empty memory, silence, or confused child scenarios.
+</pending_tasks>
+
+<current_work>
+The AI engineer is currently in the process of implementing the significant Addon-plan features requested by the user, which aim to transform the AI Companion into an emotionally intelligent, memory-aware, and voice-native product.
+
+Specifically, the following new agent files have been created in the  directory:
+-   : Responsible for classifying user sentiment and energy from utterances.
+-   : Designed to dynamically choose conversation modes, prosody, and response length based on various factors.
+-   : Handles conversational repair, such as detecting and correcting misheard phrases (Did you mean...?).
+-   : Manages the initiation and flow of micro-games when silence or low engagement is detected.
+-   : Will handle in-session memory and persist daily interaction summaries to the database.
+-   : For tracking usage patterns, A/B testing flags, and session metrics.
+
+The  has already been updated to integrate the , , , and . The  was updated to support prosody, and  was updated to support dialogue plans.
+
+The immediate task at hand is to update the main  to fully include and utilize the newly created  and , ensuring that the core dialogue flow can leverage long-term memory and collect usage data. This work is focused on enhancing the backend's intelligence and contextual awareness, building upon the recently completed MVP and ambient listening features. The product is moving towards a more sophisticated, human-like interaction model.
+</current_work>
+
+<optional_next_step>
+Update the  to integrate the new  and .
+</optional_next_step>
