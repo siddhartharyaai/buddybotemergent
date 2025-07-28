@@ -98,7 +98,8 @@ class VoiceAgent:
             
             if response.status_code == 200:
                 result = response.json()
-                logger.info(f"STT result structure: {list(result.keys()) if isinstance(result, dict) else 'not dict'}")
+                logger.info(f"STT result structure: "
+                           f"{list(result.keys()) if isinstance(result, dict) else 'not dict'}")
                 
                 # Extract transcript
                 if result.get("results") and result["results"].get("channels"):
