@@ -444,9 +444,11 @@ const ChatInterface = ({ user, darkMode, setDarkMode, sessionId, onSendMessage }
     audioRef.current = new Audio(audioUrl);
     audioRef.current.play();
     setIsPlaying(true);
+    setIsBotSpeaking(true);
     
     audioRef.current.onended = () => {
       setIsPlaying(false);
+      setIsBotSpeaking(false);
       URL.revokeObjectURL(audioUrl);
     };
   };
