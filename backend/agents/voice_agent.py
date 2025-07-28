@@ -20,17 +20,17 @@ class VoiceAgent:
         self.deepgram_client = DeepgramClient(deepgram_api_key)
         self.voice_personalities = {
             "friendly_companion": {
-                "model": "aura-asteria-en",
+                "model": "aura-2-amalthea-en",  # Use Aura 2 Amalthea as requested
                 "encoding": "linear16",
                 "sample_rate": 24000
             },
             "story_narrator": {
-                "model": "aura-luna-en", 
+                "model": "aura-2-amalthea-en",  # Use Aura 2 Amalthea as requested
                 "encoding": "linear16",
                 "sample_rate": 24000
             },
             "learning_buddy": {
-                "model": "aura-stella-en",
+                "model": "aura-2-amalthea-en",  # Use Aura 2 Amalthea as requested
                 "encoding": "linear16", 
                 "sample_rate": 24000
             }
