@@ -743,3 +743,88 @@ class OrchestratorAgent:
             await self.db.conversations.insert_one(conversation_data)
         except Exception as e:
             logger.error(f"Error storing conversation: {str(e)}")
+    
+    async def generate_daily_memory_snapshot(self, user_id: str) -> Dict[str, Any]:
+        """Generate daily memory snapshot for a user"""
+        try:
+            return await self.memory_agent.generate_daily_memory_snapshot(user_id)
+        except Exception as e:
+            logger.error(f"Error generating daily memory snapshot: {str(e)}")
+            return {"user_id": user_id, "error": str(e)}
+    
+    async def get_user_analytics_dashboard(self, user_id: str, days: int = 7) -> Dict[str, Any]:
+        """Get analytics dashboard for a user"""
+        try:
+            return await self.telemetry_agent.get_analytics_dashboard(user_id, days)
+        except Exception as e:
+            logger.error(f"Error getting user analytics: {str(e)}")
+            return {"error": str(e)}
+    
+    async def get_user_flags(self, user_id: str) -> Dict[str, Any]:
+        """Get feature flags for a user"""
+        try:
+            return await self.telemetry_agent.get_user_flags(user_id)
+        except Exception as e:
+            logger.error(f"Error getting user flags: {str(e)}")
+            return self.telemetry_agent.default_flags
+    
+    async def update_user_flags(self, user_id: str, flags: Dict[str, Any]) -> None:
+        """Update user-specific flags"""
+        try:
+            await self.telemetry_agent.update_user_flags(user_id, flags)
+        except Exception as e:
+            logger.error(f"Error updating user flags: {str(e)}")
+    
+    async def end_session(self, session_id: str) -> Dict[str, Any]:
+        """End a session and cleanup"""
+        try:
+            # Get user profile from session
+            user_profile = self.session_store.get(session_id, {}).get("user_profile", {})
+            user_id = user_profile.get('user_id', 'unknown')
+            
+            # Track session end event
+            await self.telemetry_agent.track_event(
+                "user_session_ended",
+                user_id,
+                session_id,
+                {
+                    "session_duration": 0,  # Will be calculated by telemetry agent
+                    "feature_name": "session_management"
+                }
+            )
+            
+            # Get telemetry summary
+            telemetry_summary = await self.telemetry_agent.end_session(session_id)
+            
+            # Stop ambient listening
+            await self.voice_agent.stop_ambient_listening()
+            
+            # Remove from session store
+            if session_id in self.session_store:
+                del self.session_store[session_id]
+            
+            logger.info(f"Session ended successfully: {session_id}")
+            return telemetry_summary
+            
+        except Exception as e:
+            logger.error(f"Error ending session: {str(e)}")
+            return {"error": str(e)}
+    
+    async def cleanup_old_data(self, memory_days: int = 30, telemetry_days: int = 90) -> Dict[str, Any]:
+        """Clean up old memory snapshots and telemetry data"""
+        try:
+            # Cleanup memory data
+            await self.memory_agent.cleanup_old_memories(memory_days)
+            
+            # Cleanup telemetry data
+            await self.telemetry_agent.cleanup_old_telemetry(telemetry_days)
+            
+            return {
+                "memory_cleanup_days": memory_days,
+                "telemetry_cleanup_days": telemetry_days,
+                "status": "success"
+            }
+            
+        except Exception as e:
+            logger.error(f"Error cleaning up old data: {str(e)}")
+            return {"error": str(e)}
