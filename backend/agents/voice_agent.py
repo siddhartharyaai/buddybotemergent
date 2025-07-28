@@ -312,6 +312,65 @@ class VoiceAgent:
         
         return ' '.join(corrected_words)
     
+    async def text_to_speech_with_prosody(self, text: str, personality: str = "friendly_companion", prosody: Dict[str, Any] = None) -> Optional[str]:
+        """Convert text to speech with prosody adjustments"""
+        try:
+            # Get voice configuration
+            voice_config = self.voice_personalities.get(personality, self.voice_personalities["friendly_companion"])
+            
+            # Apply prosody adjustments if provided
+            if prosody:
+                # Adjust model based on prosody tone
+                tone = prosody.get("tone", "friendly")
+                if tone == "soothing":
+                    voice_config["model"] = "aura-luna-en"  # Softer voice
+                elif tone == "excited":
+                    voice_config["model"] = "aura-asteria-en"  # More energetic
+                elif tone == "narrative":
+                    voice_config["model"] = "aura-luna-en"  # Good for storytelling
+                
+                # Adjust text based on prosody pace
+                pace = prosody.get("pace", "normal")
+                if pace == "slow" or pace == "very_slow":
+                    # Add pauses for slower speech
+                    text = text.replace(".", "... ").replace(",", ", ")
+                elif pace == "fast":
+                    # Remove some pauses for faster speech
+                    text = text.replace("... ", ". ")
+                
+                # Adjust emphasis
+                emphasis = prosody.get("emphasis", "balanced")
+                if emphasis == "dramatic":
+                    # Add more emphasis punctuation
+                    text = text.replace("!", "!!").replace("?", "??")
+                elif emphasis == "calming":
+                    # Remove excessive punctuation
+                    text = text.replace("!!", "!").replace("??", "?")
+            
+            # Configure TTS options
+            options = SpeakOptions(
+                model=voice_config["model"],
+                encoding=voice_config["encoding"],
+                sample_rate=voice_config["sample_rate"]
+            )
+            
+            # Create speak source
+            speak_source = SpeakSource(text)
+            
+            # Generate speech
+            response = self.deepgram_client.speak.rest.v("1").stream(speak_source, options)
+            
+            # Convert to base64 for frontend
+            audio_base64 = base64.b64encode(response.stream.read()).decode('utf-8')
+            
+            logger.info(f"TTS with prosody successful for text: {text[:50]}...")
+            return audio_base64
+            
+        except Exception as e:
+            logger.error(f"TTS with prosody error: {str(e)}")
+            # Fallback to regular TTS
+            return await self.text_to_speech(text, personality)
+
     async def text_to_speech(self, text: str, personality: str = "friendly_companion") -> Optional[str]:
         """Convert text to speech using Deepgram Aura 2"""
         try:
