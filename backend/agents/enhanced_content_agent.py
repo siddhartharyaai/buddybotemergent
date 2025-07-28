@@ -93,6 +93,24 @@ class EnhancedContentAgent:
                     "age_groups": ["6-9", "10-12"],
                     "tags": ["school", "math", "wordplay"],
                     "emotional_cue": "chuckle"
+                },
+                {
+                    "id": "joke_teddy_bear",
+                    "setup": "Why don't teddy bears ever eat dessert?",
+                    "punchline": "Because they're always stuffed!",
+                    "reaction": "🧸 Hehe! Teddy bears are always stuffed with fluff! That's so silly!",
+                    "age_groups": ["3-8"],
+                    "tags": ["toys", "wordplay", "food"],
+                    "emotional_cue": "giggle"
+                },
+                {
+                    "id": "joke_fish_piano",
+                    "setup": "What do you call a fish that plays piano?",
+                    "punchline": "A piano tuna!",
+                    "reaction": "🐟 Get it? Piano TUNA! Music and fish together - so funny!",
+                    "age_groups": ["4-10"],
+                    "tags": ["animals", "music", "wordplay"],
+                    "emotional_cue": "laugh"
                 }
             ],
             "riddles": [
