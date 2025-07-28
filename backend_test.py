@@ -56,6 +56,18 @@ class BackendTester:
             ("Content Suggestions", self.test_content_suggestions),
             ("Content by Type", self.test_content_by_type),
             ("Voice Personalities", self.test_voice_personalities),
+            ("Memory Snapshot Generation", self.test_memory_snapshot_generation),
+            ("Memory Context Retrieval", self.test_memory_context_retrieval),
+            ("Memory Snapshots History", self.test_memory_snapshots_history),
+            ("Enhanced Conversation with Memory", self.test_enhanced_conversation_with_memory),
+            ("Analytics Dashboard", self.test_analytics_dashboard),
+            ("Global Analytics", self.test_global_analytics),
+            ("User Feature Flags", self.test_user_feature_flags),
+            ("Update Feature Flags", self.test_update_feature_flags),
+            ("Session End Telemetry", self.test_session_end_telemetry),
+            ("Agent Status with Memory & Telemetry", self.test_agent_status_enhanced),
+            ("Maintenance Cleanup", self.test_maintenance_cleanup),
+            ("Ambient Listening Integration", self.test_ambient_listening_integration),
             ("Error Handling", self.test_error_handling)
         ]
         
