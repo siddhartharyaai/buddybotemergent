@@ -604,7 +604,7 @@ class OrchestratorAgent:
         }
     
     async def start_ambient_listening(self, session_id: str, user_profile: Dict[str, Any]) -> Dict[str, Any]:
-        """Start ambient listening for wake word detection with telemetry"""
+        """Start ambient listening for wake word detection with telemetry and session tracking"""
         try:
             user_id = user_profile.get('user_id', 'unknown')
             
@@ -623,9 +623,12 @@ class OrchestratorAgent:
             
             result = await self.voice_agent.start_ambient_listening(session_id, user_profile)
             
-            # Store ambient listening state
+            # Store ambient listening state with session tracking
             if session_id not in self.session_store:
-                self.session_store[session_id] = {}
+                self.session_store[session_id] = {
+                    'session_start_time': datetime.utcnow(),
+                    'interaction_count': 0
+                }
             
             self.session_store[session_id]["ambient_listening"] = True
             self.session_store[session_id]["user_profile"] = user_profile
