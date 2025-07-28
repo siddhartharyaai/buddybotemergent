@@ -203,127 +203,54 @@ async def create_conversation_session(session_data: ConversationSessionCreate):
         logger.error(f"Error creating conversation session: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to create conversation session")
 
-# Ambient Listening Endpoints
-@api_router.post("/ambient/start")
-async def start_ambient_listening(request: dict):
-    """Start ambient listening for wake word detection"""
+# Voice Processing Endpoints
+@api_router.post("/voice/process_audio")
+async def process_audio_simple(
+    session_id: str = Form(...),
+    user_id: str = Form(...),
+    audio_base64: str = Form(...)
+):
+    """Simplified voice processing - STT + conversation + TTS in one call"""
     try:
-        if not orchestrator:
-            raise HTTPException(status_code=500, detail="Multi-agent system not initialized")
+        # Decode base64 audio
+        audio_data = base64.b64decode(audio_base64)
         
-        session_id = request.get("session_id")
-        user_id = request.get("user_id")
+        # Speech to Text
+        transcript = await orchestrator.voice_agent.speech_to_text(audio_data)
+        if not transcript:
+            return {"status": "error", "detail": "Could not transcribe audio"}
         
-        if not session_id or not user_id:
-            raise HTTPException(status_code=400, detail="session_id and user_id are required")
+        # Get AI response
+        conversation_response = await orchestrator.process_conversation(
+            session_id=session_id,
+            user_id=user_id,
+            message=transcript,
+            is_voice=True
+        )
         
-        # Get user profile
-        user_profile = await db.user_profiles.find_one({"id": user_id})
-        if not user_profile:
-            raise HTTPException(status_code=404, detail="User profile not found")
-        
-        result = await orchestrator.start_ambient_listening(session_id, user_profile)
-        
-        return result
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error starting ambient listening: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to start ambient listening")
-
-@api_router.post("/ambient/stop")
-async def stop_ambient_listening(request: dict):
-    """Stop ambient listening"""
-    try:
-        if not orchestrator:
-            raise HTTPException(status_code=500, detail="Multi-agent system not initialized")
-        
-        session_id = request.get("session_id")
-        if not session_id:
-            raise HTTPException(status_code=400, detail="session_id is required")
-        
-        result = await orchestrator.stop_ambient_listening(session_id)
-        
-        return result
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error stopping ambient listening: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to stop ambient listening")
-
-@api_router.post("/ambient/process")
-async def process_ambient_audio(request: dict):
-    """Process ambient audio for wake word detection"""
-    try:
-        if not orchestrator:
-            raise HTTPException(status_code=500, detail="Multi-agent system not initialized")
-        
-        session_id = request.get("session_id")
-        audio_base64 = request.get("audio_base64")
-        
-        if not session_id:
-            logger.error("Missing session_id in ambient/process request")
-            raise HTTPException(status_code=400, detail="session_id is required")
-        
-        if not audio_base64:
-            logger.error("Missing audio_base64 in ambient/process request")
-            raise HTTPException(status_code=400, detail="audio_base64 is required")
-        
-        # Log audio data details
-        logger.info(f"Processing ambient audio: session_id={session_id}, audio_base64_length={len(audio_base64)}")
-        
-        # Decode audio data
-        try:
-            audio_data = base64.b64decode(audio_base64)
-            logger.info(f"Decoded audio data: {len(audio_data)} bytes")
-        except Exception as decode_error:
-            logger.error(f"Base64 decode error: {str(decode_error)}")
-            raise HTTPException(status_code=400, detail="Invalid base64 audio data")
-        
-        if len(audio_data) < 100:  # Minimum reasonable audio size
-            logger.warning(f"Audio data too small: {len(audio_data)} bytes")
-            return {"status": "no_speech", "listening_state": "ambient", "reason": "audio_too_small"}
-        
-        # Process through orchestrator
-        result = await orchestrator.process_ambient_audio(session_id, audio_data)
-        
-        logger.info(f"Ambient processing result: {result.get('status', 'unknown')}")
-        return result
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error processing ambient audio: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Failed to process ambient audio")
-
-@api_router.get("/ambient/status/{session_id}")
-async def get_ambient_status(session_id: str):
-    """Get ambient listening status"""
-    try:
-        if not orchestrator:
-            raise HTTPException(status_code=500, detail="Multi-agent system not initialized")
-        
-        # Check conversation timeout
-        timeout_result = await orchestrator.check_conversation_timeout(session_id)
-        
-        # Get session info
-        session_info = orchestrator.session_store.get(session_id, {})
+        # Text to Speech
+        if conversation_response.get("response_text"):
+            response_audio = await orchestrator.voice_agent.text_to_speech(
+                conversation_response["response_text"],
+                personality="friendly_companion"
+            )
+            conversation_response["response_audio"] = response_audio
         
         return {
-            "session_id": session_id,
-            "ambient_listening": session_info.get("ambient_listening", False),
-            "conversation_active": timeout_result.get("status") == "active",
-            "listening_state": timeout_result.get("listening_state", "inactive"),
-            "timeout_status": timeout_result
+            "status": "success",
+            "transcript": transcript,
+            "response_text": conversation_response.get("response_text", ""),
+            "response_audio": conversation_response.get("response_audio"),
+            "content_type": conversation_response.get("content_type", "conversation"),
+            "metadata": conversation_response.get("metadata", {})
         }
         
-    except HTTPException:
-        raise
     except Exception as e:
-        logger.error(f"Error getting ambient status: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to get ambient status")
+        logger.error(f"Voice processing error: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"status": "error", "detail": str(e)}
+        )
 
 @api_router.post("/conversations/voice", response_model=AIResponse)
 async def process_voice_input(voice_input: VoiceInput):
