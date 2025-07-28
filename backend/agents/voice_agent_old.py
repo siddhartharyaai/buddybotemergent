@@ -1,5 +1,5 @@
 """
-Voice Agent - Handles Speech-to-Text and Text-to-Speech using Deepgram REST API with Wake Word Detection
+Voice Agent - Handles Speech-to-Text and Text-to-Speech using Deepgram with Wake Word Detection
 """
 import asyncio
 import logging
@@ -7,27 +7,31 @@ import base64
 import io
 import re
 import time
-import aiohttp
-import json
 from typing import Optional, Dict, Any, List
+from deepgram import DeepgramClient, PrerecordedOptions, SpeakOptions, LiveTranscriptionEvents, LiveOptions
 
 logger = logging.getLogger(__name__)
 
 class VoiceAgent:
-    """Handles voice processing with Deepgram Nova 3 STT and Aura 2 TTS using REST API with wake word detection"""
+    """Handles voice processing with Deepgram Nova 3 STT and Aura 2 TTS with wake word detection"""
     
     def __init__(self, deepgram_api_key: str):
-        self.api_key = deepgram_api_key
-        self.base_url = "https://api.deepgram.com/v1"
+        self.deepgram_client = DeepgramClient(deepgram_api_key)
         self.voice_personalities = {
             "friendly_companion": {
                 "model": "aura-2-amalthea-en",  # Use Aura 2 Amalthea as requested
+                "encoding": "linear16",
+                "sample_rate": 24000
             },
             "story_narrator": {
                 "model": "aura-2-amalthea-en",  # Use Aura 2 Amalthea as requested
+                "encoding": "linear16",
+                "sample_rate": 24000
             },
             "learning_buddy": {
                 "model": "aura-2-amalthea-en",  # Use Aura 2 Amalthea as requested
+                "encoding": "linear16", 
+                "sample_rate": 24000
             }
         }
         
@@ -47,7 +51,7 @@ class VoiceAgent:
         self.conversation_active = False
         self.silence_timeout = 5.0  # seconds
         
-        logger.info("Voice Agent initialized with Deepgram REST API and Wake Word Detection")
+        logger.info("Voice Agent initialized with Deepgram and Wake Word Detection")
     
     async def detect_wake_word(self, text: str) -> bool:
         """Detect wake word in transcribed text"""
@@ -224,52 +228,41 @@ class VoiceAgent:
         return {"status": "active", "listening_state": "active"}
 
     async def speech_to_text(self, audio_data: bytes, enhanced_for_children: bool = True) -> Optional[str]:
-        """Convert speech to text using Deepgram Nova 3 REST API with enhanced child speech recognition"""
+        """Convert speech to text using Deepgram Nova 3 with enhanced child speech recognition"""
         try:
-            # Prepare headers
-            headers = {
-                "Authorization": f"Token {self.api_key}",
-                "Content-Type": "audio/wav"
-            }
+            # Configure STT options for child speech and ambient listening
+            options = PrerecordedOptions(
+                model="nova-3",  # Use Nova 3 for better multi-language speech recognition as requested
+                language="multi",  # Support multi-language as requested
+                smart_format=True,
+                punctuate=True,
+                diarize=False,
+                alternatives=1,
+                tier="nova",
+                endpointing=300,  # Shorter endpointing for responsiveness
+                vad_turnoff=300,  # Voice activity detection
+                utterance_end_ms=1000  # Shorter utterance end for conversation flow
+            )
             
-            # Prepare query parameters for STT options
-            params = {
-                "model": "nova-3",  # Use Nova 3 for better multi-language speech recognition as requested
-                "language": "multi",  # Support multi-language as requested
-                "smart_format": "true",
-                "punctuate": "true",
-                "diarize": "false",
-                "alternatives": "1",
-                "tier": "nova",
-                "endpointing": "300",  # Shorter endpointing for responsiveness
-                "vad_turnoff": "300",  # Voice activity detection
-                "utterance_end_ms": "1000"  # Shorter utterance end for conversation flow
-            }
+            # Create audio source
+            audio_source = {"buffer": audio_data}
             
-            # Make REST API call
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    f"{self.base_url}/listen",
-                    headers=headers,
-                    params=params,
-                    data=audio_data
-                ) as response:
-                    if response.status == 200:
-                        result = await response.json()
-                        
-                        # Extract transcript
-                        if result.get("results") and result["results"].get("channels"):
-                            transcript = result["results"]["channels"][0]["alternatives"][0]["transcript"]
-                            
-                            # Enhanced processing for child speech
-                            if enhanced_for_children:
-                                transcript = self.enhance_child_speech_recognition(transcript)
-                            
-                            if transcript.strip():
-                                logger.info(f"STT successful: {transcript[:100]}...")
-                                return transcript.strip()
-                    else:
-                        logger.error(f"STT API error: {response.status} - {await response.text()}")
+            # Process audio
+            response = self.deepgram_client.listen.rest.v("1").transcribe_file(
+                audio_source, options
+            )
+            
+            # Extract transcript
+            if response.results and response.results.channels:
+                transcript = response.results.channels[0].alternatives[0].transcript
+                
+                # Enhanced processing for child speech
+                if enhanced_for_children:
+                    transcript = self.enhance_child_speech_recognition(transcript)
+                
+                if transcript.strip():
+                    logger.info(f"STT successful: {transcript[:100]}...")
+                    return transcript.strip()
             
             return None
             
@@ -318,22 +311,21 @@ class VoiceAgent:
         return ' '.join(corrected_words)
     
     async def text_to_speech_with_prosody(self, text: str, personality: str = "friendly_companion", prosody: Dict[str, Any] = None) -> Optional[str]:
-        """Convert text to speech with prosody adjustments using REST API"""
+        """Convert text to speech with prosody adjustments"""
         try:
             # Get voice configuration
             voice_config = self.voice_personalities.get(personality, self.voice_personalities["friendly_companion"])
             
             # Apply prosody adjustments if provided
-            model = voice_config["model"]
             if prosody:
                 # Adjust model based on prosody tone
                 tone = prosody.get("tone", "friendly")
                 if tone == "soothing":
-                    model = "aura-luna-en"  # Softer voice
+                    voice_config["model"] = "aura-luna-en"  # Softer voice
                 elif tone == "excited":
-                    model = "aura-asteria-en"  # More energetic
+                    voice_config["model"] = "aura-asteria-en"  # More energetic
                 elif tone == "narrative":
-                    model = "aura-luna-en"  # Good for storytelling
+                    voice_config["model"] = "aura-luna-en"  # Good for storytelling
                 
                 # Adjust text based on prosody pace
                 pace = prosody.get("pace", "normal")
@@ -353,41 +345,23 @@ class VoiceAgent:
                     # Remove excessive punctuation
                     text = text.replace("!!", "!").replace("??", "?")
             
-            # Prepare headers
-            headers = {
-                "Authorization": f"Token {self.api_key}",
-                "Content-Type": "application/json"
-            }
+            # Configure TTS options
+            options = SpeakOptions(
+                model=voice_config["model"],
+                encoding=voice_config["encoding"],
+                sample_rate=voice_config["sample_rate"]
+            )
             
-            # Prepare request body
-            payload = {
+            # Generate speech using the correct format
+            response = self.deepgram_client.speak.rest.v("1").stream({
                 "text": text
-            }
+            }, options)
             
-            # Prepare query parameters
-            params = {
-                "model": model
-            }
+            # Convert to base64 for frontend
+            audio_base64 = base64.b64encode(response.stream.read()).decode('utf-8')
             
-            # Make REST API call
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    f"{self.base_url}/speak",
-                    headers=headers,
-                    params=params,
-                    json=payload
-                ) as response:
-                    if response.status == 200:
-                        audio_data = await response.read()
-                        # Convert to base64 for frontend
-                        audio_base64 = base64.b64encode(audio_data).decode('utf-8')
-                        
-                        logger.info(f"TTS with prosody successful for text: {text[:50]}...")
-                        return audio_base64
-                    else:
-                        logger.error(f"TTS API error: {response.status} - {await response.text()}")
-            
-            return None
+            logger.info(f"TTS with prosody successful for text: {text[:50]}...")
+            return audio_base64
             
         except Exception as e:
             logger.error(f"TTS with prosody error: {str(e)}")
@@ -395,84 +369,51 @@ class VoiceAgent:
             return await self.text_to_speech(text, personality)
 
     async def text_to_speech(self, text: str, personality: str = "friendly_companion") -> Optional[str]:
-        """Convert text to speech using Deepgram Aura 2 REST API"""
+        """Convert text to speech using Deepgram Aura 2"""
         try:
             # Get voice configuration
             voice_config = self.voice_personalities.get(personality, self.voice_personalities["friendly_companion"])
             
-            # Prepare headers
-            headers = {
-                "Authorization": f"Token {self.api_key}",
-                "Content-Type": "application/json"
-            }
+            # Configure TTS options
+            options = SpeakOptions(
+                model=voice_config["model"],
+                encoding=voice_config["encoding"],
+                sample_rate=voice_config["sample_rate"]
+            )
             
-            # Prepare request body
-            payload = {
+            # Generate speech using the correct format
+            response = self.deepgram_client.speak.rest.v("1").stream({
                 "text": text
-            }
+            }, options)
             
-            # Prepare query parameters
-            params = {
-                "model": voice_config["model"]
-            }
+            # Convert to base64 for frontend
+            audio_base64 = base64.b64encode(response.stream.read()).decode('utf-8')
             
-            # Make REST API call
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    f"{self.base_url}/speak",
-                    headers=headers,
-                    params=params,
-                    json=payload
-                ) as response:
-                    if response.status == 200:
-                        audio_data = await response.read()
-                        # Convert to base64 for frontend
-                        audio_base64 = base64.b64encode(audio_data).decode('utf-8')
-                        
-                        logger.info(f"TTS successful for text: {text[:50]}...")
-                        return audio_base64
-                    else:
-                        logger.error(f"TTS API error: {response.status} - {await response.text()}")
-            
-            return None
+            logger.info(f"TTS successful for text: {text[:50]}...")
+            return audio_base64
             
         except Exception as e:
             logger.error(f"TTS error: {str(e)}")
             return None
     
     async def detect_language(self, audio_data: bytes) -> str:
-        """Detect language from audio using REST API (supports English + Hindi/Hinglish)"""
+        """Detect language from audio (supports English + Hindi/Hinglish)"""
         try:
-            # Prepare headers
-            headers = {
-                "Authorization": f"Token {self.api_key}",
-                "Content-Type": "audio/wav"
-            }
+            options = PrerecordedOptions(
+                model="nova-2",
+                detect_language=True,
+                alternatives=1
+            )
             
-            # Prepare query parameters
-            params = {
-                "model": "nova-2",
-                "detect_language": "true",
-                "alternatives": "1"
-            }
+            audio_source = {"buffer": audio_data}
+            response = self.deepgram_client.listen.rest.v("1").transcribe_file(
+                audio_source, options
+            )
             
-            # Make REST API call
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    f"{self.base_url}/listen",
-                    headers=headers,
-                    params=params,
-                    data=audio_data
-                ) as response:
-                    if response.status == 200:
-                        result = await response.json()
-                        
-                        if result.get("results") and result["results"].get("channels"):
-                            detected_lang = result["results"]["channels"][0].get("detected_language", "en")
-                            logger.info(f"Detected language: {detected_lang}")
-                            return detected_lang
-                    else:
-                        logger.error(f"Language detection API error: {response.status} - {await response.text()}")
+            if response.results and response.results.channels:
+                detected_lang = response.results.channels[0].detected_language
+                logger.info(f"Detected language: {detected_lang}")
+                return detected_lang
             
             return "en"  # Default to English
             
