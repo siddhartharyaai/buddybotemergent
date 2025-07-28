@@ -36,8 +36,10 @@ class OrchestratorAgent:
         self.dialogue_orchestrator = DialogueOrchestrator()
         self.repair_agent = RepairAgent()
         self.micro_game_agent = MicroGameAgent()
+        self.memory_agent = MemoryAgent(db, gemini_api_key)
+        self.telemetry_agent = TelemetryAgent(db)
         
-        logger.info("Enhanced Orchestrator Agent initialized successfully")
+        logger.info("Enhanced Orchestrator Agent with Memory & Telemetry initialized successfully")
     
     async def process_ambient_audio_enhanced(self, session_id: str, audio_data: bytes) -> Dict[str, Any]:
         """Enhanced ambient audio processing with emotional intelligence"""
