@@ -437,25 +437,89 @@ class ConversationAgent:
         
         return fallback_responses[age_group]
     
-    def _is_story_request(self, user_input: str) -> bool:
-        """Check if the user is requesting a story"""
-        story_keywords = [
-            'story', 'tell me a story', 'once upon a time', 'fairy tale', 
-            'bedtime story', 'tale', 'adventure', 'princess', 'dragon',
-            'magic', 'kingdom', 'forest', 'castle', 'hero', 'villain'
-        ]
+    def _is_content_request(self, user_input: str) -> Tuple[bool, Optional[str]]:
+        """Enhanced content detection for multiple content types"""
+        content_patterns = {
+            "joke": [
+                r"\b(joke|funny|laugh|giggle|humor|hilarious)\b",
+                r"\b(tell me something funny|make me laugh)\b",
+                r"\b(know any jokes|got a joke)\b"
+            ],
+            "riddle": [
+                r"\b(riddle|puzzle|guess|brain teaser|mystery)\b",
+                r"\b(can you give me a riddle|riddle me this)\b",
+                r"\b(what am I|guess what)\b"
+            ],
+            "fact": [
+                r"\b(fact|did you know|tell me about|trivia|interesting|learn)\b",
+                r"\b(what is|how does|why does|explain)\b",
+                r"\b(cool fact|amazing fact)\b"
+            ],
+            "rhyme": [
+                r"\b(rhyme|poem|nursery rhyme|poetry|verse)\b",
+                r"\b(roses are red|twinkle twinkle|hickory dickory)\b",
+                r"\b(recite a poem|tell me a rhyme)\b"
+            ],
+            "song": [
+                r"\b(song|sing|music|melody|tune|lullaby)\b",
+                r"\b(let's sing|can you sing|sing me|play a song)\b",
+                r"\b(favorite song|nursery song)\b"
+            ],
+            "story": [
+                r"\b(story|tale|once upon|tell me about|adventure|fairy tale)\b",
+                r"\b(bedtime story|read me|story time)\b",
+                r"\b(what happened|tell me the story)\b"
+            ],
+            "game": [
+                r"\b(game|play|fun|activity|challenge|let's play)\b",
+                r"\b(what can we do|something fun|play with me)\b",
+                r"\b(bored|entertain me)\b"
+            ]
+        }
+        
         user_input_lower = user_input.lower()
-        return any(keyword in user_input_lower for keyword in story_keywords)
-    
-    def _is_song_request(self, user_input: str) -> bool:
-        """Check if the user is requesting a song"""
-        song_keywords = [
-            'song', 'sing', 'music', 'lullaby', 'nursery rhyme',
-            'twinkle twinkle', 'abc song', 'happy birthday', 'rhyme',
-            'melody', 'tune', 'lyrics', 'sing me'
-        ]
-        user_input_lower = user_input.lower()
-        return any(keyword in user_input_lower for keyword in song_keywords)
+        
+        # Check each content type
+        for content_type, patterns in content_patterns.items():
+            for pattern in patterns:
+                if re.search(pattern, user_input_lower):
+                    return True, content_type
+        
+        return False, None
+
+    def _format_content_response_with_emotion(self, content_type: str, content: Dict[str, Any], user_profile: Dict[str, Any]) -> str:
+        """Format content responses with proper emotional expression and re-engagement"""
+        name = user_profile.get('name', 'friend')
+        
+        if content_type == "joke":
+            return f"{content['setup']}\n\n{content['punchline']}\n\n{content.get('reaction', '😂 Haha!')} Want another joke, {name}?"
+        
+        elif content_type == "riddle":
+            return f"Here's a riddle for you, {name}! 🧩\n\n{content['question']}\n\nTake your time to think! When you're ready, tell me your answer and I'll let you know if you got it!"
+        
+        elif content_type == "fact":
+            return f"{content.get('text', content.get('fact', ''))} {content.get('reaction', '🤯 Amazing, right?')} Want to learn another cool fact, {name}?"
+        
+        elif content_type == "rhyme":
+            beautiful_msg = "🎵 Wasn't that beautiful?"
+            return f"Here's a lovely rhyme for you, {name}! ✨\n\n{content.get('text', content.get('content', ''))}\n\n{content.get('reaction', beautiful_msg)} Want to hear another rhyme?"
+        
+        elif content_type == "song":
+            return f"Let's sing together, {name}! 🎵\n\n{content.get('text', content.get('content', ''))}\n\n{content.get('reaction', '🎶 That was fun!')} Should we sing another song?"
+        
+        elif content_type == "story":
+            full_story = content.get('text', content.get('content', ''))
+            moral = content.get('moral', '')
+            story_end = f"\n\nThe End! ✨"
+            if moral:
+                story_end += f"\n\n💫 {moral}"
+            story_end += f"\n\nWhat did you think of that story, {name}? Want to hear another one?"
+            return full_story + story_end
+        
+        elif content_type == "game":
+            return f"{content.get('intro', content.get('text', ''))} {content.get('reaction', '🎮 This will be fun!')} Are you ready to play, {name}?"
+        
+        return content.get('text', str(content))
     
     async def get_conversation_history(self, session_id: str) -> list:
         """Get conversation history for a session"""
