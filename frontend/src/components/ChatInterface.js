@@ -405,12 +405,11 @@ const ChatInterface = ({ user, darkMode, setDarkMode, sessionId, onSendMessage }
     reader.readAsDataURL(audioBlob);
   };
 
-  const sendTextMessage = async (e) => {
-    e.preventDefault();
-    if (!textInput.trim() || isLoading) return;
+  const sendTextMessage = async (messageText) => {
+    if (!messageText || !messageText.trim() || isLoading) return;
 
-    // Store the message content before clearing
-    const messageContent = textInput.trim();
+    // Store the message content
+    const messageContent = messageText.trim();
     
     const userMessage = {
       id: Date.now(),
@@ -421,7 +420,6 @@ const ChatInterface = ({ user, darkMode, setDarkMode, sessionId, onSendMessage }
     };
 
     setMessages(prev => [...prev, userMessage]);
-    setTextInput(''); // Clear input after storing the message
     setIsLoading(true);
 
     try {
