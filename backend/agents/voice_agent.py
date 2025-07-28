@@ -42,45 +42,31 @@ class VoiceAgent:
                 logger.warning(f"Audio data too small for STT: {len(audio_data)} bytes")
                 return None
             
-            # Check if audio looks like a valid audio format
-            audio_header = audio_data[:12] if len(audio_data) >= 12 else audio_data
-            logger.info(f"Audio header: {audio_header}")
+            # Detect audio format
+            if audio_data.startswith(b'\x1a\x45\xdf\xa3'):  # WebM signature
+                content_type = "audio/webm"
+            elif audio_data.startswith(b'RIFF'):
+                content_type = "audio/wav"
+            elif audio_data.startswith(b'OggS'):
+                content_type = "audio/ogg"
+            else:
+                content_type = "audio/wav"  # Default
             
             # Prepare headers
             headers = {
                 "Authorization": f"Token {self.api_key}",
-                "Content-Type": "audio/wav"  # Assume WAV format
+                "Content-Type": content_type
             }
             
-            # If the audio data looks like WebM, try to handle it
-            if audio_data.startswith(b'\x1a\x45\xdf\xa3'):  # WebM signature
-                logger.info("Detected WebM audio format")
-                headers["Content-Type"] = "audio/webm"
-            elif audio_data.startswith(b'RIFF'):
-                logger.info("Detected RIFF/WAV audio format")
-                headers["Content-Type"] = "audio/wav"
-            elif audio_data.startswith(b'OggS'):
-                logger.info("Detected OGG audio format")
-                headers["Content-Type"] = "audio/ogg"
-            else:
-                logger.warning("Unknown audio format, assuming WAV")
-            
-            # Prepare query parameters for STT options
+            # Simplified parameters for reliability
             params = {
-                "model": "nova-3",  # Use Nova 3 for better multi-language speech recognition as requested
-                "language": "multi",  # Support multi-language as requested
+                "model": "nova-2",
+                "language": "en",
                 "smart_format": "true",
                 "punctuate": "true",
-                "diarize": "false",
-                "alternatives": "1",
-                "tier": "nova",
-                "endpointing": "300",  # Shorter endpointing for responsiveness
-                "vad_turnoff": "300",  # Voice activity detection
-                "utterance_end_ms": "1000"  # Shorter utterance end for conversation flow
             }
             
-            logger.info(f"Making STT request to Deepgram: {len(audio_data)} bytes, "
-                       f"Content-Type: {headers['Content-Type']}")
+            logger.info(f"Making STT request to Deepgram: {len(audio_data)} bytes, Content-Type: {content_type}")
             
             # Make REST API call using requests in async context
             loop = asyncio.get_event_loop()
@@ -90,7 +76,8 @@ class VoiceAgent:
                     f"{self.base_url}/listen",
                     headers=headers,
                     params=params,
-                    data=audio_data
+                    data=audio_data,
+                    timeout=10
                 )
             )
             
@@ -98,34 +85,29 @@ class VoiceAgent:
             
             if response.status_code == 200:
                 result = response.json()
-                logger.info(f"STT result structure: "
-                           f"{list(result.keys()) if isinstance(result, dict) else 'not dict'}")
                 
                 # Extract transcript
                 if result.get("results") and result["results"].get("channels"):
-                    transcript = result["results"]["channels"][0]["alternatives"][0][
-                        "transcript"]
-                    
-                    # Enhanced processing for child speech
-                    if enhanced_for_children:
-                        transcript = self.enhance_child_speech_recognition(transcript)
-                    
-                    if transcript.strip():
-                        logger.info(f"STT successful: '{transcript}'")
-                        return transcript.strip()
-                    else:
-                        logger.info("STT returned empty transcript")
-                        return None
-                else:
-                    logger.warning(f"STT response missing expected structure: {result}")
-                    return None
+                    channel = result["results"]["channels"][0]
+                    if channel.get("alternatives") and len(channel["alternatives"]) > 0:
+                        transcript = channel["alternatives"][0]["transcript"]
+                        
+                        # Enhanced processing for child speech
+                        if enhanced_for_children:
+                            transcript = self.enhance_child_speech_recognition(transcript)
+                        
+                        if transcript.strip():
+                            logger.info(f"STT successful: '{transcript}'")
+                            return transcript.strip()
+                
+                logger.warning("STT response missing expected structure or empty transcript")
+                return None
             else:
-                error_text = response.text
-                logger.error(f"STT API error: {response.status_code} - {error_text}")
+                logger.error(f"STT API error: {response.status_code} - {response.text}")
                 return None
             
         except Exception as e:
-            logger.error(f"STT processing error: {str(e)}", exc_info=True)
+            logger.error(f"STT processing error: {str(e)}")
             return None
     
     def enhance_child_speech_recognition(self, transcript: str) -> str:
