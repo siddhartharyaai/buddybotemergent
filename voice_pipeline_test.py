@@ -19,7 +19,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Get backend URL from environment
-BACKEND_URL = "https://b73d3789-cd82-4a76-b86c-0ed43e507d4e.preview.emergentagent.com/api"
+BACKEND_URL = "https://0e691164-1ad3-4212-a68b-68f8ac6e5b6a.preview.emergentagent.com/api"
 
 class VoicePipelineTester:
     """Critical voice pipeline functionality tester"""
