@@ -112,6 +112,8 @@ async def test_fixed_voice_endpoint():
                     }
             else:
                 error_text = await response.text()
+                logger.info(f"Error response text: {error_text}")
+                
                 if "process_conversation" in error_text:
                     logger.error("❌ FAILED: OLD ERROR STILL EXISTS")
                     return {
