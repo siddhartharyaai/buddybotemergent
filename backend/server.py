@@ -212,37 +212,43 @@ async def process_audio_simple(
 ):
     """Simplified voice processing - STT + conversation + TTS in one call"""
     try:
+        if not orchestrator:
+            raise HTTPException(status_code=500, detail="Multi-agent system not initialized")
+        
+        # Get user profile
+        user_profile = await db.user_profiles.find_one({"id": user_id})
+        if not user_profile:
+            # Create a default profile for testing
+            user_profile = {
+                "id": user_id,
+                "name": "Test User",
+                "age": 7,
+                "preferences": {}
+            }
+        
         # Decode base64 audio
         audio_data = base64.b64decode(audio_base64)
         
-        # Speech to Text
-        transcript = await orchestrator.voice_agent.speech_to_text(audio_data)
-        if not transcript:
-            return {"status": "error", "detail": "Could not transcribe audio"}
-        
-        # Get AI response
-        conversation_response = await orchestrator.process_conversation(
-            session_id=session_id,
-            user_id=user_id,
-            message=transcript,
-            is_voice=True
+        # Process through orchestrator using existing method
+        result = await orchestrator.process_voice_input(
+            session_id,
+            audio_data,
+            user_profile
         )
         
-        # Text to Speech
-        if conversation_response.get("response_text"):
-            response_audio = await orchestrator.voice_agent.text_to_speech(
-                conversation_response["response_text"],
-                personality="friendly_companion"
+        if "error" in result:
+            return JSONResponse(
+                status_code=400,
+                content={"status": "error", "detail": result["error"]}
             )
-            conversation_response["response_audio"] = response_audio
         
         return {
             "status": "success",
-            "transcript": transcript,
-            "response_text": conversation_response.get("response_text", ""),
-            "response_audio": conversation_response.get("response_audio"),
-            "content_type": conversation_response.get("content_type", "conversation"),
-            "metadata": conversation_response.get("metadata", {})
+            "transcript": result.get("transcript", ""),
+            "response_text": result.get("response_text", ""),
+            "response_audio": result.get("response_audio"),
+            "content_type": result.get("content_type", "conversation"),
+            "metadata": result.get("metadata", {})
         }
         
     except Exception as e:
