@@ -142,6 +142,14 @@ const ProfileSetup = ({ isOpen, onClose, onSave, initialData = null }) => {
     setValue('interests', newInterests);
   };
 
+  const handleLearningGoalToggle = (goalId) => {
+    const currentGoals = getValues('learning_goals') || [];
+    const newGoals = currentGoals.includes(goalId)
+      ? currentGoals.filter(id => id !== goalId)
+      : [...currentGoals, goalId];
+    setValue('learning_goals', newGoals);
+  };
+
   const onSubmit = async (data) => {
     setIsSubmitting(true);
     try {
