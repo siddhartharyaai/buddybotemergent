@@ -17,10 +17,16 @@ import {
 const schema = yup.object().shape({
   name: yup.string().required('Name is required').min(2, 'Name must be at least 2 characters'),
   age: yup.number().required('Age is required').min(3, 'Age must be at least 3').max(12, 'Age must be at most 12'),
+  gender: yup.string().required('Gender is required'),
   location: yup.string().required('Location is required'),
   timezone: yup.string().required('Timezone is required'),
+  avatar: yup.string().required('Avatar is required'),
   voice_personality: yup.string().required('Voice personality is required'),
+  speech_speed: yup.string().required('Speech speed is required'),
+  energy_level: yup.string().required('Energy level is required'),
+  language: yup.string().required('Language is required'),
   interests: yup.array().min(1, 'Please select at least one interest'),
+  learning_goals: yup.array().min(1, 'Please select at least one learning goal'),
   parent_email: yup.string().email('Invalid email').required('Parent email is required'),
 });
 
