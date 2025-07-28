@@ -40,6 +40,97 @@ class ConversationAgent:
         
         logger.info("Conversation Agent initialized with Gemini")
     
+    async def generate_response_with_context(self, user_input: str, user_profile: Dict[str, Any], session_id: str, context: List[Dict[str, Any]] = None) -> str:
+        """Generate response with conversation context for ambient listening"""
+        try:
+            # Determine age group
+            age = user_profile.get('age', 5)
+            age_group = self._get_age_group(age)
+            
+            # Build context-aware system message
+            system_message = self.system_messages[age_group]
+            
+            # Add user context
+            enhanced_system_message = f"{system_message}\n\nUser Profile:\n"
+            enhanced_system_message += f"- Age: {age}\n"
+            enhanced_system_message += f"- Name: {user_profile.get('name', 'Friend')}\n"
+            enhanced_system_message += f"- Interests: {', '.join(user_profile.get('interests', ['stories', 'games']))}\n"
+            enhanced_system_message += f"- Location: {user_profile.get('location', 'Unknown')}\n"
+            
+            # Add conversation context if available
+            if context:
+                enhanced_system_message += f"\nRecent conversation context:\n"
+                for ctx in context[-3:]:  # Last 3 context items
+                    enhanced_system_message += f"- {ctx.get('text', '')}\n"
+                enhanced_system_message += f"\nContinue this conversation naturally and remember what was said before."
+            
+            # Add ambient listening context
+            enhanced_system_message += f"\n\nNote: This is an ambient listening conversation. The child may have said a wake word like 'Hey Buddy' before this message. Be natural and conversational."
+            
+            # Initialize chat with session
+            chat = LlmChat(
+                api_key=self.gemini_api_key,
+                session_id=session_id,
+                system_message=enhanced_system_message
+            ).with_model("gemini", "gemini-2.0-flash").with_max_tokens(200)  # Shorter for ambient responses
+            
+            # Create user message
+            user_message = UserMessage(text=user_input)
+            
+            # Generate response
+            response = await chat.send_message(user_message)
+            
+            # Post-process response for ambient conversation
+            processed_response = self._post_process_ambient_response(response, age_group)
+            
+            logger.info(f"Generated context-aware response for age {age}: {processed_response[:100]}...")
+            return processed_response
+            
+        except Exception as e:
+            logger.error(f"Error generating context-aware response: {str(e)}")
+            return self._get_fallback_ambient_response(user_profile.get('age', 5))
+    
+    def _post_process_ambient_response(self, response: str, age_group: str) -> str:
+        """Post-process response for ambient conversation"""
+        # Make responses more conversational and natural
+        if age_group == "toddler":
+            # Keep responses very short for toddlers
+            sentences = response.split('.')
+            if len(sentences) > 2:
+                response = '. '.join(sentences[:2]) + '.'
+        elif age_group == "child":
+            # Moderate length for children
+            sentences = response.split('.')
+            if len(sentences) > 3:
+                response = '. '.join(sentences[:3]) + '.'
+        
+        # Add natural conversation starters occasionally
+        conversation_starters = {
+            "toddler": ["Want to hear more?", "What do you think?", "Should we play?"],
+            "child": ["What would you like to know?", "Want to try something fun?", "Tell me more!"],
+            "preteen": ["What's your opinion?", "Want to explore this more?", "Any questions?"]
+        }
+        
+        # Add conversation starter 20% of the time
+        import random
+        if random.random() < 0.2:
+            starter = random.choice(conversation_starters[age_group])
+            response = f"{response} {starter}"
+        
+        return response
+    
+    def _get_fallback_ambient_response(self, age: int) -> str:
+        """Get fallback response for ambient conversation"""
+        age_group = self._get_age_group(age)
+        
+        fallback_responses = {
+            "toddler": "I'm here to help! What would you like to do?",
+            "child": "Hi there! I'm listening. What can I help you with?",
+            "preteen": "I'm ready to chat! What's on your mind?"
+        }
+        
+        return fallback_responses[age_group]
+
     async def generate_response(self, user_input: str, user_profile: Dict[str, Any], session_id: str) -> str:
         """Generate age-appropriate response using Gemini 2.0 Flash"""
         try:
