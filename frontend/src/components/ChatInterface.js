@@ -37,6 +37,14 @@ const ChatInterface = ({ user, darkMode, setDarkMode, sessionId, onSendMessage }
   const ambientRecorderRef = useRef(null);
   const ambientIntervalRef = useRef(null);
 
+  const suggestions = [
+    "Tell me a story",
+    "Sing a song", 
+    "What's a fun fact?",
+    "Let's play a game",
+    "Help me learn something"
+  ];
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
