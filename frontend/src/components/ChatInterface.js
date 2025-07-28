@@ -9,11 +9,14 @@ import {
   SparklesIcon,
   ChatBubbleLeftEllipsisIcon,
   EyeIcon,
-  EyeSlashIcon
+  EyeSlashIcon,
+  SunIcon,
+  MoonIcon,
+  Cog6ToothIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
-const ChatInterface = ({ user, sessionId, onSendMessage }) => {
+const ChatInterface = ({ user, darkMode, setDarkMode, sessionId, onSendMessage }) => {
   const [isAmbientListening, setIsAmbientListening] = useState(false);
   const [isConversationActive, setIsConversationActive] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -23,6 +26,9 @@ const ChatInterface = ({ user, sessionId, onSendMessage }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [listeningState, setListeningState] = useState('inactive'); // inactive, ambient, active
   const [wakeWordDetected, setWakeWordDetected] = useState(false);
+  const [isBotSpeaking, setIsBotSpeaking] = useState(false);
+  const [currentTranscript, setCurrentTranscript] = useState('');
+  const [botMood, setBotMood] = useState('friendly'); // friendly, excited, calm, thinking
   
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
