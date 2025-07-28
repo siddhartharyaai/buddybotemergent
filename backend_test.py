@@ -2529,6 +2529,8 @@ class BackendTester:
             
         except Exception as e:
             return {"success": False, "error": str(e)}
+    
+    async def test_error_handling(self):
         """Test error handling for invalid requests"""
         try:
             error_tests = []
