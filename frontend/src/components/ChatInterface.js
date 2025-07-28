@@ -203,8 +203,13 @@ const ChatInterface = ({ user, darkMode, setDarkMode, sessionId, onSendMessage }
   const handleAmbientResponse = (data) => {
     const { status, transcript, listening_state, conversation_response, has_response } = data;
     
-    // Update listening state
-    setListeningState(listening_state);
+    // Only update listening state if it has changed
+    setListeningState(prevState => {
+      if (prevState !== listening_state) {
+        return listening_state;
+      }
+      return prevState;
+    });
     
     if (status === 'wake_word_detected') {
       setWakeWordDetected(true);
