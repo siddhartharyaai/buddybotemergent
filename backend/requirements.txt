@@ -26,4 +26,3 @@ typer>=0.9.0
 emergentintegrations
 websockets>=15.0.1
 aiofiles>=24.1.0
-aiohttp==3.8.6
