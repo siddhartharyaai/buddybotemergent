@@ -493,6 +493,21 @@ frontend:
           agent: "testing"
           comment: "✅ TESTED: Enhanced conversation agent working with memory context parameter. Conversation agent properly accepts memory_context parameter and integrates user preferences, favorite topics, and achievements into responses. Enhanced conversation flow generates appropriate responses with memory awareness."
 
+  - task: "Content API Endpoints - Stories Page Regression Fix"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Added 3 new content API endpoints to fix Stories page regression: GET /api/content/stories, GET /api/content/{content_type}, POST /api/content/generate. Stories API returns 5 comprehensive stories with proper metadata."
+        - working: true
+          agent: "testing"
+          comment: "✅ TESTED: All 3 content API endpoints fully operational. Stories endpoint returns 5 complete stories with proper metadata, all 7 content types available, generate endpoint working with 3-tier sourcing. Stories page regression successfully fixed - no 404 errors, proper data format, voice functionality ready."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
