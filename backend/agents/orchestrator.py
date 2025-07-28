@@ -418,7 +418,7 @@ class OrchestratorAgent:
                 }
             
             # Step 8: Generate response with dialogue plan and memory context
-            response = await self.conversation_agent.generate_response_with_context(
+            response = await self.conversation_agent.generate_response_with_dialogue_plan(
                 user_input, user_profile, session_id, context, dialogue_plan, memory_context
             )
             
