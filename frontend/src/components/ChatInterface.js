@@ -824,11 +824,14 @@ const ChatInterface = ({ user, darkMode, setDarkMode, sessionId, onSendMessage }
         <form onSubmit={sendTextMessage} className="flex items-center space-x-3">
           <div className="flex-1 relative">
             <input
+              key="text-input" // Add key to prevent React reuse issues
               type="text"
               value={textInput}
               onChange={(e) => {
-                console.log('Text input changed:', e.target.value);
-                setTextInput(e.target.value);
+                e.stopPropagation();
+                const newValue = e.target.value;
+                console.log('Text input changed:', newValue);
+                setTextInput(newValue);
               }}
               onKeyPress={(e) => {
                 if (e.key === 'Enter') {
@@ -844,6 +847,8 @@ const ChatInterface = ({ user, darkMode, setDarkMode, sessionId, onSendMessage }
               }`}
               disabled={isLoading}
               autoComplete="off"
+              autoCorrect="off"
+              spellCheck="false"
             />
             <button
               type="submit"
