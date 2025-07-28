@@ -808,69 +808,24 @@ const ChatInterface = ({ user, darkMode, setDarkMode, sessionId, onSendMessage }
 
       {/* Text Input Area */}
       <div className={`flex-shrink-0 p-4 border-t ${darkMode ? 'border-gray-700 bg-gray-900' : 'border-gray-200 bg-gray-50'}`}>
-        <form onSubmit={sendTextMessage} className="flex items-center space-x-3">
-          <div className="flex-1 relative">
-            <input
-              key="text-input" // Add key to prevent React reuse issues
-              type="text"
-              value={textInput}
-              onChange={(e) => {
-                e.stopPropagation();
-                const newValue = e.target.value;
-                console.log('Text input changed:', newValue);
-                setTextInput(newValue);
-              }}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  sendTextMessage(e);
-                }
-              }}
-              placeholder="Type a message..."
-              className={`w-full px-4 py-3 pr-12 rounded-full border transition-colors focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                darkMode 
-                  ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
-                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-              }`}
-              disabled={isLoading}
-              autoComplete="off"
-              autoCorrect="off"
-              spellCheck="false"
+        <div className="flex items-center justify-between space-x-4">
+          {/* Isolated Text Input Component */}
+          <div className="flex-1">
+            <TextInput 
+              onSendMessage={sendTextMessage} 
+              isLoading={isLoading}
+              darkMode={darkMode}
             />
-            <button
-              type="submit"
-              disabled={!textInput.trim() || isLoading}
-              className={`absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full transition-colors ${
-                darkMode 
-                  ? 'text-blue-400 hover:text-blue-300 disabled:text-gray-600' 
-                  : 'text-blue-500 hover:text-blue-600 disabled:text-gray-400'
-              }`}
-            >
-              <PaperAirplaneIcon className="w-5 h-5" />
-            </button>
           </div>
           
-          <motion.button
-            type="button"
-            onClick={isRecording ? stopRecording : startRecording}
-            className={`p-3 rounded-full transition-all duration-200 ${
-              isRecording
-                ? 'bg-red-500 text-white shadow-lg scale-105'
-                : darkMode
-                  ? 'bg-gradient-to-r from-blue-600 to-purple-700 text-white hover:from-blue-500 hover:to-purple-600'
-                  : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700'
-            } shadow-lg hover:shadow-xl`}
-            whileHover={{ scale: isRecording ? 1.05 : 1.02 }}
-            whileTap={{ scale: 0.95 }}
-            disabled={isLoading}
-          >
-            {isRecording ? (
-              <StopIcon className="w-5 h-5" />
-            ) : (
-              <MicrophoneIcon className="w-5 h-5" />
-            )}
-          </motion.button>
-        </form>
+          {/* Voice Control Component */}
+          <VoiceControl 
+            onStartAmbientListening={startAmbientListening}
+            onStopAmbientListening={stopAmbientListening}
+            darkMode={darkMode}
+          />
+        </div>
+      </div>
         
         {/* Status Indicators */}
         <div className="mt-3 flex items-center justify-between">
