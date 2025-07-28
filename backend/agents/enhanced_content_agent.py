@@ -167,13 +167,237 @@ class EnhancedContentAgent:
                 {
                     "id": "story_clever_rabbit",
                     "title": "The Clever Rabbit and the Lion",
-                    "content": "Once upon a time, in a dense forest, there lived a fierce lion who was the king of all animals. This lion was very proud and would hunt many animals every day just for fun...",
+                    "content": """Once upon a time, in a dense forest, there lived a fierce lion who was the king of all animals. This lion was very proud and would hunt many animals every day just for fun, not because he was hungry.
+
+All the animals in the forest were scared and decided to meet the lion. They said, "Your Majesty, if you keep hunting us like this, soon there will be no animals left in the forest. Instead, why don't we send one animal to you each day? This way, you'll have your food, and we can live peacefully."
+
+The lion thought this was a good idea and agreed. So every day, one animal would go to the lion as his meal.
+
+One day, it was the turn of a small, clever rabbit. All the other animals felt sorry for the little rabbit, but the rabbit said, "Don't worry, I have a plan."
+
+The rabbit deliberately went to the lion very late in the day. When the lion saw the rabbit, he was very angry. "Why are you so late? And you're so small! How will you fill my stomach?" roared the lion.
+
+The clever rabbit bowed and said, "Your Majesty, I'm sorry I'm late, but it's not my fault. I was coming to you with another rabbit, so you would have two meals. But on the way, we met another lion who said this was his territory. He ate the other rabbit and told me to tell you to leave this forest because he is the real king here."
+
+The lion was furious! "Another lion in MY forest? Show me where he is right now!"
+
+The rabbit led the angry lion to a deep well. "He lives down there, Your Majesty," said the rabbit.
+
+The lion looked into the well and saw his own reflection in the water. He thought it was the other lion! "So you're the one who dares to challenge me!" roared the lion at his reflection.
+
+When the lion roared, his voice echoed from the well, making it sound like the other lion was roaring back. This made the lion even angrier. He jumped into the well to fight the other lion and drowned.
+
+The clever rabbit saved all the animals in the forest with his wit and wisdom. From that day on, all the animals lived happily and peacefully.
+
+The End! ✨""",
                     "moral": "Intelligence and wit can overcome even the strongest opponent.",
                     "reaction": "🐰 What a smart rabbit! Cleverness is better than strength!",
-                    "followup": "Would you like to hear another story?",
-                    "age_groups": ["5-10"],
+                    "followup": "Would you like to hear another story about clever animals?",
+                    "age_groups": ["5-8", "9-12"],
                     "tags": ["wisdom", "cleverness", "animals", "moral"],
                     "category": "panchatantra"
+                },
+                {
+                    "id": "story_three_little_pigs",
+                    "title": "The Three Little Pigs",
+                    "content": """Once upon a time, there were three little pigs who decided to build their own houses.
+
+The first little pig was a bit lazy. He built his house out of straw because it was quick and easy. "This will do just fine!" he said, and went off to play.
+
+The second little pig built his house out of sticks. It took a little more work than straw, but not too much. "Strong enough for me!" he said, and went to join his brother.
+
+The third little pig worked hard all day and built his house out of bricks. It was strong and solid, but took much longer to build. His brothers laughed at him for working so hard.
+
+One day, a big bad wolf came hungry through the forest. He smelled the little pigs and went to the first house.
+
+"Little pig, little pig, let me come in!" called the wolf.
+
+"Not by the hair on my chinny-chin-chin!" replied the first pig, trembling.
+
+"Then I'll huff, and I'll puff, and I'll blow your house in!" roared the wolf.
+
+And he did! The straw house blew away like feathers, and the first pig ran as fast as he could to his brother's stick house.
+
+The wolf followed and knocked on the stick house. "Little pigs, little pigs, let me come in!"
+
+"Not by the hair on our chinny-chin-chins!" cried both pigs.
+
+"Then I'll huff, and I'll puff, and I'll blow your house in!"
+
+The wolf huffed and puffed and blew the stick house down too! Both pigs ran to their brother's brick house.
+
+When the wolf reached the brick house, he banged on the door. "Little pigs, little pigs, let me come in!"
+
+"Not by the hair on our chinny-chin-chins!" called all three pigs.
+
+The wolf huffed and puffed with all his might, but the brick house was too strong. He couldn't blow it down!
+
+The wolf tried to climb down the chimney, but the clever third pig had a pot of boiling water ready. When the wolf fell into it, he jumped up with a howl and ran away, never to bother the three little pigs again.
+
+The first two pigs learned their lesson and built strong brick houses too.
+
+The End! ✨""",
+                    "moral": "Hard work and planning make us stronger and safer.",
+                    "reaction": "🏠 Building strong foundations is so important! The third pig was so wise!",
+                    "followup": "What would you build your house out of? Want another story?",
+                    "age_groups": ["3-6", "7-9"],
+                    "tags": ["hard_work", "perseverance", "safety", "classic"],
+                    "category": "classic_tales"
+                },
+                {
+                    "id": "story_tortoise_hare",
+                    "title": "The Tortoise and the Hare",
+                    "content": """Once upon a time, in a beautiful meadow, lived a very fast hare and a very slow tortoise.
+
+The hare was extremely proud of how fast he could run. Every day, he would brag to all the animals: "I'm the fastest animal in the whole forest! Look how quickly I can run from here to there!" And zoom! He'd dash around showing off.
+
+The tortoise moved slowly and steadily, never boasting about anything. But one day, he was tired of listening to the hare's bragging.
+
+"I challenge you to a race," said the tortoise quietly.
+
+All the animals burst out laughing! "You? Race the hare?" they giggled. "But you're so slow!"
+
+The hare laughed the loudest. "This will be the easiest race I've ever won! You'll be so far behind, I might even take a nap!"
+
+The wise old fox agreed to judge the race. He marked a starting line and a finish line on the other side of the meadow. All the forest animals gathered to watch.
+
+"Ready, set, GO!" called the fox.
+
+ZOOM! The hare shot off like lightning, leaving a cloud of dust behind him. The tortoise began his journey, moving slowly but steadily, one foot in front of the other.
+
+Soon, the hare was so far ahead that he couldn't even see the tortoise anymore. "This is too easy," he thought, looking around at the sunny meadow. "I have so much time, I think I'll rest under this nice shady tree."
+
+The hare curled up under the tree and fell fast asleep.
+
+Meanwhile, the tortoise kept moving. Step... step... step... He never stopped, never rushed, never gave up. He just kept going at his own steady pace.
+
+When he passed the sleeping hare, he whispered, "Slow and steady wins the race," and continued on.
+
+The sun was setting when the hare finally woke up. He stretched, yawned, and suddenly remembered the race! He looked toward the finish line and couldn't believe his eyes.
+
+There was the tortoise, just one step away from winning!
+
+The hare ran as fast as he could, faster than he'd ever run before, but it was too late. The tortoise crossed the finish line first!
+
+All the animals cheered for the tortoise. The hare learned an important lesson that day.
+
+The End! ✨""",
+                    "moral": "Slow and steady wins the race. Consistency is better than speed without focus.",
+                    "reaction": "🐢 The tortoise never gave up! Sometimes going slowly but steadily is the best way!",
+                    "followup": "Have you ever won something by being patient and steady? Want another story?",
+                    "age_groups": ["4-8", "9-12"],
+                    "tags": ["perseverance", "patience", "classic", "moral"],
+                    "category": "aesop_fables"
+                },
+                {
+                    "id": "story_goldilocks",
+                    "title": "Goldilocks and the Three Bears",
+                    "content": """Once upon a time, there was a curious little girl with beautiful golden hair named Goldilocks.
+
+One sunny morning, Goldilocks was walking through the forest when she came upon a lovely little cottage with a red roof and flowers in the garden. The door was wide open!
+
+"I wonder who lives here," thought Goldilocks. She knocked on the door, but no one answered. Being very curious (and not very well-mannered), she walked right inside!
+
+The first thing she saw was a table set with three bowls of porridge. There was a great big bowl, a medium-sized bowl, and a tiny little bowl.
+
+Goldilocks was hungry from her walk. She tasted the porridge from the great big bowl. "Ouch! Too hot!" she cried.
+
+Then she tasted the porridge from the medium-sized bowl. "Brr! Too cold!" she said.
+
+Finally, she tasted the porridge from the tiny bowl. "Mmm! Just right!" And she ate it all up!
+
+After breakfast, Goldilocks felt sleepy and saw three chairs in the living room. There was a great big chair, a medium-sized chair, and a tiny little chair.
+
+She sat in the great big chair. "Too hard!" she complained.
+
+She sat in the medium-sized chair. "Too soft!" she grumbled.
+
+Then she sat in the tiny chair. "Just right!" But when she rocked back, CRACK! The chair broke into pieces!
+
+Now Goldilocks was very tired. Upstairs, she found three beds. There was a great big bed, a medium-sized bed, and a tiny little bed.
+
+The big bed was too firm, the medium bed was too lumpy, but the tiny bed was just right! Goldilocks curled up and fell fast asleep.
+
+While she was sleeping, the three bears who lived in the cottage came home from their morning walk.
+
+"Someone's been eating my porridge!" growled Papa Bear in his great big voice.
+
+"Someone's been eating my porridge!" said Mama Bear in her medium-sized voice.
+
+"Someone's been eating my porridge, and they ate it all up!" cried Baby Bear in his tiny voice.
+
+Then they noticed the living room.
+
+"Someone's been sitting in my chair!" growled Papa Bear.
+
+"Someone's been sitting in my chair!" said Mama Bear.
+
+"Someone's been sitting in my chair, and they broke it!" wailed Baby Bear.
+
+The three bears rushed upstairs.
+
+"Someone's been sleeping in my bed!" growled Papa Bear.
+
+"Someone's been sleeping in my bed!" said Mama Bear.
+
+"Someone's been sleeping in my bed, and she's still here!" squeaked Baby Bear.
+
+Goldilocks woke up to see three bears staring at her! She jumped up, ran down the stairs, out the door, and through the forest as fast as her legs could carry her.
+
+And she never went into someone else's house uninvited ever again!
+
+The End! ✨""",
+                    "moral": "Always ask permission before using someone else's things.",
+                    "reaction": "🐻 Poor Baby Bear! Goldilocks learned to be more respectful, didn't she?",
+                    "followup": "What would you have done differently if you found that cottage? Ready for another story?",
+                    "age_groups": ["3-6", "7-9"],
+                    "tags": ["manners", "respect", "classic", "consequences"],
+                    "category": "classic_tales"
+                },
+                {
+                    "id": "story_ugly_duckling",
+                    "title": "The Ugly Duckling",
+                    "content": """Once upon a time, on a farm near a quiet pond, a mother duck sat on her nest waiting for her eggs to hatch.
+
+One by one, the eggs cracked open and out popped beautiful yellow ducklings. "Peep! Peep!" they chirped happily.
+
+But one egg, the biggest one, hadn't hatched yet. Mother Duck waited and waited. Finally, CRACK! Out came the last baby.
+
+This duckling was different from the others. He was larger, with gray feathers and a long neck. The other ducklings looked at him strangely.
+
+"What an ugly duckling!" said one.
+"He doesn't look like us at all!" said another.
+"He's too big and too gray!" laughed a third.
+
+The poor little duckling felt very sad. Even his mother seemed worried about how different he looked.
+
+As the days passed, things got worse. The other farm animals joined in the teasing. The chickens pecked at him, the cat chased him, and even the farmer's children threw things at him.
+
+"Nobody wants me," thought the sad little duckling. "I'm too ugly and different." So one dark night, he ran away from the farm.
+
+The duckling wandered through forests and fields, always alone. When winter came, he found a small cave where he stayed cold and hungry, dreaming of spring.
+
+Finally, spring arrived! The sun shone warmly, flowers bloomed, and the duckling felt stronger. He decided to go to the pond where beautiful white swans lived.
+
+"Even if they chase me away," he thought, "at least I'll see something beautiful before I go."
+
+As he approached the water, he saw his reflection and gasped! Looking back at him was not an ugly gray duckling, but a magnificent white swan with a graceful long neck and beautiful feathers!
+
+The other swans welcomed him warmly. "You're the most beautiful swan we've ever seen!" they said.
+
+Some children playing nearby pointed at him in wonder. "Look at that gorgeous swan!" they cried. "Isn't he magnificent?"
+
+The swan who had once thought himself ugly realized that he had been a swan all along. He had just needed time to grow into who he was meant to be.
+
+He spread his beautiful white wings, held his head high with pride, and knew that being different had made him special, not ugly.
+
+The End! ✨""",
+                    "moral": "Being different makes you special. Sometimes we need time to discover who we really are.",
+                    "reaction": "🦢 What a beautiful transformation! Being different is actually wonderful!",
+                    "followup": "What makes you special and unique? Want to hear another story about being brave?",
+                    "age_groups": ["4-8", "9-12"],
+                    "tags": ["self_acceptance", "transformation", "bullying", "classic"],
+                    "category": "classic_tales"
                 }
             ],
             "games": [
