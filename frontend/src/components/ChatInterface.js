@@ -458,6 +458,7 @@ const ChatInterface = ({ user, darkMode, setDarkMode, sessionId, onSendMessage }
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
       setIsPlaying(false);
+      setIsBotSpeaking(false);
     }
   };
 
