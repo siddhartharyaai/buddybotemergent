@@ -208,15 +208,37 @@ class ConversationAgent:
         
         return response
 
-    async def generate_response_with_context(self, user_input: str, user_profile: Dict[str, Any], session_id: str, context: List[Dict[str, Any]] = None) -> str:
+    async def generate_response_with_context_ambient(self, user_input: str, user_profile: Dict[str, Any], session_id: str, context: List[Dict[str, Any]] = None, dialogue_plan: Dict[str, Any] = None, memory_context: Dict[str, Any] = None) -> str:
         """Generate response with conversation context for ambient listening"""
         try:
             # Determine age group
             age = user_profile.get('age', 5)
             age_group = self._get_age_group(age)
             
+            # Check if this is a story/content request
+            is_story_request = self._is_story_request(user_input)
+            is_song_request = self._is_song_request(user_input)
+            is_content_request = is_story_request or is_song_request
+            
             # Build context-aware system message
             system_message = self.system_messages[age_group]
+            
+            # Enhance system message for content requests
+            if is_content_request:
+                if is_story_request:
+                    system_message += "\n\nIMPORTANT: The user is asking for a story. Please tell a COMPLETE, FULL-LENGTH story with:\n"
+                    system_message += "- A clear beginning, middle, and end\n"
+                    system_message += "- Detailed characters and settings\n"
+                    system_message += "- An engaging plot with dialogue\n"
+                    system_message += "- Age-appropriate length (300-800 words)\n"
+                    system_message += "- Use storytelling language like 'Once upon a time' and 'The End'\n"
+                    system_message += "- Include descriptive details to make it engaging\n"
+                elif is_song_request:
+                    system_message += "\n\nIMPORTANT: The user is asking for a song. Please provide a COMPLETE song with:\n"
+                    system_message += "- Full verses and chorus\n"
+                    system_message += "- Age-appropriate lyrics\n"
+                    system_message += "- Rhyming pattern\n"
+                    system_message += "- Fun and engaging content\n"
             
             # Add user context
             enhanced_system_message = f"{system_message}\n\nUser Profile:\n"
@@ -232,15 +254,46 @@ class ConversationAgent:
                     enhanced_system_message += f"- {ctx.get('text', '')}\n"
                 enhanced_system_message += f"\nContinue this conversation naturally and remember what was said before."
             
+            # Add memory context if available
+            if memory_context and memory_context.get("user_id") != "unknown":
+                enhanced_system_message += f"\n\nLong-term memory context:\n"
+                
+                # Add recent preferences
+                recent_preferences = memory_context.get("recent_preferences", {})
+                if recent_preferences:
+                    enhanced_system_message += f"Recent preferences: {', '.join(f'{k}: {v}' for k, v in list(recent_preferences.items())[:3])}\n"
+                
+                # Add favorite topics
+                favorite_topics = memory_context.get("favorite_topics", [])
+                if favorite_topics:
+                    topics_str = ', '.join([topic[0] if isinstance(topic, tuple) else str(topic) for topic in favorite_topics[:3]])
+                    enhanced_system_message += f"Favorite topics: {topics_str}\n"
+                
+                # Add achievements
+                achievements = memory_context.get("achievements", [])
+                if achievements:
+                    recent_achievements = achievements[-2:]  # Last 2 achievements
+                    for achievement in recent_achievements:
+                        if isinstance(achievement, dict):
+                            achievement_type = achievement.get("type", "unknown")
+                            enhanced_system_message += f"Recent achievement: {achievement_type}\n"
+                
+                enhanced_system_message += "Use this memory context to personalize the conversation and reference past interactions naturally."
+            
             # Add ambient listening context
             enhanced_system_message += f"\n\nNote: This is an ambient listening conversation. The child may have said a wake word like 'Hey Buddy' before this message. Be natural and conversational."
+            
+            # Set token limit based on content type
+            max_tokens = 200  # Default for regular conversation
+            if is_content_request:
+                max_tokens = 1000  # Much higher for stories and songs
             
             # Initialize chat with session
             chat = LlmChat(
                 api_key=self.gemini_api_key,
                 session_id=session_id,
                 system_message=enhanced_system_message
-            ).with_model("gemini", "gemini-2.0-flash").with_max_tokens(200)  # Shorter for ambient responses
+            ).with_model("gemini", "gemini-2.0-flash").with_max_tokens(max_tokens)
             
             # Create user message
             user_message = UserMessage(text=user_input)
