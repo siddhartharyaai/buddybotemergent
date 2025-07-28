@@ -810,7 +810,16 @@ const ChatInterface = ({ user, darkMode, setDarkMode, sessionId, onSendMessage }
             <input
               type="text"
               value={textInput}
-              onChange={(e) => setTextInput(e.target.value)}
+              onChange={(e) => {
+                console.log('Text input changed:', e.target.value);
+                setTextInput(e.target.value);
+              }}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  sendTextMessage(e);
+                }
+              }}
               placeholder="Type a message..."
               className={`w-full px-4 py-3 pr-12 rounded-full border transition-colors focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                 darkMode 
@@ -818,6 +827,7 @@ const ChatInterface = ({ user, darkMode, setDarkMode, sessionId, onSendMessage }
                   : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
               }`}
               disabled={isLoading}
+              autoComplete="off"
             />
             <button
               type="submit"
