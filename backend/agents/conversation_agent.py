@@ -3,7 +3,8 @@ Conversation Agent - Handles AI conversations using Gemini 2.0 Flash
 """
 import asyncio
 import logging
-from typing import Dict, Any, Optional, List
+import re
+from typing import Dict, Any, Optional, List, Tuple
 from datetime import datetime
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 
