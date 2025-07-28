@@ -879,7 +879,7 @@ class BackendTester:
         except Exception as e:
             return {"success": False, "error": str(e)}
     
-    async def test_mic_lock_functionality(self):
+    async def test_stories_content_library(self):
         """Test mic lock functionality - verify microphone gets locked after rate limiting"""
         if not self.test_user_id or not self.test_session_id:
             return {"success": False, "error": "Missing test user ID or session ID"}
