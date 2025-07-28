@@ -202,50 +202,6 @@ class VoiceAgent:
             logger.error(f"TTS error: {str(e)}")
             return None
     
-    async def detect_language(self, audio_data: bytes) -> str:
-        """Detect language from audio using REST API (supports English + Hindi/Hinglish)"""
-        try:
-            # Prepare headers
-            headers = {
-                "Authorization": f"Token {self.api_key}",
-                "Content-Type": "audio/wav"
-            }
-            
-            # Prepare query parameters
-            params = {
-                "model": "nova-2",
-                "detect_language": "true",
-                "alternatives": "1"
-            }
-            
-            # Make REST API call using requests in async context
-            loop = asyncio.get_event_loop()
-            response = await loop.run_in_executor(
-                None,
-                lambda: requests.post(
-                    f"{self.base_url}/listen",
-                    headers=headers,
-                    params=params,
-                    data=audio_data
-                )
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                
-                if result.get("results") and result["results"].get("channels"):
-                    detected_lang = result["results"]["channels"][0].get("detected_language", "en")
-                    logger.info(f"Detected language: {detected_lang}")
-                    return detected_lang
-            else:
-                logger.error(f"Language detection API error: {response.status_code} - {response.text}")
-            
-            return "en"  # Default to English
-            
-        except Exception as e:
-            logger.error(f"Language detection error: {str(e)}")
-            return "en"
-    
     def get_available_voices(self) -> Dict[str, Any]:
         """Get available voice personalities"""
         return {
