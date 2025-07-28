@@ -155,11 +155,176 @@ class EnhancedContentAgent:
                 {
                     "id": "song_row_boat",
                     "title": "Row, Row, Row Your Boat",
-                    "content": "Row, row, row your boat,\nGently down the stream.\nMerrily, merrily, merrily, merrily,\nLife is but a dream!\n\nRow, row, row your boat,\nGently down the creek.\nIf you see a little mouse,\nDon't forget to squeak!",
+                    "content": """Row, row, row your boat,
+Gently down the stream.
+Merrily, merrily, merrily, merrily,
+Life is but a dream!
+
+Row, row, row your boat,
+Gently down the creek.
+If you see a little mouse,
+Don't forget to squeak!
+
+Row, row, row your boat,
+Gently to the shore.
+If you see a lion there,
+Don't forget to ROAR!""",
                     "reaction": "🚣‍♀️ What a fun song to sing! Let's row together!",
-                    "followup": "Should we sing another song?",
+                    "followup": "Should we sing another song with actions?",
                     "age_groups": ["2-8"],
                     "tags": ["classic", "action", "fun", "imagination"],
+                    "category": "action_songs"
+                },
+                {
+                    "id": "song_mary_lamb",
+                    "title": "Mary Had a Little Lamb",
+                    "content": """Mary had a little lamb,
+Little lamb, little lamb,
+Mary had a little lamb,
+Its fleece was white as snow!
+
+Everywhere that Mary went,
+Mary went, Mary went,
+Everywhere that Mary went,
+The lamb was sure to go!
+
+It followed her to school one day,
+School one day, school one day,
+It followed her to school one day,
+Which was against the rule!
+
+It made the children laugh and play,
+Laugh and play, laugh and play,
+It made the children laugh and play,
+To see a lamb at school!""",
+                    "reaction": "🐑 Such a sweet friendship! Mary and her lamb were best friends!",
+                    "followup": "Do you have a special pet or toy friend? Want to sing more?",
+                    "age_groups": ["2-6"],
+                    "tags": ["friendship", "animals", "classic", "school"],
+                    "category": "nursery_rhymes"
+                },
+                {
+                    "id": "song_wheels_bus",
+                    "title": "The Wheels on the Bus",
+                    "content": """The wheels on the bus go round and round,
+Round and round, round and round,
+The wheels on the bus go round and round,
+All through the town!
+
+The wipers on the bus go swish, swish, swish,
+Swish, swish, swish, swish, swish, swish,
+The wipers on the bus go swish, swish, swish,
+All through the town!
+
+The horn on the bus goes beep, beep, beep,
+Beep, beep, beep, beep, beep, beep,
+The horn on the bus goes beep, beep, beep,
+All through the town!
+
+The doors on the bus go open and shut,
+Open and shut, open and shut,
+The doors on the bus go open and shut,
+All through the town!
+
+The children on the bus bounce up and down,
+Up and down, up and down,
+The children on the bus bounce up and down,
+All through the town!""",
+                    "reaction": "🚌 Beep beep! That was so much fun! Did you do the actions too?",
+                    "followup": "What other vehicles make fun sounds? Ready for another song?",
+                    "age_groups": ["2-7"],
+                    "tags": ["transportation", "actions", "sounds", "fun"],
+                    "category": "action_songs"
+                },
+                {
+                    "id": "song_abc",
+                    "title": "The ABC Song",
+                    "content": """A, B, C, D, E, F, G,
+H, I, J, K, L, M, N, O, P,
+Q, R, S, T, U, V,
+W, X, Y, and Z!
+
+Now I know my ABCs,
+Next time won't you sing with me?
+
+A is for Apple, red and sweet,
+B is for Ball that bounces neat,
+C is for Cat who likes to play,
+D is for Dog who runs all day!
+
+A, B, C, D, E, F, G,
+Learning letters, you and me!""",
+                    "reaction": "🔤 Wonderful! You know your letters! Learning is so much fun!",
+                    "followup": "What's your favorite letter? Should we sing about numbers next?",
+                    "age_groups": ["3-7"],
+                    "tags": ["learning", "letters", "educational", "alphabet"],
+                    "category": "educational_songs"
+                },
+                {
+                    "id": "song_old_macdonald",
+                    "title": "Old MacDonald Had a Farm",
+                    "content": """Old MacDonald had a farm,
+E-I-E-I-O!
+And on his farm he had a cow,
+E-I-E-I-O!
+
+With a moo-moo here,
+And a moo-moo there,
+Here a moo, there a moo,
+Everywhere a moo-moo!
+Old MacDonald had a farm,
+E-I-E-I-O!
+
+Old MacDonald had a farm,
+E-I-E-I-O!
+And on his farm he had a duck,
+E-I-E-I-O!
+
+With a quack-quack here,
+And a quack-quack there,
+Here a quack, there a quack,
+Everywhere a quack-quack!
+Old MacDonald had a farm,
+E-I-E-I-O!
+
+Old MacDonald had a farm,
+E-I-E-I-O!
+And on his farm he had a pig,
+E-I-E-I-O!
+
+With an oink-oink here,
+And an oink-oink there,
+Here an oink, there an oink,
+Everywhere an oink-oink!
+Old MacDonald had a farm,
+E-I-E-I-O!""",
+                    "reaction": "🐄 E-I-E-I-O! What fun animal sounds! Can you make those sounds too?",
+                    "followup": "What other animals live on farms? Want to visit Old MacDonald again?",
+                    "age_groups": ["2-6"],
+                    "tags": ["animals", "sounds", "farm", "classic"],
+                    "category": "animal_songs"
+                },
+                {
+                    "id": "song_itsy_spider",
+                    "title": "Itsy Bitsy Spider",
+                    "content": """The itsy bitsy spider
+Climbed up the waterspout.
+Down came the rain
+And washed the spider out!
+
+Out came the sun
+And dried up all the rain,
+And the itsy bitsy spider
+Climbed up the spout again!
+
+The itsy bitsy spider
+Is brave and never quits,
+When things go wrong,
+She tries and tries and tries!""",
+                    "reaction": "🕷️ What a brave little spider! She never gave up, just like you shouldn't!",
+                    "followup": "Sometimes we fall down, but we can always try again! Ready for more music?",
+                    "age_groups": ["2-7"],
+                    "tags": ["perseverance", "weather", "animals", "classic"],
                     "category": "action_songs"
                 }
             ],
