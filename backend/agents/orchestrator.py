@@ -440,7 +440,7 @@ class OrchestratorAgent:
             logger.error(f"Error storing enhanced conversation: {str(e)}")
     
     async def get_agent_status(self) -> Dict[str, Any]:
-        """Get status of all agents"""
+        """Get status of all agents including memory and telemetry"""
         return {
             "orchestrator": "active",
             "voice_agent": "active",
@@ -451,8 +451,12 @@ class OrchestratorAgent:
             "dialogue_orchestrator": "active",
             "repair_agent": "active",
             "micro_game_agent": "active",
+            "memory_agent": "active",
+            "telemetry_agent": "active",
             "active_games": len(self.micro_game_agent.active_games),
-            "session_count": len(self.session_store)
+            "session_count": len(self.session_store),
+            "memory_statistics": self.memory_agent.get_memory_statistics(),
+            "telemetry_statistics": self.telemetry_agent.get_telemetry_statistics()
         }
     
     async def start_ambient_listening(self, session_id: str, user_profile: Dict[str, Any]) -> Dict[str, Any]:
