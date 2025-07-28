@@ -32,6 +32,7 @@ class OrchestratorAgent:
         self.voice_agent = VoiceAgent(deepgram_api_key)
         self.conversation_agent = ConversationAgent(gemini_api_key)
         self.content_agent = ContentAgent(db)
+        self.enhanced_content_agent = EnhancedContentAgent(db, gemini_api_key)
         self.safety_agent = SafetyAgent()
         self.emotional_sensing_agent = EmotionalSensingAgent(gemini_api_key)
         self.dialogue_orchestrator = DialogueOrchestrator()
