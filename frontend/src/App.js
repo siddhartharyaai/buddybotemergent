@@ -1,54 +1,315 @@
-import { useEffect } from "react";
-import "./App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
+import { v4 as uuidv4 } from 'uuid';
+
+import Layout from './components/Layout';
+import Header from './components/Header';
+import ProfileSetup from './components/ProfileSetup';
+import ParentalControls from './components/ParentalControls';
+import ChatInterface from './components/ChatInterface';
+
+import './App.css';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const Home = () => {
-  const helloWorldApi = async () => {
+const App = () => {
+  const [user, setUser] = useState(null);
+  const [sessionId, setSessionId] = useState(null);
+  const [isProfileSetupOpen, setIsProfileSetupOpen] = useState(false);
+  const [isParentalControlsOpen, setIsParentalControlsOpen] = useState(false);
+  const [parentalControls, setParentalControls] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    checkUserProfile();
+  }, []);
+
+  const checkUserProfile = async () => {
     try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
+      // Check if user profile exists in localStorage
+      const savedUser = localStorage.getItem('ai_companion_user');
+      if (savedUser) {
+        const userData = JSON.parse(savedUser);
+        setUser(userData);
+        await createSession(userData.id);
+        await loadParentalControls(userData.id);
+      } else {
+        // No user profile, open setup
+        setIsProfileSetupOpen(true);
+      }
+    } catch (error) {
+      console.error('Error checking user profile:', error);
+      setIsProfileSetupOpen(true);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
+  const createSession = async (userId) => {
+    try {
+      const response = await fetch(`${API}/conversations/session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          session_name: 'Chat Session'
+        })
+      });
 
-  return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
+      const data = await response.json();
+      if (response.ok) {
+        setSessionId(data.id);
+      } else {
+        throw new Error(data.detail || 'Failed to create session');
+      }
+    } catch (error) {
+      console.error('Error creating session:', error);
+      toast.error('Failed to create chat session');
+    }
+  };
+
+  const loadParentalControls = async (userId) => {
+    try {
+      const response = await fetch(`${API}/users/${userId}/parental-controls`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        setParentalControls(data);
+      }
+    } catch (error) {
+      console.error('Error loading parental controls:', error);
+    }
+  };
+
+  const saveUserProfile = async (profileData) => {
+    try {
+      const response = await fetch(`${API}/users/profile`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(profileData)
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setUser(data);
+        localStorage.setItem('ai_companion_user', JSON.stringify(data));
+        await createSession(data.id);
+        await loadParentalControls(data.id);
+        toast.success('Profile created successfully!');
+      } else {
+        throw new Error(data.detail || 'Failed to create profile');
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      throw error;
+    }
+  };
+
+  const updateUserProfile = async (profileData) => {
+    try {
+      const response = await fetch(`${API}/users/profile/${user.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(profileData)
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setUser(data);
+        localStorage.setItem('ai_companion_user', JSON.stringify(data));
+        toast.success('Profile updated successfully!');
+      } else {
+        throw new Error(data.detail || 'Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      throw error;
+    }
+  };
+
+  const saveParentalControls = async (controlsData) => {
+    try {
+      const response = await fetch(`${API}/users/${user.id}/parental-controls`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(controlsData)
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setParentalControls(data);
+        toast.success('Parental controls updated successfully!');
+      } else {
+        throw new Error(data.detail || 'Failed to update parental controls');
+      }
+    } catch (error) {
+      console.error('Error updating parental controls:', error);
+      throw error;
+    }
+  };
+
+  const WelcomeScreen = () => (
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-4xl mx-auto text-center"
+      >
+        {/* Hero Section */}
+        <div className="mb-12">
+          <motion.div
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl"
+          >
+            <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+          </motion.div>
+          
+          <motion.h1
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4"
+          >
+            Meet Your AI Buddy
+          </motion.h1>
+          
+          <motion.p
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="text-xl text-gray-600 max-w-2xl mx-auto mb-8"
+          >
+            Your smart companion for stories, songs, learning, and fun conversations. 
+            Safe, educational, and designed just for you!
+          </motion.p>
+        </div>
+
+        {/* Features */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12"
         >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-gray-100">
+            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Voice Chat</h3>
+            <p className="text-gray-600">Talk naturally with your AI companion using voice messages and responses.</p>
+          </div>
+
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-gray-100">
+            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Stories & Songs</h3>
+            <p className="text-gray-600">Enjoy bedtime stories, nursery rhymes, and educational content.</p>
+          </div>
+
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-gray-100">
+            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Safe & Secure</h3>
+            <p className="text-gray-600">Built with child safety in mind, with parental controls and monitoring.</p>
+          </div>
+        </motion.div>
+
+        {/* CTA Button */}
+        <motion.button
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          onClick={() => setIsProfileSetupOpen(true)}
+          className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-2xl text-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-xl hover:shadow-2xl transform hover:scale-105"
+        >
+          Get Started
+        </motion.button>
+      </motion.div>
     </div>
   );
-};
 
-function App() {
+  const ChatPage = () => (
+    <div className="h-screen flex flex-col">
+      <Header 
+        user={user} 
+        onOpenProfile={() => setIsProfileSetupOpen(true)}
+        onOpenSettings={() => setIsParentalControlsOpen(true)}
+      />
+      <div className="flex-1 overflow-hidden">
+        <ChatInterface 
+          user={user} 
+          sessionId={sessionId}
+        />
+      </div>
+    </div>
+  );
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading your AI companion...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
-    <div className="App">
+    <Layout>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
+          <Route path="/" element={user ? <Navigate to="/chat" /> : <WelcomeScreen />} />
+          <Route path="/chat" element={user ? <ChatPage /> : <Navigate to="/" />} />
+          <Route path="/profile" element={user ? <ChatPage /> : <Navigate to="/" />} />
+          <Route path="/settings" element={user ? <ChatPage /> : <Navigate to="/" />} />
+          <Route path="/stories" element={user ? <ChatPage /> : <Navigate to="/" />} />
         </Routes>
       </BrowserRouter>
-    </div>
+
+      {/* Modals */}
+      <ProfileSetup
+        isOpen={isProfileSetupOpen}
+        onClose={() => setIsProfileSetupOpen(false)}
+        onSave={user ? updateUserProfile : saveUserProfile}
+        initialData={user}
+      />
+
+      <ParentalControls
+        isOpen={isParentalControlsOpen}
+        onClose={() => setIsParentalControlsOpen(false)}
+        userId={user?.id}
+        controls={parentalControls}
+        onSave={saveParentalControls}
+      />
+    </Layout>
   );
-}
+};
 
 export default App;
