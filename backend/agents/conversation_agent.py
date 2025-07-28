@@ -40,7 +40,7 @@ class ConversationAgent:
         
         logger.info("Conversation Agent initialized with Gemini")
     
-    async def generate_response_with_context(self, user_input: str, user_profile: Dict[str, Any], session_id: str, context: List[Dict[str, Any]] = None, dialogue_plan: Dict[str, Any] = None) -> str:
+    async def generate_response_with_context(self, user_input: str, user_profile: Dict[str, Any], session_id: str, context: List[Dict[str, Any]] = None, dialogue_plan: Dict[str, Any] = None, memory_context: Dict[str, Any] = None) -> str:
         """Generate response with conversation context and dialogue plan"""
         try:
             # Determine age group
