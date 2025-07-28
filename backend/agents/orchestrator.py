@@ -15,6 +15,8 @@ from .emotional_sensing_agent import EmotionalSensingAgent
 from .dialogue_orchestrator import DialogueOrchestrator
 from .repair_agent import RepairAgent
 from .micro_game_agent import MicroGameAgent
+from .memory_agent import MemoryAgent
+from .telemetry_agent import TelemetryAgent
 
 logger = logging.getLogger(__name__)
 
