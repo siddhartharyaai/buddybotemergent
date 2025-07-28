@@ -22,6 +22,11 @@ const App = () => {
   const [isParentalControlsOpen, setIsParentalControlsOpen] = useState(false);
   const [parentalControls, setParentalControls] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [darkMode, setDarkMode] = useState(() => {
+    // Check localStorage for dark mode preference
+    const saved = localStorage.getItem('ai_companion_dark_mode');
+    return saved ? JSON.parse(saved) : false;
+  });
 
   useEffect(() => {
     checkUserProfile();
