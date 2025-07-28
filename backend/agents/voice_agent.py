@@ -233,14 +233,13 @@ class VoiceAgent:
         try:
             # Configure STT options for child speech and ambient listening
             options = PrerecordedOptions(
-                model="nova-2",  # Use Nova 2 for better child speech recognition
+                model="nova-2",  # Use Nova 2 for better child speech recognition  
                 language="en-US",
                 smart_format=True,
                 punctuate=True,
                 diarize=False,
                 alternatives=1,
                 tier="nova",
-                interim_results=True,
                 endpointing=300,  # Shorter endpointing for responsiveness
                 vad_turnoff=300,  # Voice activity detection
                 utterance_end_ms=1000  # Shorter utterance end for conversation flow
