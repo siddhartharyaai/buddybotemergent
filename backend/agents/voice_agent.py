@@ -7,7 +7,7 @@ import base64
 import io
 import re
 import time
-import aiohttp
+import requests
 import json
 from typing import Optional, Dict, Any, List
 
@@ -246,30 +246,34 @@ class VoiceAgent:
                 "utterance_end_ms": "1000"  # Shorter utterance end for conversation flow
             }
             
-            # Make REST API call
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
+            # Make REST API call using requests in async context
+            loop = asyncio.get_event_loop()
+            response = await loop.run_in_executor(
+                None,
+                lambda: requests.post(
                     f"{self.base_url}/listen",
                     headers=headers,
                     params=params,
                     data=audio_data
-                ) as response:
-                    if response.status == 200:
-                        result = await response.json()
-                        
-                        # Extract transcript
-                        if result.get("results") and result["results"].get("channels"):
-                            transcript = result["results"]["channels"][0]["alternatives"][0]["transcript"]
-                            
-                            # Enhanced processing for child speech
-                            if enhanced_for_children:
-                                transcript = self.enhance_child_speech_recognition(transcript)
-                            
-                            if transcript.strip():
-                                logger.info(f"STT successful: {transcript[:100]}...")
-                                return transcript.strip()
-                    else:
-                        logger.error(f"STT API error: {response.status} - {await response.text()}")
+                )
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                
+                # Extract transcript
+                if result.get("results") and result["results"].get("channels"):
+                    transcript = result["results"]["channels"][0]["alternatives"][0]["transcript"]
+                    
+                    # Enhanced processing for child speech
+                    if enhanced_for_children:
+                        transcript = self.enhance_child_speech_recognition(transcript)
+                    
+                    if transcript.strip():
+                        logger.info(f"STT successful: {transcript[:100]}...")
+                        return transcript.strip()
+            else:
+                logger.error(f"STT API error: {response.status_code} - {response.text}")
             
             return None
             
@@ -369,23 +373,27 @@ class VoiceAgent:
                 "model": model
             }
             
-            # Make REST API call
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
+            # Make REST API call using requests in async context
+            loop = asyncio.get_event_loop()
+            response = await loop.run_in_executor(
+                None,
+                lambda: requests.post(
                     f"{self.base_url}/speak",
                     headers=headers,
                     params=params,
                     json=payload
-                ) as response:
-                    if response.status == 200:
-                        audio_data = await response.read()
-                        # Convert to base64 for frontend
-                        audio_base64 = base64.b64encode(audio_data).decode('utf-8')
-                        
-                        logger.info(f"TTS with prosody successful for text: {text[:50]}...")
-                        return audio_base64
-                    else:
-                        logger.error(f"TTS API error: {response.status} - {await response.text()}")
+                )
+            )
+            
+            if response.status_code == 200:
+                audio_data = response.content
+                # Convert to base64 for frontend
+                audio_base64 = base64.b64encode(audio_data).decode('utf-8')
+                
+                logger.info(f"TTS with prosody successful for text: {text[:50]}...")
+                return audio_base64
+            else:
+                logger.error(f"TTS API error: {response.status_code} - {response.text}")
             
             return None
             
@@ -416,23 +424,27 @@ class VoiceAgent:
                 "model": voice_config["model"]
             }
             
-            # Make REST API call
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
+            # Make REST API call using requests in async context
+            loop = asyncio.get_event_loop()
+            response = await loop.run_in_executor(
+                None,
+                lambda: requests.post(
                     f"{self.base_url}/speak",
                     headers=headers,
                     params=params,
                     json=payload
-                ) as response:
-                    if response.status == 200:
-                        audio_data = await response.read()
-                        # Convert to base64 for frontend
-                        audio_base64 = base64.b64encode(audio_data).decode('utf-8')
-                        
-                        logger.info(f"TTS successful for text: {text[:50]}...")
-                        return audio_base64
-                    else:
-                        logger.error(f"TTS API error: {response.status} - {await response.text()}")
+                )
+            )
+            
+            if response.status_code == 200:
+                audio_data = response.content
+                # Convert to base64 for frontend
+                audio_base64 = base64.b64encode(audio_data).decode('utf-8')
+                
+                logger.info(f"TTS successful for text: {text[:50]}...")
+                return audio_base64
+            else:
+                logger.error(f"TTS API error: {response.status_code} - {response.text}")
             
             return None
             
@@ -456,23 +468,27 @@ class VoiceAgent:
                 "alternatives": "1"
             }
             
-            # Make REST API call
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
+            # Make REST API call using requests in async context
+            loop = asyncio.get_event_loop()
+            response = await loop.run_in_executor(
+                None,
+                lambda: requests.post(
                     f"{self.base_url}/listen",
                     headers=headers,
                     params=params,
                     data=audio_data
-                ) as response:
-                    if response.status == 200:
-                        result = await response.json()
-                        
-                        if result.get("results") and result["results"].get("channels"):
-                            detected_lang = result["results"]["channels"][0].get("detected_language", "en")
-                            logger.info(f"Detected language: {detected_lang}")
-                            return detected_lang
-                    else:
-                        logger.error(f"Language detection API error: {response.status} - {await response.text()}")
+                )
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                
+                if result.get("results") and result["results"].get("channels"):
+                    detected_lang = result["results"]["channels"][0].get("detected_language", "en")
+                    logger.info(f"Detected language: {detected_lang}")
+                    return detected_lang
+            else:
+                logger.error(f"Language detection API error: {response.status_code} - {response.text}")
             
             return "en"  # Default to English
             
