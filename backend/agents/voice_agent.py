@@ -5,10 +5,11 @@ import asyncio
 import logging
 import base64
 import requests
-import json
 from typing import Optional, Dict, Any
 
+
 logger = logging.getLogger(__name__)
+
 
 class VoiceAgent:
     """Simplified voice processing with Deepgram Nova 3 STT and Aura 2 TTS using REST API"""
