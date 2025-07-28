@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   MicrophoneIcon, 
@@ -7,28 +7,265 @@ import {
   SpeakerWaveIcon,
   SpeakerXMarkIcon,
   SparklesIcon,
-  ChatBubbleLeftEllipsisIcon
+  ChatBubbleLeftEllipsisIcon,
+  EyeIcon,
+  EyeSlashIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
 const ChatInterface = ({ user, sessionId, onSendMessage }) => {
+  const [isAmbientListening, setIsAmbientListening] = useState(false);
+  const [isConversationActive, setIsConversationActive] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [textInput, setTextInput] = useState('');
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [listeningState, setListeningState] = useState('inactive'); // inactive, ambient, active
+  const [wakeWordDetected, setWakeWordDetected] = useState(false);
   
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const messagesEndRef = useRef(null);
   const audioRef = useRef(null);
+  const ambientRecorderRef = useRef(null);
+  const ambientIntervalRef = useRef(null);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    // Start ambient listening when component mounts
+    startAmbientListening();
+    
+    // Cleanup on unmount
+    return () => {
+      stopAmbientListening();
+      if (ambientIntervalRef.current) {
+        clearInterval(ambientIntervalRef.current);
+      }
+    };
+  }, []);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const startAmbientListening = async () => {
+    try {
+      // Request microphone permission
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // Start ambient listening on server
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/ambient/start`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          session_id: sessionId,
+          user_id: user.id
+        })
+      });
+
+      if (response.ok) {
+        setIsAmbientListening(true);
+        setListeningState('ambient');
+        
+        // Start continuous audio processing
+        startContinuousAudioProcessing(stream);
+        
+        toast.success('Always listening! Say "Hey Buddy" to start chatting.');
+      } else {
+        throw new Error('Failed to start ambient listening');
+      }
+    } catch (error) {
+      console.error('Error starting ambient listening:', error);
+      toast.error('Microphone access required for voice features');
+    }
+  };
+
+  const stopAmbientListening = async () => {
+    try {
+      await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/ambient/stop`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          session_id: sessionId
+        })
+      });
+
+      setIsAmbientListening(false);
+      setIsConversationActive(false);
+      setListeningState('inactive');
+      
+      // Stop audio processing
+      if (ambientRecorderRef.current) {
+        ambientRecorderRef.current.stop();
+      }
+      
+      if (ambientIntervalRef.current) {
+        clearInterval(ambientIntervalRef.current);
+      }
+    } catch (error) {
+      console.error('Error stopping ambient listening:', error);
+    }
+  };
+
+  const startContinuousAudioProcessing = (stream) => {
+    const mediaRecorder = new MediaRecorder(stream);
+    ambientRecorderRef.current = mediaRecorder;
+    
+    let audioChunks = [];
+    
+    mediaRecorder.ondataavailable = (event) => {
+      audioChunks.push(event.data);
+    };
+    
+    mediaRecorder.onstop = async () => {
+      const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+      await processAmbientAudio(audioBlob);
+      audioChunks = [];
+      
+      // Continue recording if still in ambient listening mode
+      if (isAmbientListening && mediaRecorder.state === 'inactive') {
+        setTimeout(() => {
+          if (isAmbientListening) {
+            mediaRecorder.start();
+          }
+        }, 100);
+      }
+    };
+    
+    // Start recording in chunks
+    mediaRecorder.start();
+    
+    // Process audio every 2 seconds
+    ambientIntervalRef.current = setInterval(() => {
+      if (mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+        setTimeout(() => {
+          if (isAmbientListening) {
+            mediaRecorder.start();
+          }
+        }, 100);
+      }
+    }, 2000);
+  };
+
+  const processAmbientAudio = async (audioBlob) => {
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64Audio = reader.result.split(',')[1];
+        
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/ambient/process`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            session_id: sessionId,
+            audio_base64: base64Audio
+          })
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+          handleAmbientResponse(data);
+        }
+      };
+      
+      reader.readAsDataURL(audioBlob);
+    } catch (error) {
+      console.error('Error processing ambient audio:', error);
+    }
+  };
+
+  const handleAmbientResponse = (data) => {
+    const { status, transcript, listening_state, conversation_response, has_response } = data;
+    
+    // Update listening state
+    setListeningState(listening_state);
+    
+    if (status === 'wake_word_detected') {
+      setWakeWordDetected(true);
+      setIsConversationActive(true);
+      
+      // Add wake word message
+      const wakeWordMessage = {
+        id: Date.now(),
+        type: 'system',
+        content: `Wake word detected: "${transcript}"`,
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, wakeWordMessage]);
+      
+      // Add AI response if available
+      if (has_response && conversation_response) {
+        const aiMessage = {
+          id: Date.now() + 1,
+          type: 'ai',
+          content: conversation_response.response_text,
+          audioData: conversation_response.response_audio,
+          timestamp: new Date()
+        };
+        
+        setMessages(prev => [...prev, aiMessage]);
+        
+        // Play audio response
+        if (conversation_response.response_audio) {
+          playAudio(conversation_response.response_audio);
+        }
+      }
+      
+      // Clear wake word detection after 3 seconds
+      setTimeout(() => setWakeWordDetected(false), 3000);
+      
+    } else if (status === 'conversation_active' && has_response) {
+      // Add user message
+      const userMessage = {
+        id: Date.now(),
+        type: 'user',
+        content: transcript,
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, userMessage]);
+      
+      // Add AI response
+      const aiMessage = {
+        id: Date.now() + 1,
+        type: 'ai',
+        content: conversation_response.response_text,
+        audioData: conversation_response.response_audio,
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, aiMessage]);
+      
+      // Play audio response
+      if (conversation_response.response_audio) {
+        playAudio(conversation_response.response_audio);
+      }
+      
+    } else if (status === 'conversation_ended' || status === 'conversation_timeout') {
+      setIsConversationActive(false);
+      
+      const endMessage = {
+        id: Date.now(),
+        type: 'system',
+        content: status === 'conversation_timeout' ? 'Conversation timed out. Say "Hey Buddy" to start again.' : 'Conversation ended. Say "Hey Buddy" to start again.',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, endMessage]);
+    }
   };
 
   const startRecording = async () => {
@@ -212,6 +449,32 @@ const ChatInterface = ({ user, sessionId, onSendMessage }) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const getListeningStateDisplay = () => {
+    switch (listeningState) {
+      case 'ambient':
+        return {
+          text: 'Always Listening',
+          color: 'text-blue-600',
+          bgColor: 'bg-blue-50',
+          icon: EyeIcon
+        };
+      case 'active':
+        return {
+          text: 'Conversation Active',
+          color: 'text-green-600',
+          bgColor: 'bg-green-50',
+          icon: MicrophoneIcon
+        };
+      default:
+        return {
+          text: 'Not Listening',
+          color: 'text-gray-600',
+          bgColor: 'bg-gray-50',
+          icon: EyeSlashIcon
+        };
+    }
+  };
+
   const suggestions = [
     "Tell me a story",
     "Sing a song",
@@ -219,6 +482,9 @@ const ChatInterface = ({ user, sessionId, onSendMessage }) => {
     "Let's play a game",
     "Help me learn something"
   ];
+
+  const listeningDisplay = getListeningStateDisplay();
+  const ListeningIcon = listeningDisplay.icon;
 
   return (
     <div className="flex flex-col h-full">
@@ -235,16 +501,39 @@ const ChatInterface = ({ user, sessionId, onSendMessage }) => {
             </div>
           </div>
           
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={isPlaying ? stopAudio : null}
-              className={`p-2 rounded-full transition-colors ${
-                isPlaying ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-400'
-              }`}
-              disabled={!isPlaying}
-            >
-              {isPlaying ? <SpeakerXMarkIcon className="w-5 h-5" /> : <SpeakerWaveIcon className="w-5 h-5" />}
-            </button>
+          <div className="flex items-center space-x-4">
+            {/* Listening Status */}
+            <div className={`flex items-center space-x-2 px-3 py-1 rounded-full ${listeningDisplay.bgColor}`}>
+              <ListeningIcon className={`w-4 h-4 ${listeningDisplay.color}`} />
+              <span className={`text-sm font-medium ${listeningDisplay.color}`}>
+                {listeningDisplay.text}
+              </span>
+              {wakeWordDetected && (
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse ml-2"></div>
+              )}
+            </div>
+            
+            {/* Audio Controls */}
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={isAmbientListening ? stopAmbientListening : startAmbientListening}
+                className={`p-2 rounded-full transition-colors ${
+                  isAmbientListening ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'
+                }`}
+              >
+                {isAmbientListening ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
+              </button>
+              
+              <button
+                onClick={isPlaying ? stopAudio : null}
+                className={`p-2 rounded-full transition-colors ${
+                  isPlaying ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-400'
+                }`}
+                disabled={!isPlaying}
+              >
+                {isPlaying ? <SpeakerXMarkIcon className="w-5 h-5" /> : <SpeakerWaveIcon className="w-5 h-5" />}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -256,8 +545,9 @@ const ChatInterface = ({ user, sessionId, onSendMessage }) => {
             <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
               <ChatBubbleLeftEllipsisIcon className="w-8 h-8 text-white" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Start a conversation!</h3>
-            <p className="text-gray-600 mb-6">Try saying one of these:</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">I'm always listening!</h3>
+            <p className="text-gray-600 mb-2">Say <strong>"Hey Buddy"</strong> to start chatting</p>
+            <p className="text-gray-600 mb-6">Or try typing one of these:</p>
             
             <div className="flex flex-wrap justify-center gap-2">
               {suggestions.map((suggestion, index) => (
@@ -287,6 +577,8 @@ const ChatInterface = ({ user, sessionId, onSendMessage }) => {
                   className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${
                     message.type === 'user'
                       ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
+                      : message.type === 'system'
+                      ? 'bg-yellow-50 text-yellow-800 border border-yellow-200'
                       : 'bg-gray-100 text-gray-900'
                   }`}
                 >
@@ -299,7 +591,8 @@ const ChatInterface = ({ user, sessionId, onSendMessage }) => {
                   
                   <div className="flex items-center justify-between">
                     <span className={`text-xs ${
-                      message.type === 'user' ? 'text-blue-100' : 'text-gray-500'
+                      message.type === 'user' ? 'text-blue-100' : 
+                      message.type === 'system' ? 'text-yellow-600' : 'text-gray-500'
                     }`}>
                       {formatTime(message.timestamp)}
                     </span>
@@ -349,7 +642,7 @@ const ChatInterface = ({ user, sessionId, onSendMessage }) => {
               type="text"
               value={textInput}
               onChange={(e) => setTextInput(e.target.value)}
-              placeholder="Type a message..."
+              placeholder="Type a message or say 'Hey Buddy'..."
               className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               disabled={isLoading}
             />
@@ -391,6 +684,19 @@ const ChatInterface = ({ user, sessionId, onSendMessage }) => {
             <div className="inline-flex items-center space-x-2 px-4 py-2 bg-red-50 text-red-600 rounded-full">
               <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
               <span className="text-sm font-medium">Recording...</span>
+            </div>
+          </motion.div>
+        )}
+        
+        {wakeWordDetected && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-4 text-center"
+          >
+            <div className="inline-flex items-center space-x-2 px-4 py-2 bg-green-50 text-green-600 rounded-full">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-sm font-medium">Wake word detected!</span>
             </div>
           </motion.div>
         )}
