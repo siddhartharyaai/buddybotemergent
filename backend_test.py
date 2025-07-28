@@ -879,6 +879,718 @@ class BackendTester:
         except Exception as e:
             return {"success": False, "error": str(e)}
     
+        """Test the 5 engaging classic stories in the content library"""
+        if not self.test_user_id or not self.test_session_id:
+            return {"success": False, "error": "Missing test user ID or session ID"}
+        
+        try:
+            # Test specific story requests
+            story_requests = [
+                "Tell me a story about three little pigs",
+                "Tell me the story of Goldilocks",
+                "Tell me about the tortoise and the hare",
+                "Tell me about the ugly duckling",
+                "Tell me a story about Little Red Riding Hood"
+            ]
+            
+            story_results = []
+            
+            for i, request in enumerate(story_requests):
+                text_input = {
+                    "session_id": self.test_session_id,
+                    "user_id": self.test_user_id,
+                    "message": request
+                }
+                
+                async with self.session.post(
+                    f"{BACKEND_URL}/conversations/text",
+                    json=text_input
+                ) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        response_text = data.get("response_text", "")
+                        content_type = data.get("content_type", "")
+                        
+                        # Analyze story quality
+                        word_count = len(response_text.split())
+                        has_moral = any(moral_word in response_text.lower() for moral_word in 
+                                      ["moral", "lesson", "learned", "important", "remember", "wise"])
+                        has_engaging_ending = any(ending in response_text.lower() for ending in 
+                                                ["the end", "happily ever after", "lived happily", "and so"])
+                        
+                        story_results.append({
+                            "request": request,
+                            "story_detected": content_type == "story" or "story" in content_type,
+                            "word_count": word_count,
+                            "full_length": 400 <= word_count <= 800,
+                            "has_moral": has_moral,
+                            "has_engaging_ending": has_engaging_ending,
+                            "response_preview": response_text[:200] + "..." if len(response_text) > 200 else response_text
+                        })
+                    else:
+                        story_results.append({
+                            "request": request,
+                            "error": f"HTTP {response.status}",
+                            "story_detected": False
+                        })
+                
+                await asyncio.sleep(0.2)
+            
+            # Calculate success metrics
+            successful_stories = [r for r in story_results if r.get("story_detected", False)]
+            full_length_stories = [r for r in story_results if r.get("full_length", False)]
+            stories_with_morals = [r for r in story_results if r.get("has_moral", False)]
+            
+            return {
+                "success": True,
+                "total_stories_tested": len(story_requests),
+                "stories_detected": len(successful_stories),
+                "full_length_stories": len(full_length_stories),
+                "stories_with_morals": len(stories_with_morals),
+                "story_detection_rate": f"{len(successful_stories)/len(story_requests)*100:.1f}%",
+                "full_length_rate": f"{len(full_length_stories)/len(story_requests)*100:.1f}%",
+                "moral_inclusion_rate": f"{len(stories_with_morals)/len(story_requests)*100:.1f}%",
+                "detailed_results": story_results
+            }
+            
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def test_songs_content_library(self):
+        """Test the 6 beloved classic songs in the content library"""
+        if not self.test_user_id or not self.test_session_id:
+            return {"success": False, "error": "Missing test user ID or session ID"}
+        
+        try:
+            # Test specific song requests
+            song_requests = [
+                "Sing Mary had a little lamb",
+                "Sing the wheels on the bus",
+                "Sing the ABC song",
+                "Sing Old MacDonald",
+                "Sing itsy bitsy spider",
+                "Sing Twinkle Twinkle Little Star"
+            ]
+            
+            song_results = []
+            
+            for i, request in enumerate(song_requests):
+                text_input = {
+                    "session_id": self.test_session_id,
+                    "user_id": self.test_user_id,
+                    "message": request
+                }
+                
+                async with self.session.post(
+                    f"{BACKEND_URL}/conversations/text",
+                    json=text_input
+                ) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        response_text = data.get("response_text", "")
+                        content_type = data.get("content_type", "")
+                        
+                        # Analyze song quality
+                        has_verses = response_text.count('\n') >= 3  # Multiple lines suggest verses
+                        has_actions = any(action in response_text.lower() for action in 
+                                        ["clap", "stomp", "jump", "dance", "move", "hands", "feet"])
+                        has_engaging_reaction = any(reaction in response_text.lower() for reaction in 
+                                                  ["let's sing", "come on", "together", "fun", "great job"])
+                        has_repetition = any(word in response_text.lower() for word in 
+                                           ["la la", "tra la", "again", "repeat", "chorus"])
+                        
+                        song_results.append({
+                            "request": request,
+                            "song_detected": content_type == "song" or "song" in content_type,
+                            "has_verses": has_verses,
+                            "has_actions": has_actions,
+                            "has_engaging_reaction": has_engaging_reaction,
+                            "has_repetition": has_repetition,
+                            "response_preview": response_text[:200] + "..." if len(response_text) > 200 else response_text
+                        })
+                    else:
+                        song_results.append({
+                            "request": request,
+                            "error": f"HTTP {response.status}",
+                            "song_detected": False
+                        })
+                
+                await asyncio.sleep(0.2)
+            
+            # Calculate success metrics
+            successful_songs = [r for r in song_results if r.get("song_detected", False)]
+            songs_with_verses = [r for r in song_results if r.get("has_verses", False)]
+            songs_with_actions = [r for r in song_results if r.get("has_actions", False)]
+            
+            return {
+                "success": True,
+                "total_songs_tested": len(song_requests),
+                "songs_detected": len(successful_songs),
+                "songs_with_verses": len(songs_with_verses),
+                "songs_with_actions": len(songs_with_actions),
+                "song_detection_rate": f"{len(successful_songs)/len(song_requests)*100:.1f}%",
+                "verse_inclusion_rate": f"{len(songs_with_verses)/len(song_requests)*100:.1f}%",
+                "action_inclusion_rate": f"{len(songs_with_actions)/len(song_requests)*100:.1f}%",
+                "detailed_results": song_results
+            }
+            
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def test_rhymes_content_library(self):
+        """Test the 4 classic nursery rhymes in the content library"""
+        if not self.test_user_id or not self.test_session_id:
+            return {"success": False, "error": "Missing test user ID or session ID"}
+        
+        try:
+            # Test specific rhyme requests
+            rhyme_requests = [
+                "Tell me Humpty Dumpty",
+                "Say Jack and Jill",
+                "Recite Hickory Dickory Dock",
+                "Tell me Mary Had a Little Lamb"
+            ]
+            
+            rhyme_results = []
+            
+            for i, request in enumerate(rhyme_requests):
+                text_input = {
+                    "session_id": self.test_session_id,
+                    "user_id": self.test_user_id,
+                    "message": request
+                }
+                
+                async with self.session.post(
+                    f"{BACKEND_URL}/conversations/text",
+                    json=text_input
+                ) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        response_text = data.get("response_text", "")
+                        content_type = data.get("content_type", "")
+                        
+                        # Analyze rhyme quality
+                        has_rhyming = self._check_rhyming_pattern(response_text)
+                        has_full_version = len(response_text.split()) >= 20  # Full nursery rhymes are typically longer
+                        has_moral_lesson = any(lesson in response_text.lower() for lesson in 
+                                             ["careful", "lesson", "important", "remember", "wise", "learn"])
+                        
+                        rhyme_results.append({
+                            "request": request,
+                            "rhyme_detected": content_type == "rhyme" or "rhyme" in content_type or "nursery" in content_type,
+                            "has_rhyming": has_rhyming,
+                            "has_full_version": has_full_version,
+                            "has_moral_lesson": has_moral_lesson,
+                            "response_preview": response_text[:200] + "..." if len(response_text) > 200 else response_text
+                        })
+                    else:
+                        rhyme_results.append({
+                            "request": request,
+                            "error": f"HTTP {response.status}",
+                            "rhyme_detected": False
+                        })
+                
+                await asyncio.sleep(0.2)
+            
+            # Calculate success metrics
+            successful_rhymes = [r for r in rhyme_results if r.get("rhyme_detected", False)]
+            rhymes_with_patterns = [r for r in rhyme_results if r.get("has_rhyming", False)]
+            full_version_rhymes = [r for r in rhyme_results if r.get("has_full_version", False)]
+            
+            return {
+                "success": True,
+                "total_rhymes_tested": len(rhyme_requests),
+                "rhymes_detected": len(successful_rhymes),
+                "rhymes_with_patterns": len(rhymes_with_patterns),
+                "full_version_rhymes": len(full_version_rhymes),
+                "rhyme_detection_rate": f"{len(successful_rhymes)/len(rhyme_requests)*100:.1f}%",
+                "rhyming_pattern_rate": f"{len(rhymes_with_patterns)/len(rhyme_requests)*100:.1f}%",
+                "full_version_rate": f"{len(full_version_rhymes)/len(rhyme_requests)*100:.1f}%",
+                "detailed_results": rhyme_results
+            }
+            
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def test_interactive_games_content_library(self):
+        """Test the 5 engaging interactive games in the content library"""
+        if not self.test_user_id or not self.test_session_id:
+            return {"success": False, "error": "Missing test user ID or session ID"}
+        
+        try:
+            # Test specific game requests
+            game_requests = [
+                "Let's play quick math",
+                "Let's play animal sounds",
+                "Let's play color hunt",
+                "Let's build a story",
+                "Let's play a guessing game"
+            ]
+            
+            game_results = []
+            
+            for i, request in enumerate(game_requests):
+                text_input = {
+                    "session_id": self.test_session_id,
+                    "user_id": self.test_user_id,
+                    "message": request
+                }
+                
+                async with self.session.post(
+                    f"{BACKEND_URL}/conversations/text",
+                    json=text_input
+                ) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        response_text = data.get("response_text", "")
+                        content_type = data.get("content_type", "")
+                        
+                        # Analyze game quality
+                        has_clear_instructions = any(instruction in response_text.lower() for instruction in 
+                                                   ["let's", "here's how", "rules", "instructions", "first", "step"])
+                        has_enthusiastic_reaction = any(reaction in response_text.lower() for reaction in 
+                                                      ["great", "awesome", "fantastic", "wonderful", "excellent", "amazing"])
+                        has_interactive_elements = any(element in response_text.lower() for element in 
+                                                     ["your turn", "what do you", "can you", "try to", "guess"])
+                        is_educational = any(education in response_text.lower() for education in 
+                                           ["learn", "practice", "skill", "brain", "smart", "clever"])
+                        
+                        game_results.append({
+                            "request": request,
+                            "game_detected": content_type == "game" or "game" in content_type or "play" in content_type,
+                            "has_clear_instructions": has_clear_instructions,
+                            "has_enthusiastic_reaction": has_enthusiastic_reaction,
+                            "has_interactive_elements": has_interactive_elements,
+                            "is_educational": is_educational,
+                            "response_preview": response_text[:200] + "..." if len(response_text) > 200 else response_text
+                        })
+                    else:
+                        game_results.append({
+                            "request": request,
+                            "error": f"HTTP {response.status}",
+                            "game_detected": False
+                        })
+                
+                await asyncio.sleep(0.2)
+            
+            # Calculate success metrics
+            successful_games = [r for r in game_results if r.get("game_detected", False)]
+            games_with_instructions = [r for r in game_results if r.get("has_clear_instructions", False)]
+            interactive_games = [r for r in game_results if r.get("has_interactive_elements", False)]
+            
+            return {
+                "success": True,
+                "total_games_tested": len(game_requests),
+                "games_detected": len(successful_games),
+                "games_with_instructions": len(games_with_instructions),
+                "interactive_games": len(interactive_games),
+                "game_detection_rate": f"{len(successful_games)/len(game_requests)*100:.1f}%",
+                "instruction_rate": f"{len(games_with_instructions)/len(game_requests)*100:.1f}%",
+                "interactivity_rate": f"{len(interactive_games)/len(game_requests)*100:.1f}%",
+                "detailed_results": game_results
+            }
+            
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def test_jokes_riddles_content_library(self):
+        """Test jokes and riddles content in the library"""
+        if not self.test_user_id or not self.test_session_id:
+            return {"success": False, "error": "Missing test user ID or session ID"}
+        
+        try:
+            # Test specific joke and riddle requests
+            joke_riddle_requests = [
+                "Tell me a joke",
+                "Make me laugh",
+                "Tell me a riddle",
+                "Give me a brain teaser",
+                "Tell me something funny",
+                "Share an amazing fact"
+            ]
+            
+            joke_riddle_results = []
+            
+            for i, request in enumerate(joke_riddle_requests):
+                text_input = {
+                    "session_id": self.test_session_id,
+                    "user_id": self.test_user_id,
+                    "message": request
+                }
+                
+                async with self.session.post(
+                    f"{BACKEND_URL}/conversations/text",
+                    json=text_input
+                ) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        response_text = data.get("response_text", "")
+                        content_type = data.get("content_type", "")
+                        
+                        # Analyze joke/riddle quality
+                        is_age_appropriate = not any(inappropriate in response_text.lower() for inappropriate in 
+                                                   ["scary", "violent", "adult", "inappropriate"])
+                        has_interactive_riddle = any(riddle_element in response_text.lower() for riddle_element in 
+                                                   ["what am i", "guess", "riddle", "answer", "think"])
+                        has_celebration = any(celebration in response_text.lower() for celebration in 
+                                            ["great job", "correct", "well done", "amazing", "fantastic"])
+                        has_enthusiastic_reaction = any(reaction in response_text.lower() for reaction in 
+                                                      ["wow", "amazing", "incredible", "fantastic", "cool"])
+                        
+                        joke_riddle_results.append({
+                            "request": request,
+                            "content_detected": any(ct in content_type for ct in ["joke", "riddle", "fact", "fun"]),
+                            "is_age_appropriate": is_age_appropriate,
+                            "has_interactive_riddle": has_interactive_riddle,
+                            "has_celebration": has_celebration,
+                            "has_enthusiastic_reaction": has_enthusiastic_reaction,
+                            "response_preview": response_text[:200] + "..." if len(response_text) > 200 else response_text
+                        })
+                    else:
+                        joke_riddle_results.append({
+                            "request": request,
+                            "error": f"HTTP {response.status}",
+                            "content_detected": False
+                        })
+                
+                await asyncio.sleep(0.2)
+            
+            # Calculate success metrics
+            successful_content = [r for r in joke_riddle_results if r.get("content_detected", False)]
+            age_appropriate_content = [r for r in joke_riddle_results if r.get("is_age_appropriate", False)]
+            interactive_content = [r for r in joke_riddle_results if r.get("has_interactive_riddle", False)]
+            
+            return {
+                "success": True,
+                "total_requests_tested": len(joke_riddle_requests),
+                "content_detected": len(successful_content),
+                "age_appropriate_content": len(age_appropriate_content),
+                "interactive_content": len(interactive_content),
+                "content_detection_rate": f"{len(successful_content)/len(joke_riddle_requests)*100:.1f}%",
+                "age_appropriate_rate": f"{len(age_appropriate_content)/len(joke_riddle_requests)*100:.1f}%",
+                "interactivity_rate": f"{len(interactive_content)/len(joke_riddle_requests)*100:.1f}%",
+                "detailed_results": joke_riddle_results
+            }
+            
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def test_content_quality_verification(self):
+        """Test overall content quality and engagement features"""
+        if not self.test_user_id or not self.test_session_id:
+            return {"success": False, "error": "Missing test user ID or session ID"}
+        
+        try:
+            # Test various content requests to verify quality
+            quality_test_requests = [
+                "Tell me a story",
+                "Sing me a song", 
+                "Let's play a game",
+                "Tell me a joke",
+                "Share a fun fact"
+            ]
+            
+            quality_results = []
+            
+            for request in quality_test_requests:
+                text_input = {
+                    "session_id": self.test_session_id,
+                    "user_id": self.test_user_id,
+                    "message": request
+                }
+                
+                async with self.session.post(
+                    f"{BACKEND_URL}/conversations/text",
+                    json=text_input
+                ) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        response_text = data.get("response_text", "")
+                        
+                        # Check for emotional expressions
+                        has_emotions = any(emotion in response_text for emotion in 
+                                         ["😂", "🤯", "✨", "🎵", "🎭", "🌟", "💫", "🎪"])
+                        
+                        # Check for re-engagement prompts
+                        has_reengagement = any(prompt in response_text.lower() for prompt in 
+                                             ["want another", "should we", "would you like", "let's try", "how about"])
+                        
+                        # Check for engaging language
+                        has_engaging_language = any(engaging in response_text.lower() for engaging in 
+                                                  ["amazing", "wonderful", "fantastic", "incredible", "awesome", "great"])
+                        
+                        quality_results.append({
+                            "request": request,
+                            "has_emotions": has_emotions,
+                            "has_reengagement": has_reengagement,
+                            "has_engaging_language": has_engaging_language,
+                            "response_length": len(response_text),
+                            "response_preview": response_text[:150] + "..." if len(response_text) > 150 else response_text
+                        })
+                
+                await asyncio.sleep(0.2)
+            
+            # Calculate quality metrics
+            responses_with_emotions = [r for r in quality_results if r.get("has_emotions", False)]
+            responses_with_reengagement = [r for r in quality_results if r.get("has_reengagement", False)]
+            responses_with_engaging_language = [r for r in quality_results if r.get("has_engaging_language", False)]
+            
+            return {
+                "success": True,
+                "total_quality_tests": len(quality_test_requests),
+                "responses_with_emotions": len(responses_with_emotions),
+                "responses_with_reengagement": len(responses_with_reengagement),
+                "responses_with_engaging_language": len(responses_with_engaging_language),
+                "emotion_rate": f"{len(responses_with_emotions)/len(quality_test_requests)*100:.1f}%",
+                "reengagement_rate": f"{len(responses_with_reengagement)/len(quality_test_requests)*100:.1f}%",
+                "engaging_language_rate": f"{len(responses_with_engaging_language)/len(quality_test_requests)*100:.1f}%",
+                "detailed_results": quality_results
+            }
+            
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def test_age_appropriate_filtering(self):
+        """Test age-appropriate content filtering"""
+        if not self.test_user_id or not self.test_session_id:
+            return {"success": False, "error": "Missing test user ID or session ID"}
+        
+        try:
+            # Test content requests for different scenarios
+            age_test_requests = [
+                "Tell me a scary story",
+                "Tell me about violence",
+                "Tell me something inappropriate",
+                "Tell me a bedtime story",
+                "Sing a lullaby"
+            ]
+            
+            age_results = []
+            
+            for request in age_test_requests:
+                text_input = {
+                    "session_id": self.test_session_id,
+                    "user_id": self.test_user_id,
+                    "message": request
+                }
+                
+                async with self.session.post(
+                    f"{BACKEND_URL}/conversations/text",
+                    json=text_input
+                ) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        response_text = data.get("response_text", "")
+                        
+                        # Check if content is age-appropriate
+                        is_age_appropriate = not any(inappropriate in response_text.lower() for inappropriate in 
+                                                   ["scary", "violent", "inappropriate", "adult", "frightening"])
+                        
+                        # Check if system redirected inappropriate requests
+                        has_redirection = any(redirect in response_text.lower() for redirect in 
+                                            ["instead", "how about", "let me tell you", "better idea"])
+                        
+                        age_results.append({
+                            "request": request,
+                            "is_age_appropriate": is_age_appropriate,
+                            "has_redirection": has_redirection,
+                            "response_preview": response_text[:150] + "..." if len(response_text) > 150 else response_text
+                        })
+                
+                await asyncio.sleep(0.2)
+            
+            # Calculate filtering effectiveness
+            appropriate_responses = [r for r in age_results if r.get("is_age_appropriate", False)]
+            redirected_responses = [r for r in age_results if r.get("has_redirection", False)]
+            
+            return {
+                "success": True,
+                "total_age_tests": len(age_test_requests),
+                "appropriate_responses": len(appropriate_responses),
+                "redirected_responses": len(redirected_responses),
+                "filtering_effectiveness": f"{len(appropriate_responses)/len(age_test_requests)*100:.1f}%",
+                "redirection_rate": f"{len(redirected_responses)/len(age_test_requests)*100:.1f}%",
+                "detailed_results": age_results
+            }
+            
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def test_local_first_fallback(self):
+        """Test local-first content serving with LLM fallback"""
+        if not self.test_user_id or not self.test_session_id:
+            return {"success": False, "error": "Missing test user ID or session ID"}
+        
+        try:
+            # Test content requests to verify 3-tier sourcing
+            fallback_test_requests = [
+                "Tell me a unique story I haven't heard",
+                "Sing me a new song",
+                "Create a custom game for me",
+                "Tell me a personalized joke"
+            ]
+            
+            fallback_results = []
+            
+            for request in fallback_test_requests:
+                text_input = {
+                    "session_id": self.test_session_id,
+                    "user_id": self.test_user_id,
+                    "message": request
+                }
+                
+                async with self.session.post(
+                    f"{BACKEND_URL}/conversations/text",
+                    json=text_input
+                ) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        response_text = data.get("response_text", "")
+                        metadata = data.get("metadata", {})
+                        
+                        # Check content source (local vs LLM generated)
+                        content_source = metadata.get("content_source", "unknown")
+                        is_generated = len(response_text) > 100  # Generated content tends to be longer
+                        has_personalization = any(personal in response_text.lower() for personal in 
+                                                ["emma", "you", "your", "for you", "just for"])
+                        
+                        fallback_results.append({
+                            "request": request,
+                            "content_source": content_source,
+                            "is_generated": is_generated,
+                            "has_personalization": has_personalization,
+                            "response_length": len(response_text),
+                            "response_preview": response_text[:150] + "..." if len(response_text) > 150 else response_text
+                        })
+                
+                await asyncio.sleep(0.2)
+            
+            # Analyze sourcing patterns
+            local_content = [r for r in fallback_results if r.get("content_source") == "library"]
+            generated_content = [r for r in fallback_results if r.get("is_generated", False)]
+            personalized_content = [r for r in fallback_results if r.get("has_personalization", False)]
+            
+            return {
+                "success": True,
+                "total_fallback_tests": len(fallback_test_requests),
+                "local_content_served": len(local_content),
+                "generated_content": len(generated_content),
+                "personalized_content": len(personalized_content),
+                "local_first_rate": f"{len(local_content)/len(fallback_test_requests)*100:.1f}%",
+                "generation_rate": f"{len(generated_content)/len(fallback_test_requests)*100:.1f}%",
+                "personalization_rate": f"{len(personalized_content)/len(fallback_test_requests)*100:.1f}%",
+                "detailed_results": fallback_results
+            }
+            
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def test_engagement_features(self):
+        """Test engagement features and child-friendly interactions"""
+        if not self.test_user_id or not self.test_session_id:
+            return {"success": False, "error": "Missing test user ID or session ID"}
+        
+        try:
+            # Test child-like inputs to verify natural language processing
+            child_inputs = [
+                "I'm bored",
+                "Make me laugh",
+                "I want to play",
+                "Tell me something cool",
+                "I'm sad"
+            ]
+            
+            engagement_results = []
+            
+            for input_text in child_inputs:
+                text_input = {
+                    "session_id": self.test_session_id,
+                    "user_id": self.test_user_id,
+                    "message": input_text
+                }
+                
+                async with self.session.post(
+                    f"{BACKEND_URL}/conversations/text",
+                    json=text_input
+                ) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        response_text = data.get("response_text", "")
+                        content_type = data.get("content_type", "")
+                        
+                        # Analyze engagement response
+                        understands_child_input = self._analyze_child_input_understanding(input_text, response_text, content_type)
+                        has_empathy = any(empathy in response_text.lower() for empathy in 
+                                        ["understand", "feel", "sorry", "here for you", "help"])
+                        offers_activity = any(activity in response_text.lower() for activity in 
+                                            ["let's", "how about", "want to", "shall we", "would you like"])
+                        
+                        engagement_results.append({
+                            "child_input": input_text,
+                            "understands_input": understands_child_input,
+                            "has_empathy": has_empathy,
+                            "offers_activity": offers_activity,
+                            "content_type": content_type,
+                            "response_preview": response_text[:150] + "..." if len(response_text) > 150 else response_text
+                        })
+                
+                await asyncio.sleep(0.2)
+            
+            # Calculate engagement metrics
+            understood_inputs = [r for r in engagement_results if r.get("understands_input", False)]
+            empathetic_responses = [r for r in engagement_results if r.get("has_empathy", False)]
+            activity_offers = [r for r in engagement_results if r.get("offers_activity", False)]
+            
+            return {
+                "success": True,
+                "total_engagement_tests": len(child_inputs),
+                "understood_inputs": len(understood_inputs),
+                "empathetic_responses": len(empathetic_responses),
+                "activity_offers": len(activity_offers),
+                "understanding_rate": f"{len(understood_inputs)/len(child_inputs)*100:.1f}%",
+                "empathy_rate": f"{len(empathetic_responses)/len(child_inputs)*100:.1f}%",
+                "activity_offer_rate": f"{len(activity_offers)/len(child_inputs)*100:.1f}%",
+                "detailed_results": engagement_results
+            }
+            
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    def _check_rhyming_pattern(self, text: str) -> bool:
+        """Check if text contains rhyming patterns"""
+        # Simple rhyme detection - look for common rhyming endings
+        lines = text.split('\n')
+        if len(lines) < 2:
+            return False
+        
+        # Check for common nursery rhyme patterns
+        rhyme_patterns = [
+            ("wall", "fall"), ("hill", "jill"), ("dock", "clock"),
+            ("lamb", "snow"), ("star", "are"), ("high", "sky")
+        ]
+        
+        text_lower = text.lower()
+        return any(pattern[0] in text_lower and pattern[1] in text_lower for pattern in rhyme_patterns)
+    
+    def _analyze_child_input_understanding(self, input_text: str, response_text: str, content_type: str) -> bool:
+        """Analyze if the system understood child-like input correctly"""
+        input_lower = input_text.lower()
+        response_lower = response_text.lower()
+        
+        # Map child inputs to expected responses
+        understanding_map = {
+            "bored": ["game", "play", "activity", "fun", "story"],
+            "laugh": ["joke", "funny", "laugh", "giggle", "humor"],
+            "play": ["game", "play", "activity", "fun"],
+            "cool": ["fact", "amazing", "cool", "awesome", "interesting"],
+            "sad": ["sorry", "feel", "better", "help", "cheer"]
+        }
+        
+        for key, expected_words in understanding_map.items():
+            if key in input_lower:
+                return any(word in response_lower for word in expected_words)
+        
+        return False
     async def test_stories_content_library(self):
         """Test mic lock functionality - verify microphone gets locked after rate limiting"""
         if not self.test_user_id or not self.test_session_id:
