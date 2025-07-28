@@ -155,6 +155,33 @@ class EnhancedContentAgent:
                     "age_groups": ["7-12"],
                     "tags": ["space", "science", "planets"],
                     "category": "space_facts"
+                },
+                {
+                    "id": "fact_octopus_hearts",
+                    "fact": "Did you know that octopuses have three hearts? Two hearts pump blood to their gills, and one pumps blood to the rest of their body. When they swim, the main heart stops beating, which is why they get tired easily!",
+                    "reaction": "🐙 Three hearts! That's why octopuses are such amazing ocean creatures!",
+                    "followup": "Ocean animals are so fascinating! Want to learn about more sea creatures?",
+                    "age_groups": ["5-12"],
+                    "tags": ["animals", "ocean", "science", "biology"],
+                    "category": "animal_facts"
+                },
+                {
+                    "id": "fact_penguin_huddle",
+                    "fact": "Did you know that penguins huddle together in groups of thousands to stay warm? They take turns being on the outside and inside of the huddle, so everyone gets a chance to be warm!",
+                    "reaction": "🐧 Penguins are such caring friends! They share warmth with each other!",
+                    "followup": "Isn't it wonderful how animals take care of each other? Ready for another amazing fact?",
+                    "age_groups": ["3-10"],
+                    "tags": ["animals", "cooperation", "nature", "friendship"],
+                    "category": "animal_facts"
+                },
+                {
+                    "id": "fact_rainbow_colors",
+                    "fact": "Did you know that rainbows always have the same order of colors? Red, Orange, Yellow, Green, Blue, Indigo, and Violet - you can remember it with 'Roy G. Biv!' Rainbows happen when sunlight shines through water drops in the air!",
+                    "reaction": "🌈 Roy G. Biv! Rainbows are nature's most beautiful light show!",
+                    "followup": "What's your favorite color in the rainbow? Want to learn more colorful facts?",
+                    "age_groups": ["4-10"],
+                    "tags": ["colors", "weather", "science", "memory"],
+                    "category": "science_facts"
                 }
             ],
             "rhymes": [
