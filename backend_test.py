@@ -90,7 +90,11 @@ class BackendTester:
             ("Content Library - Quality Verification", self.test_content_quality_verification),
             ("Content Library - Age Appropriateness", self.test_age_appropriate_filtering),
             ("Content Library - Local First Fallback", self.test_local_first_fallback),
-            ("Content Library - Engagement Features", self.test_engagement_features)
+            ("Content Library - Engagement Features", self.test_engagement_features),
+            # NEW CONTENT API ENDPOINTS TESTS - STORIES PAGE REGRESSION FIX
+            ("Content API - Stories Endpoint", self.test_content_api_stories),
+            ("Content API - Content Type Endpoints", self.test_content_api_content_types),
+            ("Content API - Generate Content Endpoint", self.test_content_api_generate)
         ]
         
         for test_name, test_func in test_sequence:
