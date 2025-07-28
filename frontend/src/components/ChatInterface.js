@@ -826,71 +826,7 @@ const ChatInterface = ({ user, darkMode, setDarkMode, sessionId, onSendMessage }
           />
         </div>
       </div>
-        
-        {/* Status Indicators */}
-        <div className="mt-3 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            {/* Listening State */}
-            <div className={`flex items-center space-x-2 px-3 py-1 rounded-full ${
-              listeningState === 'active' 
-                ? darkMode ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-800'
-                : listeningState === 'ambient'
-                ? darkMode ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800'
-                : darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'
-            }`}>
-              <div className={`w-2 h-2 rounded-full ${
-                listeningState === 'active' ? 'bg-green-500 animate-pulse' :
-                listeningState === 'ambient' ? 'bg-blue-500 animate-pulse' :
-                'bg-gray-400'
-              }`}></div>
-              <span className="text-xs font-medium">
-                {listeningState === 'active' ? 'Listening' :
-                 listeningState === 'ambient' ? 'Always On' :
-                 'Offline'}
-              </span>
-            </div>
 
-            {/* Audio Controls */}
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={isAmbientListening ? stopAmbientListening : startAmbientListening}
-                className={`p-2 rounded-full transition-colors ${
-                  isAmbientListening 
-                    ? darkMode ? 'bg-red-800 text-red-200' : 'bg-red-100 text-red-600'
-                    : darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'
-                }`}
-              >
-                {isAmbientListening ? <EyeSlashIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
-              </button>
-              
-              {isPlaying && (
-                <button
-                  onClick={stopAudio}
-                  className={`p-2 rounded-full transition-colors ${
-                    darkMode ? 'bg-red-800 text-red-200' : 'bg-red-100 text-red-600'
-                  }`}
-                >
-                  <SpeakerXMarkIcon className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Wake Word Indicator */}
-          {wakeWordDetected && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className={`flex items-center space-x-2 px-2 py-1 rounded-full ${
-                darkMode ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-800'
-              }`}
-            >
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-xs font-medium">Wake word detected!</span>
-            </motion.div>
-          )}
-        </div>
-      </div>
     </div>
   );
 
