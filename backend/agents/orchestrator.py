@@ -456,8 +456,23 @@ class OrchestratorAgent:
         }
     
     async def start_ambient_listening(self, session_id: str, user_profile: Dict[str, Any]) -> Dict[str, Any]:
-        """Start ambient listening for wake word detection"""
+        """Start ambient listening for wake word detection with telemetry"""
         try:
+            user_id = user_profile.get('user_id', 'unknown')
+            
+            # Track session start event
+            await self.telemetry_agent.track_event(
+                "user_session_started",
+                user_id,
+                session_id,
+                {
+                    "ambient_listening": True,
+                    "user_age": user_profile.get('age'),
+                    "voice_personality": user_profile.get('voice_personality'),
+                    "feature_name": "ambient_listening"
+                }
+            )
+            
             result = await self.voice_agent.start_ambient_listening(session_id, user_profile)
             
             # Store ambient listening state
@@ -472,6 +487,22 @@ class OrchestratorAgent:
             
         except Exception as e:
             logger.error(f"Error starting ambient listening: {str(e)}")
+            
+            # Track error event
+            try:
+                await self.telemetry_agent.track_event(
+                    "system_error_logged",
+                    user_profile.get('user_id', 'unknown'),
+                    session_id,
+                    {
+                        "error": str(e),
+                        "function": "start_ambient_listening",
+                        "feature_name": "error_handling"
+                    }
+                )
+            except:
+                pass
+                
             return {"status": "error", "message": str(e)}
     
     async def stop_ambient_listening(self, session_id: str) -> Dict[str, Any]:
