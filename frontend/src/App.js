@@ -32,6 +32,11 @@ const App = () => {
     checkUserProfile();
   }, []);
 
+  useEffect(() => {
+    // Save dark mode preference to localStorage
+    localStorage.setItem('ai_companion_dark_mode', JSON.stringify(darkMode));
+  }, [darkMode]);
+
   const checkUserProfile = async () => {
     try {
       // Check if user profile exists in localStorage
