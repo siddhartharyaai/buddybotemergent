@@ -79,7 +79,8 @@ class VoiceAgent:
                 "utterance_end_ms": "1000"  # Shorter utterance end for conversation flow
             }
             
-            logger.info(f"Making STT request to Deepgram: {len(audio_data)} bytes, Content-Type: {headers['Content-Type']}")
+            logger.info(f"Making STT request to Deepgram: {len(audio_data)} bytes, "
+                       f"Content-Type: {headers['Content-Type']}")
             
             # Make REST API call using requests in async context
             loop = asyncio.get_event_loop()
