@@ -381,18 +381,21 @@ const ChatInterface = ({ user, darkMode, setDarkMode, sessionId, onSendMessage }
 
   const sendTextMessage = async (e) => {
     e.preventDefault();
-    if (!textInput.trim()) return;
+    if (!textInput.trim() || isLoading) return;
 
+    // Store the message content before clearing
+    const messageContent = textInput.trim();
+    
     const userMessage = {
       id: Date.now(),
       type: 'user',
-      content: textInput,
+      content: messageContent,
       isVoice: false,
       timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMessage]);
-    setTextInput('');
+    setTextInput(''); // Clear input after storing the message
     setIsLoading(true);
 
     try {
@@ -404,7 +407,7 @@ const ChatInterface = ({ user, darkMode, setDarkMode, sessionId, onSendMessage }
         body: JSON.stringify({
           session_id: sessionId,
           user_id: user.id,
-          message: textInput
+          message: messageContent // Use stored message content
         })
       });
 
