@@ -263,21 +263,39 @@ async def process_ambient_audio(request: dict):
         session_id = request.get("session_id")
         audio_base64 = request.get("audio_base64")
         
-        if not session_id or not audio_base64:
-            raise HTTPException(status_code=400, detail="session_id and audio_base64 are required")
+        if not session_id:
+            logger.error("Missing session_id in ambient/process request")
+            raise HTTPException(status_code=400, detail="session_id is required")
+        
+        if not audio_base64:
+            logger.error("Missing audio_base64 in ambient/process request")
+            raise HTTPException(status_code=400, detail="audio_base64 is required")
+        
+        # Log audio data details
+        logger.info(f"Processing ambient audio: session_id={session_id}, audio_base64_length={len(audio_base64)}")
         
         # Decode audio data
-        audio_data = base64.b64decode(audio_base64)
+        try:
+            audio_data = base64.b64decode(audio_base64)
+            logger.info(f"Decoded audio data: {len(audio_data)} bytes")
+        except Exception as decode_error:
+            logger.error(f"Base64 decode error: {str(decode_error)}")
+            raise HTTPException(status_code=400, detail="Invalid base64 audio data")
+        
+        if len(audio_data) < 100:  # Minimum reasonable audio size
+            logger.warning(f"Audio data too small: {len(audio_data)} bytes")
+            return {"status": "no_speech", "listening_state": "ambient", "reason": "audio_too_small"}
         
         # Process through orchestrator
         result = await orchestrator.process_ambient_audio(session_id, audio_data)
         
+        logger.info(f"Ambient processing result: {result.get('status', 'unknown')}")
         return result
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error processing ambient audio: {str(e)}")
+        logger.error(f"Error processing ambient audio: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to process ambient audio")
 
 @api_router.get("/ambient/status/{session_id}")
