@@ -68,8 +68,27 @@ const ChatInterface = ({ user, darkMode, setDarkMode, sessionId, onSendMessage }
 
   const startAmbientListening = async () => {
     try {
-      // Request microphone permission
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log('🎤 Starting ambient listening...');
+      console.log('User ID:', user?.id);
+      console.log('Session ID:', sessionId);
+      
+      // Request microphone permission with better error handling
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            sampleRate: 44100
+          } 
+        });
+        console.log('✅ Microphone access granted');
+      } catch (permissionError) {
+        console.error('❌ Microphone permission denied:', permissionError);
+        toast.error('Please allow microphone access to use voice features. Click the microphone icon in your browser address bar.');
+        setListeningState('inactive');
+        return;
+      }
       
       // Start ambient listening on server
       const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/ambient/start`, {
@@ -79,7 +98,7 @@ const ChatInterface = ({ user, darkMode, setDarkMode, sessionId, onSendMessage }
         },
         body: JSON.stringify({
           session_id: sessionId,
-          user_id: user?.id || user?.user_id || 'default_user'
+          user_id: user?.id || user?.user_id || 'test_user'
         })
       });
 
@@ -90,13 +109,17 @@ const ChatInterface = ({ user, darkMode, setDarkMode, sessionId, onSendMessage }
         // Start continuous audio processing
         startContinuousAudioProcessing(stream);
         
-        toast.success('Always listening! Say "Hey Buddy" to start chatting.');
+        toast.success('🎤 Always listening! Say "Hey Buddy" to start chatting.');
+        console.log('✅ Ambient listening started successfully');
       } else {
-        throw new Error('Failed to start ambient listening');
+        const errorData = await response.json();
+        console.error('❌ Server error starting ambient listening:', errorData);
+        throw new Error(`Failed to start ambient listening: ${errorData.detail || 'Unknown error'}`);
       }
     } catch (error) {
-      console.error('Error starting ambient listening:', error);
-      toast.error('Microphone access required for voice features');
+      console.error('❌ Error starting ambient listening:', error);
+      setListeningState('inactive');
+      toast.error('Failed to start voice features. Please refresh and try again.');
     }
   };
 
