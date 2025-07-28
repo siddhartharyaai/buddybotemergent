@@ -445,6 +445,154 @@ async def get_voice_personalities():
         logger.error(f"Error getting voice personalities: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to get voice personalities")
 
+# Memory Management Endpoints
+@api_router.post("/memory/snapshot/{user_id}")
+async def generate_memory_snapshot(user_id: str):
+    """Generate daily memory snapshot for a user"""
+    try:
+        if not orchestrator:
+            raise HTTPException(status_code=500, detail="Multi-agent system not initialized")
+        
+        snapshot = await orchestrator.generate_daily_memory_snapshot(user_id)
+        return snapshot
+        
+    except Exception as e:
+        logger.error(f"Error generating memory snapshot: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to generate memory snapshot")
+
+@api_router.get("/memory/context/{user_id}")
+async def get_memory_context(user_id: str, days: int = 7):
+    """Get memory context for a user"""
+    try:
+        if not orchestrator:
+            raise HTTPException(status_code=500, detail="Multi-agent system not initialized")
+        
+        memory_context = await orchestrator.memory_agent.get_user_memory_context(user_id, days)
+        return memory_context
+        
+    except Exception as e:
+        logger.error(f"Error getting memory context: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get memory context")
+
+@api_router.get("/memory/snapshots/{user_id}")
+async def get_memory_snapshots(user_id: str, days: int = 30):
+    """Get memory snapshots for a user"""
+    try:
+        from datetime import timedelta
+        
+        # Get memory snapshots from database
+        start_date = datetime.utcnow() - timedelta(days=days)
+        
+        snapshots = await db.memory_snapshots.find({
+            "user_id": user_id,
+            "created_at": {"$gte": start_date}
+        }).sort("created_at", -1).to_list(length=days)
+        
+        return {"user_id": user_id, "snapshots": snapshots, "count": len(snapshots)}
+        
+    except Exception as e:
+        logger.error(f"Error getting memory snapshots: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get memory snapshots")
+
+# Telemetry and Analytics Endpoints
+@api_router.get("/analytics/dashboard/{user_id}")
+async def get_analytics_dashboard(user_id: str, days: int = 7):
+    """Get analytics dashboard for a user"""
+    try:
+        if not orchestrator:
+            raise HTTPException(status_code=500, detail="Multi-agent system not initialized")
+        
+        dashboard = await orchestrator.get_user_analytics_dashboard(user_id, days)
+        return dashboard
+        
+    except Exception as e:
+        logger.error(f"Error getting analytics dashboard: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get analytics dashboard")
+
+@api_router.get("/analytics/global")
+async def get_global_analytics(days: int = 7):
+    """Get global analytics dashboard"""
+    try:
+        if not orchestrator:
+            raise HTTPException(status_code=500, detail="Multi-agent system not initialized")
+        
+        dashboard = await orchestrator.telemetry_agent.get_analytics_dashboard(None, days)
+        return dashboard
+        
+    except Exception as e:
+        logger.error(f"Error getting global analytics: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get global analytics")
+
+@api_router.get("/flags/{user_id}")
+async def get_user_flags(user_id: str):
+    """Get feature flags for a user"""
+    try:
+        if not orchestrator:
+            raise HTTPException(status_code=500, detail="Multi-agent system not initialized")
+        
+        flags = await orchestrator.get_user_flags(user_id)
+        return {"user_id": user_id, "flags": flags}
+        
+    except Exception as e:
+        logger.error(f"Error getting user flags: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get user flags")
+
+@api_router.put("/flags/{user_id}")
+async def update_user_flags(user_id: str, flags: Dict[str, Any]):
+    """Update feature flags for a user"""
+    try:
+        if not orchestrator:
+            raise HTTPException(status_code=500, detail="Multi-agent system not initialized")
+        
+        await orchestrator.update_user_flags(user_id, flags)
+        return {"user_id": user_id, "flags": flags, "status": "updated"}
+        
+    except Exception as e:
+        logger.error(f"Error updating user flags: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to update user flags")
+
+@api_router.post("/session/end/{session_id}")
+async def end_session(session_id: str):
+    """End a session and get telemetry summary"""
+    try:
+        if not orchestrator:
+            raise HTTPException(status_code=500, detail="Multi-agent system not initialized")
+        
+        summary = await orchestrator.end_session(session_id)
+        return summary
+        
+    except Exception as e:
+        logger.error(f"Error ending session: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to end session")
+
+@api_router.get("/agents/status")
+async def get_agents_status():
+    """Get status of all agents including memory and telemetry statistics"""
+    try:
+        if not orchestrator:
+            raise HTTPException(status_code=500, detail="Multi-agent system not initialized")
+        
+        status = await orchestrator.get_agent_status()
+        return status
+        
+    except Exception as e:
+        logger.error(f"Error getting agents status: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get agents status")
+
+@api_router.post("/maintenance/cleanup")
+async def cleanup_old_data(memory_days: int = 30, telemetry_days: int = 90):
+    """Clean up old memory snapshots and telemetry data"""
+    try:
+        if not orchestrator:
+            raise HTTPException(status_code=500, detail="Multi-agent system not initialized")
+        
+        result = await orchestrator.cleanup_old_data(memory_days, telemetry_days)
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error cleaning up old data: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to cleanup old data")
+
 # Health Check
 @api_router.get("/health")
 async def health_check():
