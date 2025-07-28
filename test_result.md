@@ -444,16 +444,12 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Memory Agent Integration"
-    - "Telemetry Agent Integration"
-    - "Memory & Telemetry API Endpoints"
-    - "Enhanced Conversation Agent with Memory Context"
-    - "Multi-Agent Architecture Setup"
-    - "Voice Agent Integration"
-    - "Conversation Agent with Gemini"
-    - "Chat Interface with Voice"
-    - "User Profile Management API"
-    - "Parental Controls API"
+    - "Database Models and Schemas"
+    - "Ambient Listening System"
+    - "Enhanced Voice Processing"
+    - "Context-Aware Conversation"
+    - "Ambient Listening API Endpoints"
+    - "Enhanced Ambient Listening Interface"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
