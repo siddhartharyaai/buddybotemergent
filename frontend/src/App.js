@@ -273,6 +273,8 @@ const App = () => {
         <ChatInterface 
           user={user} 
           sessionId={sessionId}
+          darkMode={darkMode}
+          setDarkMode={setDarkMode}
         />
       </div>
     </div>
