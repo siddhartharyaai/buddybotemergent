@@ -902,6 +902,24 @@ class BackendTester:
             else:
                 print("❌ Health check failed")
         
+        # Memory Agent Status
+        print("\nMEMORY AGENT STATUS:")
+        memory_tests = ["Memory Snapshot Generation", "Memory Context Retrieval", "Memory Snapshots History", "Enhanced Conversation with Memory"]
+        memory_passed = sum(1 for test in memory_tests if self.test_results.get(test, {}).get("status") == "PASS")
+        print(f"✅ Memory Agent Tests: {memory_passed}/{len(memory_tests)} passed")
+        
+        # Telemetry Agent Status
+        print("\nTELEMETRY AGENT STATUS:")
+        telemetry_tests = ["Analytics Dashboard", "Global Analytics", "User Feature Flags", "Update Feature Flags", "Session End Telemetry", "Agent Status with Memory & Telemetry", "Maintenance Cleanup"]
+        telemetry_passed = sum(1 for test in telemetry_tests if self.test_results.get(test, {}).get("status") == "PASS")
+        print(f"✅ Telemetry Agent Tests: {telemetry_passed}/{len(telemetry_tests)} passed")
+        
+        # Integration Tests Status
+        print("\nINTEGRATION TESTS STATUS:")
+        integration_tests = ["Ambient Listening Integration", "Enhanced Conversation with Memory"]
+        integration_passed = sum(1 for test in integration_tests if self.test_results.get(test, {}).get("status") == "PASS")
+        print(f"✅ Integration Tests: {integration_passed}/{len(integration_tests)} passed")
+        
         print("\n" + "="*80)
 
 async def main():
