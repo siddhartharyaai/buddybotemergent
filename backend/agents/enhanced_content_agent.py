@@ -649,12 +649,52 @@ The End! ✨""",
                     "name": "Quick Math Challenge",
                     "intro": "Let's play Quick Math! I'll give you a simple math problem, and you solve it as fast as you can! Ready?",
                     "instructions": "I'll ask you math questions, and you give me the answer! Let's start easy!",
-                    "reaction": "🧮 Math is fun when it's a game!",
+                    "reaction": "🧮 Math is fun when it's a game! Let's start with something easy...",
                     "age_groups": ["5-12"],
                     "tags": ["math", "learning", "quick", "educational"],
                     "category": "educational_games"
+                },
+                {
+                    "id": "game_rhyme_time",
+                    "name": "Rhyme Time",
+                    "intro": "Let's play Rhyme Time! I'll say a word, and you think of words that rhyme with it!",
+                    "instructions": "When I say a word like 'cat', you can say 'hat', 'bat', 'mat'! Ready?",
+                    "reaction": "🎵 Rhyming is like making music with words! This will be fun!",
+                    "age_groups": ["4-10"],
+                    "tags": ["language", "creativity", "rhyming", "words"],
+                    "category": "word_games"
+                },
+                {
+                    "id": "game_animal_sounds",
+                    "name": "Guess the Animal Sound",
+                    "intro": "Let's play Guess the Animal! I'll describe how an animal sounds, and you guess what animal it is!",
+                    "instructions": "Listen carefully to my clues about animal sounds, then tell me which animal makes that sound!",
+                    "reaction": "🐄 Animals make such fun sounds! Let's see how many you can guess!",
+                    "age_groups": ["2-8"],
+                    "tags": ["animals", "sounds", "guessing", "nature"],
+                    "category": "animal_games"
+                },
+                {
+                    "id": "game_color_hunt",
+                    "name": "Color Treasure Hunt",
+                    "intro": "Let's go on a Color Treasure Hunt! I'll name a color, and you find something that color around you!",
+                    "instructions": "When I say a color like 'red', look around and tell me something red you can see!",
+                    "reaction": "🌈 Colors are everywhere! This treasure hunt will be exciting!",
+                    "age_groups": ["3-8"],
+                    "tags": ["colors", "observation", "environment", "learning"],
+                    "category": "observation_games"
+                },
+                {
+                    "id": "game_story_builder",
+                    "name": "Story Building Game",
+                    "intro": "Let's build a story together! I'll start with one sentence, then you add the next sentence!",
+                    "instructions": "We'll take turns adding sentences to create a fun story together! You can be as creative as you want!",
+                    "reaction": "📚 Creating stories together is magical! Your imagination is amazing!",
+                    "age_groups": ["5-12"],
+                    "tags": ["creativity", "storytelling", "imagination", "collaboration"],
+                    "category": "creative_games"
                 }
-            ]
+            ],
         }
 
     def detect_content_type(self, user_input: str) -> Optional[str]:
