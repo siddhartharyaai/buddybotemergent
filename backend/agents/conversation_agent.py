@@ -208,7 +208,7 @@ class ConversationAgent:
         
         return response
 
-    async def generate_response_with_context_ambient(self, user_input: str, user_profile: Dict[str, Any], session_id: str, context: List[Dict[str, Any]] = None, dialogue_plan: Dict[str, Any] = None, memory_context: Dict[str, Any] = None) -> str:
+    async def generate_response_with_context(self, user_input: str, user_profile: Dict[str, Any], session_id: str, context: List[Dict[str, Any]] = None, dialogue_plan: Dict[str, Any] = None, memory_context: Dict[str, Any] = None) -> str:
         """Generate response with conversation context for ambient listening"""
         try:
             # Determine age group
