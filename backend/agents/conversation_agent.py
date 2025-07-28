@@ -436,6 +436,26 @@ class ConversationAgent:
         
         return fallback_responses[age_group]
     
+    def _is_story_request(self, user_input: str) -> bool:
+        """Check if the user is requesting a story"""
+        story_keywords = [
+            'story', 'tell me a story', 'once upon a time', 'fairy tale', 
+            'bedtime story', 'tale', 'adventure', 'princess', 'dragon',
+            'magic', 'kingdom', 'forest', 'castle', 'hero', 'villain'
+        ]
+        user_input_lower = user_input.lower()
+        return any(keyword in user_input_lower for keyword in story_keywords)
+    
+    def _is_song_request(self, user_input: str) -> bool:
+        """Check if the user is requesting a song"""
+        song_keywords = [
+            'song', 'sing', 'music', 'lullaby', 'nursery rhyme',
+            'twinkle twinkle', 'abc song', 'happy birthday', 'rhyme',
+            'melody', 'tune', 'lyrics', 'sing me'
+        ]
+        user_input_lower = user_input.lower()
+        return any(keyword in user_input_lower for keyword in song_keywords)
+    
     async def get_conversation_history(self, session_id: str) -> list:
         """Get conversation history for a session"""
         return self.conversations.get(session_id, [])
