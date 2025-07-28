@@ -143,11 +143,89 @@ class EnhancedContentAgent:
                 {
                     "id": "rhyme_twinkle_star",
                     "title": "Twinkle, Twinkle, Little Star",
-                    "content": "Twinkle, twinkle, little star,\nHow I wonder what you are!\nUp above the world so high,\nLike a diamond in the sky.\nTwinkle, twinkle, little star,\nHow I wonder what you are!",
-                    "reaction": "✨ Such a beautiful classic! Should we sing it together?",
-                    "followup": "Want to hear another lovely rhyme?",
-                    "age_groups": ["2-6", "7-9"],
-                    "tags": ["classic", "stars", "bedtime", "singing"],
+                    "content": """Twinkle, twinkle, little star,
+How I wonder what you are!
+Up above the world so high,
+Like a diamond in the sky.
+
+When the blazing sun is gone,
+When there's nothing he shines upon,
+Then you show your little light,
+Twinkle, twinkle, through the night.
+
+Twinkle, twinkle, little star,
+How I wonder what you are!""",
+                    "reaction": "✨ Such a beautiful classic! The stars are magical, aren't they?",
+                    "followup": "Do you like looking at stars at night? Want to hear another lovely rhyme?",
+                    "age_groups": ["2-8"],
+                    "tags": ["classic", "stars", "bedtime", "wonder"],
+                    "category": "nursery_rhymes"
+                },
+                {
+                    "id": "rhyme_humpty_dumpty",
+                    "title": "Humpty Dumpty",
+                    "content": """Humpty Dumpty sat on a wall,
+Humpty Dumpty had a great fall!
+All the king's horses and all the king's men
+Couldn't put Humpty together again.
+
+But Humpty learned to be more careful,
+And found friends who were always helpful.
+Sometimes when we fall, we learn to grow,
+That's something important for us to know!""",
+                    "reaction": "🥚 Poor Humpty! But he learned to be more careful, didn't he?",
+                    "followup": "Have you ever learned something important from making a mistake? Ready for another rhyme?",
+                    "age_groups": ["2-6"],
+                    "tags": ["classic", "learning", "safety", "resilience"],
+                    "category": "nursery_rhymes"
+                },
+                {
+                    "id": "rhyme_jack_jill",
+                    "title": "Jack and Jill",
+                    "content": """Jack and Jill went up the hill
+To fetch a pail of water.
+Jack fell down and broke his crown,
+And Jill came tumbling after!
+
+Up Jack got, and home did trot,
+As fast as he could caper,
+And went to bed and bandaged his head
+With vinegar and brown paper.
+
+Jack and Jill learned to be careful
+When walking up hills so steep.
+Good friends help each other always,
+That's a promise they will keep!""",
+                    "reaction": "👫 Jack and Jill were such good friends! They helped each other, just like best friends should!",
+                    "followup": "Who are your best friends? Do you help each other too? Want another rhyme?",
+                    "age_groups": ["2-7"],
+                    "tags": ["friendship", "helping", "classic", "cooperation"],
+                    "category": "nursery_rhymes"
+                },
+                {
+                    "id": "rhyme_hickory_dickory",
+                    "title": "Hickory Dickory Dock",
+                    "content": """Hickory dickory dock,
+The mouse ran up the clock!
+The clock struck one,
+The mouse ran down,
+Hickory dickory dock!
+
+Hickory dickory dock,
+The mouse ran up the clock!
+The clock struck two,
+The mouse said "Whoo!"
+Hickory dickory dock!
+
+Hickory dickory dock,
+The mouse ran up the clock!
+The clock struck three,
+The mouse said "Whee!"
+Hickory dickory dock!""",
+                    "reaction": "🐭 What a playful little mouse! Did you hear all those fun sounds? Whoo! Whee!",
+                    "followup": "Can you make mouse sounds too? What time is it right now? More rhymes?",
+                    "age_groups": ["2-6"],
+                    "tags": ["animals", "time", "sounds", "playful"],
                     "category": "nursery_rhymes"
                 }
             ],
