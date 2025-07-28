@@ -204,33 +204,53 @@ const ChatInterface = ({ user, darkMode, setDarkMode, sessionId, onSendMessage }
     }, 10000); // Restart every 10 seconds instead of processing continuously
   };
 
-  const processAmbientAudio = async (audioBlob) => {
+  const processAmbientAudio = async (audioData) => {
     try {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64Audio = reader.result.split(',')[1];
-        
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/ambient/process`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            session_id: sessionId,
-            audio_base64: base64Audio
-          })
-        });
-
-        const data = await response.json();
-        
-        if (response.ok) {
-          handleAmbientResponse(data);
-        }
-      };
+      let base64Audio;
       
-      reader.readAsDataURL(audioBlob);
+      // Handle different audio data types
+      if (typeof audioData === 'string') {
+        base64Audio = audioData;
+      } else {
+        // Convert Blob to base64
+        const reader = new FileReader();
+        return new Promise((resolve) => {
+          reader.onloadend = async () => {
+            base64Audio = reader.result.split(',')[1];
+            await sendAudioToBackend(base64Audio);
+            resolve();
+          };
+          reader.readAsDataURL(audioData);
+        });
+      }
+      
+      await sendAudioToBackend(base64Audio);
     } catch (error) {
       console.error('Error processing ambient audio:', error);
+    }
+  };
+  
+  const sendAudioToBackend = async (base64Audio) => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/ambient/process`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          session_id: sessionId,
+          audio_base64: base64Audio
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        handleAmbientResponse(data);
+      } else {
+        console.warn('Ambient processing request failed:', response.status);
+      }
+    } catch (error) {
+      console.error('Error sending audio to backend:', error);
     }
   };
 
