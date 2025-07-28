@@ -623,7 +623,7 @@ const ProfileSetup = ({ isOpen, onClose, onSave, initialData = null }) => {
               </div>
               
               <div>
-                {step < 3 ? (
+                {step < totalSteps ? (
                   <button
                     type="button"
                     onClick={nextStep}
