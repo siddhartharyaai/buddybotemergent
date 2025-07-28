@@ -293,7 +293,7 @@ const ProfileSetup = ({ isOpen, onClose, onSave, initialData = null }) => {
               </motion.div>
             )}
 
-            {/* Step 2: Voice & Preferences */}
+            {/* Step 2: Personal Details */}
             {step === 2 && (
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
@@ -302,35 +302,270 @@ const ProfileSetup = ({ isOpen, onClose, onSave, initialData = null }) => {
                 className="space-y-6"
               >
                 <div className="text-center">
-                  <MicrophoneIcon className="w-16 h-16 text-purple-500 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-900">Voice Personality</h3>
-                  <p className="text-gray-600">Choose how I should sound</p>
+                  <UserCircleIcon className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900">About You</h3>
+                  <p className="text-gray-600">Let's personalize your experience</p>
                 </div>
 
-                <div className="space-y-3">
-                  {voicePersonalities.map((personality) => (
-                    <label key={personality.id} className="block">
-                      <input
-                        {...register('voice_personality')}
-                        type="radio"
-                        value={personality.id}
-                        className="sr-only"
-                      />
-                      <div className="flex items-center p-4 border rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
-                        <div className={`w-4 h-4 rounded-full ${personality.color} mr-4`} />
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-900">{personality.name}</h4>
-                          <p className="text-sm text-gray-600">{personality.description}</p>
-                        </div>
-                      </div>
+                <div className="space-y-6">
+                  {/* Gender Selection */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      How would you like me to know you?
                     </label>
-                  ))}
+                    <div className="grid grid-cols-1 gap-3">
+                      {genderOptions.map((gender) => (
+                        <label key={gender.id} className="block">
+                          <input
+                            {...register('gender')}
+                            type="radio"
+                            value={gender.id}
+                            className="sr-only"
+                          />
+                          <div className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                            watch('gender') === gender.id
+                              ? 'border-green-500 bg-green-50 text-green-700'
+                              : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                          }`}>
+                            <div className="text-2xl mr-4">{gender.emoji}</div>
+                            <div className="flex-1">
+                              <h4 className="font-medium">{gender.name}</h4>
+                            </div>
+                            {watch('gender') === gender.id && (
+                              <CheckCircleIcon className="w-5 h-5 text-green-500" />
+                            )}
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Avatar Picker */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Pick your buddy avatar! 🎨
+                    </label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {avatarOptions.map((avatar) => (
+                        <label key={avatar.id} className="block">
+                          <input
+                            {...register('avatar')}
+                            type="radio"
+                            value={avatar.id}
+                            className="sr-only"
+                          />
+                          <div className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 text-center ${
+                            watch('avatar') === avatar.id
+                              ? 'border-green-500 bg-green-50 text-green-700'
+                              : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                          }`}>
+                            <div className="text-3xl mb-2">{avatar.emoji}</div>
+                            <div className="text-sm font-medium">{avatar.name}</div>
+                            {watch('avatar') === avatar.id && (
+                              <CheckCircleIcon className="w-4 h-4 text-green-500 mx-auto mt-1" />
+                            )}
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             )}
 
-            {/* Step 3: Interests */}
+            {/* Step 3: Voice & Speech Preferences */}
             {step === 3 && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <div className="text-center">
+                  <MicrophoneIcon className="w-16 h-16 text-purple-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900">Voice & Speech</h3>
+                  <p className="text-gray-600">How should I sound when we chat?</p>
+                </div>
+
+                <div className="space-y-6">
+                  {/* Voice Personality */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Voice Personality
+                    </label>
+                    <div className="space-y-3">
+                      {voicePersonalities.map((personality) => (
+                        <label key={personality.id} className="block">
+                          <input
+                            {...register('voice_personality')}
+                            type="radio"
+                            value={personality.id}
+                            className="sr-only"
+                          />
+                          <div className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                            watch('voice_personality') === personality.id
+                              ? 'border-purple-500 bg-purple-50 text-purple-700'
+                              : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                          }`}>
+                            <div className={`w-4 h-4 rounded-full ${personality.color} mr-4`} />
+                            <div className="flex-1">
+                              <h4 className="font-medium">{personality.name}</h4>
+                              <p className="text-sm opacity-75">{personality.description}</p>
+                            </div>
+                            {watch('voice_personality') === personality.id && (
+                              <CheckCircleIcon className="w-5 h-5 text-purple-500" />
+                            )}
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Speech Speed */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      How fast should I speak? 🗣️
+                    </label>
+                    <div className="grid grid-cols-1 gap-3">
+                      {speechSpeedOptions.map((speed) => (
+                        <label key={speed.id} className="block">
+                          <input
+                            {...register('speech_speed')}
+                            type="radio"
+                            value={speed.id}
+                            className="sr-only"
+                          />
+                          <div className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                            watch('speech_speed') === speed.id
+                              ? 'border-purple-500 bg-purple-50 text-purple-700'
+                              : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                          }`}>
+                            <div className="flex-1">
+                              <h4 className="font-medium">{speed.name}</h4>
+                              <p className="text-sm opacity-75">{speed.description}</p>
+                            </div>
+                            {watch('speech_speed') === speed.id && (
+                              <CheckCircleIcon className="w-5 h-5 text-purple-500" />
+                            )}
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Energy Level */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      What energy level do you prefer? ⚡
+                    </label>
+                    <div className="grid grid-cols-1 gap-3">
+                      {energyLevelOptions.map((energy) => (
+                        <label key={energy.id} className="block">
+                          <input
+                            {...register('energy_level')}
+                            type="radio"
+                            value={energy.id}
+                            className="sr-only"
+                          />
+                          <div className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                            watch('energy_level') === energy.id
+                              ? 'border-purple-500 bg-purple-50 text-purple-700'
+                              : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                          }`}>
+                            <div className="text-2xl mr-4">{energy.emoji}</div>
+                            <div className="flex-1">
+                              <h4 className="font-medium">{energy.name}</h4>
+                              <p className="text-sm opacity-75">{energy.description}</p>
+                            </div>
+                            {watch('energy_level') === energy.id && (
+                              <CheckCircleIcon className="w-5 h-5 text-purple-500" />
+                            )}
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Language Preference */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      What language should we speak? 🌍
+                    </label>
+                    <div className="grid grid-cols-1 gap-3">
+                      {languageOptions.map((language) => (
+                        <label key={language.id} className="block">
+                          <input
+                            {...register('language')}
+                            type="radio"
+                            value={language.id}
+                            className="sr-only"
+                          />
+                          <div className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                            watch('language') === language.id
+                              ? 'border-purple-500 bg-purple-50 text-purple-700'
+                              : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                          }`}>
+                            <div className="flex-1">
+                              <h4 className="font-medium">{language.name}</h4>
+                              <p className="text-sm opacity-75">{language.description}</p>
+                            </div>
+                            {watch('language') === language.id && (
+                              <CheckCircleIcon className="w-5 h-5 text-purple-500" />
+                            )}
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Step 4: Learning Goals */}
+            {step === 4 && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <div className="text-center">
+                  <AcademicCapIcon className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900">Learning Goals</h3>
+                  <p className="text-gray-600">What would you like to learn together?</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {learningGoalOptions.map((goal) => (
+                    <motion.button
+                      key={goal.id}
+                      type="button"
+                      onClick={() => handleLearningGoalToggle(goal.id)}
+                      className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+                        watchedLearningGoals.includes(goal.id)
+                          ? 'border-yellow-500 bg-yellow-50 text-yellow-700'
+                          : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                      }`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <div className="text-2xl mb-2">{goal.emoji}</div>
+                      <div className="text-sm font-medium">{goal.name}</div>
+                      {watchedLearningGoals.includes(goal.id) && (
+                        <CheckCircleIcon className="w-4 h-4 text-yellow-500 mx-auto mt-1" />
+                      )}
+                    </motion.button>
+                  ))}
+                </div>
+
+                {errors.learning_goals && (
+                  <p className="text-red-500 text-sm text-center">{errors.learning_goals.message}</p>
+                )}
+              </motion.div>
+            )}
+
+            {/* Step 5: Interests */}
+            {step === 5 && (
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -340,7 +575,7 @@ const ProfileSetup = ({ isOpen, onClose, onSave, initialData = null }) => {
                 <div className="text-center">
                   <HeartIcon className="w-16 h-16 text-pink-500 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-gray-900">What do you love?</h3>
-                  <p className="text-gray-600">Select your interests</p>
+                  <p className="text-gray-600">Select your favorite things</p>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -351,7 +586,7 @@ const ProfileSetup = ({ isOpen, onClose, onSave, initialData = null }) => {
                       onClick={() => handleInterestToggle(interest.id)}
                       className={`p-4 rounded-xl border-2 transition-all duration-200 ${
                         watchedInterests.includes(interest.id)
-                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          ? 'border-pink-500 bg-pink-50 text-pink-700'
                           : 'border-gray-200 hover:border-gray-300 text-gray-700'
                       }`}
                       whileHover={{ scale: 1.05 }}
@@ -360,7 +595,7 @@ const ProfileSetup = ({ isOpen, onClose, onSave, initialData = null }) => {
                       <div className="text-2xl mb-2">{interest.emoji}</div>
                       <div className="text-sm font-medium">{interest.name}</div>
                       {watchedInterests.includes(interest.id) && (
-                        <CheckCircleIcon className="w-5 h-5 text-blue-500 mx-auto mt-1" />
+                        <CheckCircleIcon className="w-5 h-5 text-pink-500 mx-auto mt-1" />
                       )}
                     </motion.button>
                   ))}
