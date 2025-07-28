@@ -3,7 +3,7 @@ Main Orchestrator Agent - Central coordinator for all sub-agents
 """
 import asyncio
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from datetime import datetime
 import uuid
 
