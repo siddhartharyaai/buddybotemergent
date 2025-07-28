@@ -2671,6 +2671,198 @@ class BackendTester:
         print(f"✅ Integration Tests: {integration_passed}/{len(integration_tests)} passed")
         
         print("\n" + "="*80)
+    
+    async def test_content_api_stories(self):
+        """Test GET /api/content/stories endpoint - Stories page regression fix"""
+        try:
+            async with self.session.get(f"{BACKEND_URL}/content/stories") as response:
+                if response.status == 200:
+                    data = await response.json()
+                    stories = data.get("stories", [])
+                    
+                    # Verify stories structure and content
+                    story_validation = []
+                    for story in stories:
+                        validation = {
+                            "has_id": "id" in story,
+                            "has_title": "title" in story,
+                            "has_description": "description" in story,
+                            "has_content": "content" in story and len(story.get("content", "")) > 50,
+                            "has_category": "category" in story,
+                            "has_duration": "duration" in story,
+                            "has_age_group": "age_group" in story,
+                            "has_tags": "tags" in story and isinstance(story.get("tags"), list),
+                            "has_moral": "moral" in story
+                        }
+                        story_validation.append(validation)
+                    
+                    # Check for expected stories
+                    story_titles = [story.get("title", "") for story in stories]
+                    expected_stories = ["Clever Rabbit", "Three Little Pigs", "Tortoise", "Goldilocks", "Ugly Duckling"]
+                    found_expected = sum(1 for expected in expected_stories 
+                                       if any(expected.lower() in title.lower() for title in story_titles))
+                    
+                    return {
+                        "success": True,
+                        "stories_count": len(stories),
+                        "has_stories": len(stories) >= 5,
+                        "all_stories_have_required_fields": all(
+                            all(validation.values()) for validation in story_validation
+                        ),
+                        "expected_stories_found": found_expected,
+                        "story_titles": story_titles,
+                        "sample_story": stories[0] if stories else None,
+                        "stories_page_compatible": len(stories) >= 5 and all(
+                            story.get("title") and story.get("content") and story.get("id")
+                            for story in stories
+                        )
+                    }
+                else:
+                    error_text = await response.text()
+                    return {"success": False, "error": f"HTTP {response.status}: {error_text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def test_content_api_content_types(self):
+        """Test GET /api/content/{content_type} endpoints for all 7 content types"""
+        try:
+            content_types = ["jokes", "riddles", "facts", "songs", "rhymes", "stories", "games"]
+            content_results = {}
+            
+            for content_type in content_types:
+                async with self.session.get(f"{BACKEND_URL}/content/{content_type}") as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        content_list = data.get("content", [])
+                        
+                        content_results[content_type] = {
+                            "available": True,
+                            "count": data.get("count", len(content_list)),
+                            "has_content": len(content_list) > 0,
+                            "content_structure_valid": data.get("content_type") == content_type,
+                            "sample_content": content_list[0] if content_list else None
+                        }
+                    elif response.status == 404:
+                        content_results[content_type] = {
+                            "available": False,
+                            "error": "Content type not found"
+                        }
+                    else:
+                        error_text = await response.text()
+                        content_results[content_type] = {
+                            "available": False,
+                            "error": f"HTTP {response.status}: {error_text}"
+                        }
+            
+            # Calculate success metrics
+            available_types = [ct for ct, result in content_results.items() if result.get("available", False)]
+            types_with_content = [ct for ct, result in content_results.items() 
+                                if result.get("available", False) and result.get("has_content", False)]
+            
+            return {
+                "success": True,
+                "total_content_types_tested": len(content_types),
+                "available_content_types": len(available_types),
+                "content_types_with_data": len(types_with_content),
+                "all_7_types_available": len(available_types) == 7,
+                "content_results": content_results,
+                "available_types_list": available_types,
+                "types_with_content_list": types_with_content
+            }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def test_content_api_generate(self):
+        """Test POST /api/content/generate endpoint with 3-tier sourcing system"""
+        if not self.test_user_id:
+            return {"success": False, "error": "No test user ID available"}
+        
+        try:
+            # Test different content types with the generate endpoint
+            test_requests = [
+                {
+                    "content_type": "story",
+                    "user_input": "Tell me a story about a brave little mouse",
+                    "user_id": self.test_user_id
+                },
+                {
+                    "content_type": "joke",
+                    "user_input": "Tell me a funny joke",
+                    "user_id": self.test_user_id
+                },
+                {
+                    "content_type": "riddle",
+                    "user_input": "Give me a riddle to solve",
+                    "user_id": self.test_user_id
+                },
+                {
+                    "content_type": "song",
+                    "user_input": "Sing me a happy song",
+                    "user_id": self.test_user_id
+                }
+            ]
+            
+            generation_results = []
+            
+            for request_data in test_requests:
+                async with self.session.post(
+                    f"{BACKEND_URL}/content/generate",
+                    json=request_data
+                ) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        
+                        generation_results.append({
+                            "content_type": request_data["content_type"],
+                            "generation_successful": True,
+                            "has_content": bool(data.get("content")),
+                            "has_metadata": bool(data.get("metadata")),
+                            "content_length": len(str(data.get("content", ""))),
+                            "tier_used": data.get("metadata", {}).get("tier_used", "unknown"),
+                            "response_preview": str(data.get("content", ""))[:100]
+                        })
+                    else:
+                        error_text = await response.text()
+                        generation_results.append({
+                            "content_type": request_data["content_type"],
+                            "generation_successful": False,
+                            "error": f"HTTP {response.status}: {error_text}"
+                        })
+                
+                await asyncio.sleep(0.2)  # Small delay between requests
+            
+            # Test invalid requests
+            invalid_request = {
+                "content_type": "invalid_type",
+                "user_input": "test",
+                "user_id": self.test_user_id
+            }
+            
+            async with self.session.post(
+                f"{BACKEND_URL}/content/generate",
+                json=invalid_request
+            ) as response:
+                invalid_request_handled = response.status in [400, 404, 422]
+            
+            # Calculate success metrics
+            successful_generations = [r for r in generation_results if r.get("generation_successful", False)]
+            generations_with_content = [r for r in generation_results if r.get("has_content", False)]
+            
+            return {
+                "success": True,
+                "total_requests_tested": len(test_requests),
+                "successful_generations": len(successful_generations),
+                "generations_with_content": len(generations_with_content),
+                "all_content_types_working": len(successful_generations) == len(test_requests),
+                "invalid_request_handled_correctly": invalid_request_handled,
+                "generation_results": generation_results,
+                "3_tier_sourcing_active": any(
+                    r.get("tier_used") in ["local", "llm", "fallback"] 
+                    for r in generation_results
+                )
+            }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
 
 async def main():
     """Main test execution"""
