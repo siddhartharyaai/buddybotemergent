@@ -40,6 +40,148 @@ class ConversationAgent:
         
         logger.info("Conversation Agent initialized with Gemini")
     
+    async def generate_response_with_context(self, user_input: str, user_profile: Dict[str, Any], session_id: str, context: List[Dict[str, Any]] = None, dialogue_plan: Dict[str, Any] = None) -> str:
+        """Generate response with conversation context and dialogue plan"""
+        try:
+            # Determine age group
+            age = user_profile.get('age', 5)
+            age_group = self._get_age_group(age)
+            
+            # Get base system message
+            base_system_message = self.system_messages[age_group]
+            
+            # Enhance with dialogue plan if provided
+            if dialogue_plan:
+                mode = dialogue_plan.get("mode", "chat")
+                prosody = dialogue_plan.get("prosody", {})
+                cultural_context = dialogue_plan.get("cultural_context", {})
+                response_guidelines = dialogue_plan.get("response_guidelines", {})
+                
+                # Add mode-specific instructions
+                mode_instructions = {
+                    "story": "You are in storytelling mode. Be descriptive, engaging, and use narrative techniques.",
+                    "game": "You are in game mode. Be encouraging, playful, and interactive.",
+                    "comfort": "You are in comfort mode. Be empathetic, warm, and supportive.",
+                    "teaching": "You are in teaching mode. Be patient, clear, and educational.",
+                    "bedtime": "You are in bedtime mode. Be soothing, calm, and gentle.",
+                    "calm": "You are in calming mode. Be peaceful, stabilizing, and reassuring."
+                }
+                
+                if mode in mode_instructions:
+                    base_system_message += f"\n\n{mode_instructions[mode]}"
+                
+                # Add prosody instructions
+                tone = prosody.get("tone", "friendly")
+                pace = prosody.get("pace", "normal")
+                base_system_message += f"\n\nResponse tone: {tone}. Speech pace: {pace}."
+                
+                # Add cultural context
+                if cultural_context.get("hinglish_usage", False):
+                    base_system_message += "\n\nUse Indian English with occasional Hinglish words like 'yaar', 'accha', 'bahut', 'kya', 'hai na' naturally in conversation. Add relevant emojis."
+                
+                # Add response guidelines
+                if response_guidelines.get("be_curious", False):
+                    base_system_message += "\n\nBe curious and ask follow-up questions."
+                if response_guidelines.get("use_examples", False):
+                    base_system_message += "\n\nUse examples to explain concepts."
+                
+                # Add token budget constraint
+                token_budget = dialogue_plan.get("token_budget", 150)
+                base_system_message += f"\n\nKeep response under {token_budget} tokens."
+            
+            # Add user context
+            enhanced_system_message = f"{base_system_message}\n\nUser Profile:\n"
+            enhanced_system_message += f"- Age: {age}\n"
+            enhanced_system_message += f"- Name: {user_profile.get('name', 'Friend')}\n"
+            enhanced_system_message += f"- Interests: {', '.join(user_profile.get('interests', ['stories', 'games']))}\n"
+            enhanced_system_message += f"- Location: {user_profile.get('location', 'Unknown')}\n"
+            
+            # Add conversation context if available
+            if context:
+                enhanced_system_message += f"\nRecent conversation context:\n"
+                for ctx in context[-3:]:  # Last 3 context items
+                    enhanced_system_message += f"- {ctx.get('text', '')}\n"
+                enhanced_system_message += f"\nContinue this conversation naturally and remember what was said before."
+            
+            # Add ambient listening context
+            enhanced_system_message += f"\n\nNote: This is an ambient listening conversation. The child may have said a wake word like 'Hey Buddy' before this message. Be natural and conversational."
+            
+            # Initialize chat with session
+            max_tokens = dialogue_plan.get("token_budget", 200) if dialogue_plan else 200
+            
+            chat = LlmChat(
+                api_key=self.gemini_api_key,
+                session_id=session_id,
+                system_message=enhanced_system_message
+            ).with_model("gemini", "gemini-2.0-flash").with_max_tokens(max_tokens)
+            
+            # Create user message
+            user_message = UserMessage(text=user_input)
+            
+            # Generate response
+            response = await chat.send_message(user_message)
+            
+            # Post-process response based on dialogue plan
+            if dialogue_plan:
+                processed_response = self._post_process_with_dialogue_plan(response, dialogue_plan, age_group)
+            else:
+                processed_response = self._post_process_ambient_response(response, age_group)
+            
+            logger.info(f"Generated enhanced response for age {age}: {processed_response[:100]}...")
+            return processed_response
+            
+        except Exception as e:
+            logger.error(f"Error generating enhanced response: {str(e)}")
+            return self._get_fallback_ambient_response(user_profile.get('age', 5))
+    
+    def _post_process_with_dialogue_plan(self, response: str, dialogue_plan: Dict[str, Any], age_group: str) -> str:
+        """Post-process response based on dialogue plan"""
+        
+        mode = dialogue_plan.get("mode", "chat")
+        prosody = dialogue_plan.get("prosody", {})
+        cultural_context = dialogue_plan.get("cultural_context", {})
+        
+        # Apply mode-specific processing
+        if mode == "story":
+            # Add narrative elements
+            if not any(starter in response.lower() for starter in ["once", "there was", "long ago"]):
+                response = f"Let me tell you... {response}"
+        elif mode == "game":
+            # Add game enthusiasm
+            if not any(word in response.lower() for word in ["great", "awesome", "good job", "well done"]):
+                response = f"Great job! {response}"
+        elif mode == "comfort":
+            # Add comforting elements
+            if not any(word in response.lower() for word in ["understand", "feel", "okay", "alright"]):
+                response = f"I understand... {response}"
+        
+        # Apply cultural context
+        if cultural_context.get("hinglish_usage", False):
+            # Add occasional Hinglish words
+            hinglish_replacements = {
+                "yes": "haan",
+                "no": "nahi",
+                "good": "accha",
+                "very": "bahut",
+                "what": "kya",
+                "friend": "yaar"
+            }
+            
+            import random
+            if random.random() < 0.3:  # 30% chance
+                for eng, hindi in hinglish_replacements.items():
+                    if eng in response.lower():
+                        response = response.replace(eng, hindi, 1)
+                        break
+        
+        # Apply prosody adjustments
+        pace = prosody.get("pace", "normal")
+        if pace == "slow" or pace == "very_slow":
+            # Add more pauses
+            response = response.replace(".", "... ").replace(",", ", ")
+        
+        return response
+
     async def generate_response_with_context(self, user_input: str, user_profile: Dict[str, Any], session_id: str, context: List[Dict[str, Any]] = None) -> str:
         """Generate response with conversation context for ambient listening"""
         try:
