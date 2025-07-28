@@ -9,7 +9,6 @@ import re
 import time
 from typing import Optional, Dict, Any, List
 from deepgram import DeepgramClient, PrerecordedOptions, SpeakOptions, LiveTranscriptionEvents, LiveOptions
-from deepgram.clients.speak.v1 import SpeakSource
 
 logger = logging.getLogger(__name__)
 
