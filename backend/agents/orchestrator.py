@@ -46,6 +46,89 @@ class OrchestratorAgent:
         
         logger.info("Enhanced Orchestrator Agent with Memory & Telemetry initialized successfully")
     
+    def _is_mic_locked(self, session_id: str) -> bool:
+        """Check if microphone is currently locked for this session"""
+        if session_id not in self.session_store:
+            return False
+        
+        mic_locked_until = self.session_store[session_id].get('mic_locked_until')
+        if not mic_locked_until:
+            return False
+        
+        return datetime.utcnow() < mic_locked_until
+    
+    def _lock_microphone(self, session_id: str) -> None:
+        """Lock microphone for specified duration"""
+        if session_id not in self.session_store:
+            self.session_store[session_id] = {}
+        
+        lock_until = datetime.utcnow() + timedelta(seconds=self.mic_lock_duration)
+        self.session_store[session_id]['mic_locked_until'] = lock_until
+        
+        logger.info(f"Microphone locked for session {session_id} until {lock_until}")
+    
+    def _should_suggest_break(self, session_id: str) -> bool:
+        """Check if we should suggest a break to the user"""
+        if session_id not in self.session_store:
+            return False
+        
+        session_data = self.session_store[session_id]
+        session_start = session_data.get('session_start_time', datetime.utcnow())
+        last_break_suggestion = session_data.get('last_break_suggestion')
+        
+        # Check total session duration
+        session_duration = (datetime.utcnow() - session_start).total_seconds()
+        
+        # Suggest break if session is longer than threshold and hasn't been suggested recently
+        if session_duration > self.break_suggestion_threshold:
+            if not last_break_suggestion:
+                return True
+            
+            time_since_last_suggestion = (datetime.utcnow() - last_break_suggestion).total_seconds()
+            return time_since_last_suggestion > self.break_suggestion_threshold
+        
+        return False
+    
+    def _mark_break_suggested(self, session_id: str) -> None:
+        """Mark that a break has been suggested for this session"""
+        if session_id not in self.session_store:
+            self.session_store[session_id] = {}
+        
+        self.session_store[session_id]['last_break_suggestion'] = datetime.utcnow()
+    
+    def _check_interaction_limits(self, session_id: str) -> Dict[str, Any]:
+        """Check if user is exceeding interaction limits"""
+        if session_id not in self.session_store:
+            return {"exceeded": False}
+        
+        session_data = self.session_store[session_id]
+        interaction_count = session_data.get('interaction_count', 0)
+        session_start = session_data.get('session_start_time', datetime.utcnow())
+        
+        # Calculate interactions per hour
+        session_duration_hours = (datetime.utcnow() - session_start).total_seconds() / 3600
+        if session_duration_hours > 0:
+            interactions_per_hour = interaction_count / session_duration_hours
+            
+            if interactions_per_hour > self.max_interactions_per_hour:
+                return {
+                    "exceeded": True,
+                    "current_rate": interactions_per_hour,
+                    "limit": self.max_interactions_per_hour
+                }
+        
+        return {"exceeded": False}
+    
+    def _increment_interaction_count(self, session_id: str) -> None:
+        """Increment interaction count for the session"""
+        if session_id not in self.session_store:
+            self.session_store[session_id] = {
+                'session_start_time': datetime.utcnow(),
+                'interaction_count': 0
+            }
+        
+        self.session_store[session_id]['interaction_count'] += 1
+    
     async def process_ambient_audio_enhanced(self, session_id: str, audio_data: bytes) -> Dict[str, Any]:
         """Enhanced ambient audio processing with emotional intelligence"""
         try:
