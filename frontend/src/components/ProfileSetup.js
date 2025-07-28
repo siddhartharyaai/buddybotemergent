@@ -11,7 +11,8 @@ import {
   MicrophoneIcon,
   HeartIcon,
   CheckCircleIcon,
-  XMarkIcon
+  XMarkIcon,
+  AcademicCapIcon
 } from '@heroicons/react/24/outline';
 
 const schema = yup.object().shape({
