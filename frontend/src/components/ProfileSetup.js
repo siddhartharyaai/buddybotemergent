@@ -39,10 +39,16 @@ const ProfileSetup = ({ isOpen, onClose, onSave, initialData = null }) => {
     defaultValues: initialData || {
       name: '',
       age: 5,
+      gender: 'prefer_not_to_say',
       location: '',
       timezone: 'UTC',
+      avatar: 'bunny',
       voice_personality: 'friendly_companion',
+      speech_speed: 'normal',
+      energy_level: 'balanced',
+      language: 'english',
       interests: [],
+      learning_goals: [],
       parent_email: ''
     }
   });
