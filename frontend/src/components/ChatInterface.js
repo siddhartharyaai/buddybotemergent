@@ -79,7 +79,7 @@ const ChatInterface = ({ user, darkMode, setDarkMode, sessionId, onSendMessage }
         },
         body: JSON.stringify({
           session_id: sessionId,
-          user_id: user.id
+          user_id: user?.id || user?.user_id || 'default_user'
         })
       });
 
