@@ -353,11 +353,8 @@ class VoiceAgent:
                 sample_rate=voice_config["sample_rate"]
             )
             
-            # Create speak source
-            speak_source = SpeakSource(text)
-            
             # Generate speech
-            response = self.deepgram_client.speak.rest.v("1").stream(speak_source, options)
+            response = self.deepgram_client.speak.rest.v("1").stream(text, options)
             
             # Convert to base64 for frontend
             audio_base64 = base64.b64encode(response.stream.read()).decode('utf-8')
