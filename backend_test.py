@@ -883,6 +883,7 @@ class BackendTester:
         except Exception as e:
             return {"success": False, "error": str(e)}
     
+    async def test_stories_content_library(self):
         """Test the 5 engaging classic stories in the content library"""
         if not self.test_user_id or not self.test_session_id:
             return {"success": False, "error": "Missing test user ID or session ID"}
