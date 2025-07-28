@@ -182,9 +182,65 @@ class OrchestratorAgent:
             return {"status": "error", "message": str(e)}
     
     async def process_enhanced_conversation(self, session_id: str, user_input: str, user_profile: Dict[str, Any], context: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Enhanced conversation processing with emotional intelligence, memory, and telemetry"""
+        """Enhanced conversation processing with emotional intelligence, memory, telemetry, and session management"""
         try:
             user_id = user_profile.get('user_id', 'unknown')
+            
+            # Step -1: Check mic lock and interaction limits
+            if self._is_mic_locked(session_id):
+                return {
+                    "response_text": "Let me listen for a moment... 🤫",
+                    "response_audio": None,
+                    "content_type": "mic_locked",
+                    "metadata": {"mic_locked": True}
+                }
+            
+            # Check interaction limits
+            limit_check = self._check_interaction_limits(session_id)
+            if limit_check["exceeded"]:
+                # Apply mic lock to slow down interactions
+                self._lock_microphone(session_id)
+                
+                await self.telemetry_agent.track_event(
+                    "interaction_limit_exceeded",
+                    user_id,
+                    session_id,
+                    {
+                        "current_rate": limit_check["current_rate"],
+                        "limit": limit_check["limit"],
+                        "feature_name": "rate_limiting"
+                    }
+                )
+                
+                return {
+                    "response_text": "You're so chatty today! Let's take a little pause and then keep talking. 😊",
+                    "response_audio": None,
+                    "content_type": "rate_limit",
+                    "metadata": {"rate_limited": True}
+                }
+            
+            # Check if we should suggest a break
+            if self._should_suggest_break(session_id):
+                self._mark_break_suggested(session_id)
+                
+                await self.telemetry_agent.track_event(
+                    "break_suggestion_triggered",
+                    user_id,
+                    session_id,
+                    {
+                        "feature_name": "break_management"
+                    }
+                )
+                
+                return {
+                    "response_text": "We've been chatting for a while! How about taking a little break? You could stretch, drink some water, or play outside for a bit. I'll be here when you come back! 🌟",
+                    "response_audio": None,
+                    "content_type": "break_suggestion",
+                    "metadata": {"break_suggested": True}
+                }
+            
+            # Increment interaction count
+            self._increment_interaction_count(session_id)
             
             # Step 0: Track conversation event
             await self.telemetry_agent.track_event(
