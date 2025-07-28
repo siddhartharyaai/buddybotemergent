@@ -44,10 +44,31 @@ const App = () => {
     try {
       // Check if user profile exists in localStorage
       const savedUser = localStorage.getItem('ai_companion_user');
-      if (savedUser) {
+      
+      // FOR TESTING: Create a temporary user if none exists
+      if (!savedUser) {
+        const testUser = {
+          id: `test_${Date.now()}`,
+          name: 'Test Child',
+          age: 8,
+          location: 'Test City',
+          timezone: 'America/New_York',
+          language: 'english',
+          voice_personality: 'friendly_companion',
+          interests: ['stories', 'games', 'music'],
+          learning_goals: ['reading', 'counting'],
+          parent_email: 'parent@test.com'
+        };
+        
+        // Save test user and create session immediately
+        localStorage.setItem('ai_companion_user', JSON.stringify(testUser));
+        setUser(testUser);
+        await createSession(testUser.id);
+      } else {
         const userData = JSON.parse(savedUser);
         setUser(userData);
         await createSession(userData.id);
+      }
         await loadParentalControls(userData.id);
       } else {
         // No user profile, open setup
