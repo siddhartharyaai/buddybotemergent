@@ -91,6 +91,49 @@ const ProfileSetup = ({ isOpen, onClose, onSave, initialData = null }) => {
     { id: 'dancing', name: 'Dancing', emoji: '💃' },
   ];
 
+  const avatarOptions = [
+    { id: 'bunny', name: 'Bunny', emoji: '🐰' },
+    { id: 'lion', name: 'Lion', emoji: '🦁' },
+    { id: 'puppy', name: 'Puppy', emoji: '🐶' },
+    { id: 'robot', name: 'Robot', emoji: '🤖' },
+    { id: 'unicorn', name: 'Unicorn', emoji: '🦄' },
+    { id: 'dragon', name: 'Dragon', emoji: '🐉' },
+  ];
+
+  const genderOptions = [
+    { id: 'boy', name: 'Boy', emoji: '👦' },
+    { id: 'girl', name: 'Girl', emoji: '👧' },
+    { id: 'prefer_not_to_say', name: 'Prefer not to say', emoji: '😊' },
+  ];
+
+  const speechSpeedOptions = [
+    { id: 'slow', name: 'Slow', description: 'Calm and clear' },
+    { id: 'normal', name: 'Normal', description: 'Regular pace' },
+    { id: 'fast', name: 'Fast', description: 'Quick and energetic' },
+  ];
+
+  const energyLevelOptions = [
+    { id: 'calm', name: 'Calm', description: 'Peaceful and soothing', emoji: '😌' },
+    { id: 'balanced', name: 'Balanced', description: 'Just right energy', emoji: '😊' },
+    { id: 'hyper', name: 'Hyper', description: 'Exciting and energetic', emoji: '🤗' },
+  ];
+
+  const languageOptions = [
+    { id: 'english', name: 'English', description: 'Standard English' },
+    { id: 'hinglish', name: 'Hinglish', description: 'English with Hindi words' },
+  ];
+
+  const learningGoalOptions = [
+    { id: 'reading', name: 'Reading', emoji: '📖' },
+    { id: 'math', name: 'Math', emoji: '🔢' },
+    { id: 'daily_habits', name: 'Daily Habits', emoji: '🗓️' },
+    { id: 'social_skills', name: 'Social Skills', emoji: '👥' },
+    { id: 'manners', name: 'Manners', emoji: '🤝' },
+    { id: 'emotional_learning', name: 'Emotional Learning', emoji: '❤️' },
+    { id: 'creativity', name: 'Creativity', emoji: '🎨' },
+    { id: 'problem_solving', name: 'Problem Solving', emoji: '🧩' },
+  ];
+
   const handleInterestToggle = (interestId) => {
     const currentInterests = getValues('interests') || [];
     const newInterests = currentInterests.includes(interestId)
