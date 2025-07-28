@@ -80,7 +80,17 @@ class BackendTester:
             ("Session Management Integration - Start Ambient with Session Tracking", self.test_start_ambient_with_session_tracking),
             ("Session Management Integration - Session Store Maintenance", self.test_session_store_maintenance),
             ("Session Management Integration - Telemetry Events", self.test_session_management_telemetry_events),
-            ("Error Handling", self.test_error_handling)
+            ("Error Handling", self.test_error_handling),
+            # CONTENT LIBRARY EXPANSION TESTS
+            ("Content Library - Stories Testing", self.test_stories_content_library),
+            ("Content Library - Songs Testing", self.test_songs_content_library),
+            ("Content Library - Rhymes Testing", self.test_rhymes_content_library),
+            ("Content Library - Interactive Games Testing", self.test_interactive_games_content_library),
+            ("Content Library - Jokes & Riddles Testing", self.test_jokes_riddles_content_library),
+            ("Content Library - Quality Verification", self.test_content_quality_verification),
+            ("Content Library - Age Appropriateness", self.test_age_appropriate_filtering),
+            ("Content Library - Local First Fallback", self.test_local_first_fallback),
+            ("Content Library - Engagement Features", self.test_engagement_features)
         ]
         
         for test_name, test_func in test_sequence:
