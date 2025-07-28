@@ -103,7 +103,8 @@ class VoiceAgent:
                 
                 # Extract transcript
                 if result.get("results") and result["results"].get("channels"):
-                    transcript = result["results"]["channels"][0]["alternatives"][0]["transcript"]
+                    transcript = result["results"]["channels"][0]["alternatives"][0][
+                        "transcript"]
                     
                     # Enhanced processing for child speech
                     if enhanced_for_children:
