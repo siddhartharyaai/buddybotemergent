@@ -424,8 +424,17 @@ class OrchestratorAgent:
                 user_input, user_profile, session_id, context, dialogue_plan, memory_context
             )
             
-            # Step 9: Content enhancement
-            enhanced_response = await self.content_agent.enhance_response(response, user_profile)
+            # Step 9: Enhanced content processing with 3-tier sourcing
+            enhanced_result = await self.enhanced_content_agent.enhance_response_with_content_detection(
+                response, user_input, user_profile
+            )
+            
+            if enhanced_result.get("enhanced", False):
+                # Content was enhanced with structured content
+                enhanced_response = enhanced_result
+            else:
+                # Fall back to regular content enhancement
+                enhanced_response = await self.content_agent.enhance_response(response, user_profile)
             
             # Step 10: Convert to speech with prosody
             audio_response = await self.voice_agent.text_to_speech_with_prosody(
