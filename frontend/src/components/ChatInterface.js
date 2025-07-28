@@ -679,7 +679,7 @@ const ChatInterface = ({ user, darkMode, setDarkMode, sessionId, onSendMessage }
               {suggestions.map((suggestion, index) => (
                 <motion.button
                   key={index}
-                  onClick={() => setTextInput(suggestion)}
+                  onClick={() => sendTextMessage(suggestion)}
                   className={`px-4 py-2 rounded-full text-sm transition-colors ${
                     darkMode 
                       ? 'bg-blue-900 text-blue-200 hover:bg-blue-800' 
