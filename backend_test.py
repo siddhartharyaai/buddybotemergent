@@ -42,8 +42,18 @@ class BackendTester:
         """Run all backend tests"""
         logger.info("Starting comprehensive backend API testing...")
         
-        # Test sequence based on dependencies - PRIORITIZING DEEPGRAM REST API VALIDATION
+        # Test sequence based on dependencies - PRIORITIZING SIMPLIFIED VOICE PROCESSING
         test_sequence = [
+            # SIMPLIFIED VOICE PROCESSING TESTS (TOP PRIORITY)
+            ("SIMPLIFIED VOICE - New Voice Endpoint", self.test_simplified_voice_endpoint),
+            ("SIMPLIFIED VOICE - STT with Various Audio Formats", self.test_stt_audio_formats),
+            ("SIMPLIFIED VOICE - TTS with Different Text Inputs", self.test_tts_text_inputs),
+            ("SIMPLIFIED VOICE - Enhanced Child Speech Recognition", self.test_enhanced_child_speech),
+            ("SIMPLIFIED VOICE - End-to-End Voice Flow", self.test_end_to_end_voice_flow),
+            ("SIMPLIFIED VOICE - Error Handling Invalid Audio", self.test_voice_error_handling),
+            ("SIMPLIFIED VOICE - Performance Testing", self.test_voice_performance),
+            ("SIMPLIFIED VOICE - Form Data Processing", self.test_voice_form_data),
+            
             # CRITICAL DEEPGRAM REST API VALIDATION TESTS (TOP PRIORITY)
             ("CRITICAL - Deepgram REST API Compliance Check", self.test_deepgram_rest_api_compliance),
             ("CRITICAL - STT Nova-3 Multi-Language Endpoint", self.test_stt_nova3_multilang_endpoint),
