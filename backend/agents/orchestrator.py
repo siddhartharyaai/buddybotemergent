@@ -10,6 +10,7 @@ import uuid
 from .voice_agent import VoiceAgent
 from .conversation_agent import ConversationAgent  
 from .content_agent import ContentAgent
+from .enhanced_content_agent import EnhancedContentAgent
 from .safety_agent import SafetyAgent
 from .emotional_sensing_agent import EmotionalSensingAgent
 from .dialogue_orchestrator import DialogueOrchestrator
