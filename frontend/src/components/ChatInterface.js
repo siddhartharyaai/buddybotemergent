@@ -887,14 +887,6 @@ const ChatInterface = ({ user, darkMode, setDarkMode, sessionId, onSendMessage }
     </div>
   );
 
-  const suggestions = [
-    "Tell me a story",
-    "Sing a song", 
-    "What's a fun fact?",
-    "Let's play a game",
-    "Help me learn something"
-  ];
-
   return (
     <div className={`h-full ${getBackgroundClass()} transition-all duration-1000`}>
       {/* Modern 2-Panel Layout */}
