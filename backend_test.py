@@ -442,7 +442,356 @@ class BackendTester:
         except Exception as e:
             return {"success": False, "error": str(e)}
     
-    async def test_error_handling(self):
+    async def test_memory_snapshot_generation(self):
+        """Test memory snapshot generation endpoint"""
+        if not self.test_user_id:
+            return {"success": False, "error": "No test user ID available"}
+        
+        try:
+            async with self.session.post(
+                f"{BACKEND_URL}/memory/snapshot/{self.test_user_id}"
+            ) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    return {
+                        "success": True,
+                        "user_id": data.get("user_id"),
+                        "snapshot_created": bool(data.get("date")),
+                        "has_summary": bool(data.get("summary")),
+                        "has_insights": bool(data.get("insights")),
+                        "total_interactions": data.get("total_interactions", 0)
+                    }
+                else:
+                    error_text = await response.text()
+                    return {"success": False, "error": f"HTTP {response.status}: {error_text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def test_memory_context_retrieval(self):
+        """Test memory context retrieval endpoint"""
+        if not self.test_user_id:
+            return {"success": False, "error": "No test user ID available"}
+        
+        try:
+            async with self.session.get(
+                f"{BACKEND_URL}/memory/context/{self.test_user_id}?days=7"
+            ) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    return {
+                        "success": True,
+                        "user_id": data.get("user_id", self.test_user_id),
+                        "has_memory_context": bool(data.get("memory_context") or data.get("recent_preferences")),
+                        "context_type": type(data.get("memory_context", "")).__name__,
+                        "has_preferences": bool(data.get("recent_preferences")),
+                        "has_topics": bool(data.get("favorite_topics"))
+                    }
+                else:
+                    error_text = await response.text()
+                    return {"success": False, "error": f"HTTP {response.status}: {error_text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def test_memory_snapshots_history(self):
+        """Test memory snapshots history endpoint"""
+        if not self.test_user_id:
+            return {"success": False, "error": "No test user ID available"}
+        
+        try:
+            async with self.session.get(
+                f"{BACKEND_URL}/memory/snapshots/{self.test_user_id}?days=30"
+            ) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    return {
+                        "success": True,
+                        "user_id": data.get("user_id"),
+                        "snapshots_count": data.get("count", 0),
+                        "has_snapshots": bool(data.get("snapshots")),
+                        "snapshots_structure": bool(isinstance(data.get("snapshots"), list))
+                    }
+                else:
+                    error_text = await response.text()
+                    return {"success": False, "error": f"HTTP {response.status}: {error_text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def test_enhanced_conversation_with_memory(self):
+        """Test enhanced conversation flow with memory context"""
+        if not self.test_user_id or not self.test_session_id:
+            return {"success": False, "error": "Missing test user ID or session ID"}
+        
+        try:
+            # First, generate a memory snapshot to have context
+            await self.session.post(f"{BACKEND_URL}/memory/snapshot/{self.test_user_id}")
+            
+            # Now test conversation with memory context
+            text_input = {
+                "session_id": self.test_session_id,
+                "user_id": self.test_user_id,
+                "message": "Remember what we talked about before? I'd like to hear another story like that."
+            }
+            
+            async with self.session.post(
+                f"{BACKEND_URL}/conversations/text",
+                json=text_input
+            ) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    metadata = data.get("metadata", {})
+                    return {
+                        "success": True,
+                        "response_received": bool(data.get("response_text")),
+                        "has_memory_context": bool(metadata.get("memory_context")),
+                        "has_emotional_state": bool(metadata.get("emotional_state")),
+                        "has_dialogue_plan": bool(metadata.get("dialogue_plan")),
+                        "content_type": data.get("content_type"),
+                        "response_length": len(data.get("response_text", ""))
+                    }
+                else:
+                    error_text = await response.text()
+                    return {"success": False, "error": f"HTTP {response.status}: {error_text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def test_analytics_dashboard(self):
+        """Test analytics dashboard endpoint"""
+        if not self.test_user_id:
+            return {"success": False, "error": "No test user ID available"}
+        
+        try:
+            async with self.session.get(
+                f"{BACKEND_URL}/analytics/dashboard/{self.test_user_id}?days=7"
+            ) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    return {
+                        "success": True,
+                        "has_date_range": bool(data.get("date_range")),
+                        "total_users": data.get("total_users", 0),
+                        "total_sessions": data.get("total_sessions", 0),
+                        "total_interactions": data.get("total_interactions", 0),
+                        "has_feature_usage": bool(data.get("feature_usage")),
+                        "has_daily_breakdown": bool(data.get("daily_breakdown")),
+                        "has_engagement_trends": bool(data.get("engagement_trends"))
+                    }
+                else:
+                    error_text = await response.text()
+                    return {"success": False, "error": f"HTTP {response.status}: {error_text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def test_global_analytics(self):
+        """Test global analytics endpoint"""
+        try:
+            async with self.session.get(
+                f"{BACKEND_URL}/analytics/global?days=7"
+            ) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    return {
+                        "success": True,
+                        "has_date_range": bool(data.get("date_range")),
+                        "total_users": data.get("total_users", 0),
+                        "total_sessions": data.get("total_sessions", 0),
+                        "total_interactions": data.get("total_interactions", 0),
+                        "has_feature_usage": bool(data.get("feature_usage")),
+                        "has_engagement_trends": bool(data.get("engagement_trends")),
+                        "analytics_structure": "global"
+                    }
+                else:
+                    error_text = await response.text()
+                    return {"success": False, "error": f"HTTP {response.status}: {error_text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def test_user_feature_flags(self):
+        """Test user feature flags endpoint"""
+        if not self.test_user_id:
+            return {"success": False, "error": "No test user ID available"}
+        
+        try:
+            async with self.session.get(
+                f"{BACKEND_URL}/flags/{self.test_user_id}"
+            ) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    flags = data.get("flags", {})
+                    return {
+                        "success": True,
+                        "user_id": data.get("user_id"),
+                        "flags_count": len(flags),
+                        "has_emoji_usage": "emoji_usage" in flags,
+                        "has_memory_snapshots": "memory_snapshots" in flags,
+                        "has_ambient_listening": "ambient_listening" in flags,
+                        "flags_structure": isinstance(flags, dict)
+                    }
+                else:
+                    error_text = await response.text()
+                    return {"success": False, "error": f"HTTP {response.status}: {error_text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def test_update_feature_flags(self):
+        """Test updating user feature flags"""
+        if not self.test_user_id:
+            return {"success": False, "error": "No test user ID available"}
+        
+        try:
+            # Test flags to update
+            test_flags = {
+                "emoji_usage": False,
+                "advanced_games": True,
+                "memory_snapshots": True,
+                "test_flag": True
+            }
+            
+            async with self.session.put(
+                f"{BACKEND_URL}/flags/{self.test_user_id}",
+                json=test_flags
+            ) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    return {
+                        "success": True,
+                        "user_id": data.get("user_id"),
+                        "flags_updated": data.get("flags"),
+                        "status": data.get("status"),
+                        "update_successful": data.get("status") == "updated"
+                    }
+                else:
+                    error_text = await response.text()
+                    return {"success": False, "error": f"HTTP {response.status}: {error_text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def test_session_end_telemetry(self):
+        """Test session end telemetry endpoint"""
+        if not self.test_session_id:
+            return {"success": False, "error": "No test session ID available"}
+        
+        try:
+            async with self.session.post(
+                f"{BACKEND_URL}/session/end/{self.test_session_id}"
+            ) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    return {
+                        "success": True,
+                        "session_id": data.get("session_id"),
+                        "has_duration": "duration" in data,
+                        "has_interactions": "interactions" in data,
+                        "has_engagement_score": "engagement_score" in data,
+                        "has_summary": bool(data.get("summary")),
+                        "telemetry_complete": bool(data.get("session_id"))
+                    }
+                else:
+                    error_text = await response.text()
+                    return {"success": False, "error": f"HTTP {response.status}: {error_text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def test_agent_status_enhanced(self):
+        """Test agent status endpoint with memory and telemetry statistics"""
+        try:
+            async with self.session.get(f"{BACKEND_URL}/agents/status") as response:
+                if response.status == 200:
+                    data = await response.json()
+                    return {
+                        "success": True,
+                        "orchestrator_active": data.get("orchestrator") == "active",
+                        "memory_agent_active": data.get("memory_agent") == "active",
+                        "telemetry_agent_active": data.get("telemetry_agent") == "active",
+                        "has_memory_statistics": bool(data.get("memory_statistics")),
+                        "has_telemetry_statistics": bool(data.get("telemetry_statistics")),
+                        "session_count": data.get("session_count", 0),
+                        "active_games": data.get("active_games", 0),
+                        "all_agents_count": len([k for k, v in data.items() if v == "active"])
+                    }
+                else:
+                    error_text = await response.text()
+                    return {"success": False, "error": f"HTTP {response.status}: {error_text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def test_maintenance_cleanup(self):
+        """Test maintenance cleanup endpoint"""
+        try:
+            cleanup_params = {
+                "memory_days": 30,
+                "telemetry_days": 90
+            }
+            
+            async with self.session.post(
+                f"{BACKEND_URL}/maintenance/cleanup",
+                params=cleanup_params
+            ) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    return {
+                        "success": True,
+                        "cleanup_executed": bool(data.get("memory_cleanup") or data.get("telemetry_cleanup")),
+                        "has_memory_cleanup": "memory_cleanup" in data,
+                        "has_telemetry_cleanup": "telemetry_cleanup" in data,
+                        "cleanup_summary": data.get("summary", "No summary provided")
+                    }
+                else:
+                    error_text = await response.text()
+                    return {"success": False, "error": f"HTTP {response.status}: {error_text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def test_ambient_listening_integration(self):
+        """Test ambient listening integration with telemetry tracking"""
+        if not self.test_user_id or not self.test_session_id:
+            return {"success": False, "error": "Missing test user ID or session ID"}
+        
+        try:
+            # Test ambient listening start
+            start_request = {
+                "session_id": self.test_session_id,
+                "user_id": self.test_user_id
+            }
+            
+            async with self.session.post(
+                f"{BACKEND_URL}/ambient/start",
+                json=start_request
+            ) as response:
+                if response.status == 200:
+                    start_data = await response.json()
+                    
+                    # Test ambient status
+                    async with self.session.get(
+                        f"{BACKEND_URL}/ambient/status/{self.test_session_id}"
+                    ) as status_response:
+                        if status_response.status == 200:
+                            status_data = await status_response.json()
+                            
+                            # Test ambient stop
+                            stop_request = {"session_id": self.test_session_id}
+                            async with self.session.post(
+                                f"{BACKEND_URL}/ambient/stop",
+                                json=stop_request
+                            ) as stop_response:
+                                if stop_response.status == 200:
+                                    return {
+                                        "success": True,
+                                        "ambient_start": bool(start_data.get("status")),
+                                        "ambient_status": bool(status_data.get("session_id")),
+                                        "ambient_stop": stop_response.status == 200,
+                                        "listening_state": status_data.get("listening_state"),
+                                        "telemetry_tracked": True  # Implicit from successful operations
+                                    }
+                                else:
+                                    return {"success": False, "error": f"Stop failed: HTTP {stop_response.status}"}
+                        else:
+                            return {"success": False, "error": f"Status failed: HTTP {status_response.status}"}
+                else:
+                    error_text = await response.text()
+                    return {"success": False, "error": f"Start failed: HTTP {response.status}: {error_text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
         """Test error handling for invalid requests"""
         try:
             error_tests = []
