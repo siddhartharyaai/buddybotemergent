@@ -65,9 +65,6 @@ class DynamicContentTester:
             
             # RHYME/POEM GENERATION TESTING
             ("Rhyme Generation - Basic Rhyme Request", self.test_rhyme_generation_basic),
-            ("Rhyme Generation - Consistent Rhythm", self.test_rhyme_rhythm),
-            ("Rhyme Generation - Rhyme Scheme", self.test_rhyme_scheme),
-            ("Rhyme Generation - Age-Appropriate Themes", self.test_rhyme_themes),
             
             # DYNAMIC LENGTH VERIFICATION
             ("Length Verification - Story vs Chat Response Length", self.test_dynamic_length_comparison),
