@@ -142,6 +142,8 @@ const App = () => {
         parent_email: profileData.parent_email || null
       };
 
+      console.log('Saving profile data:', backendProfileData);
+
       const response = await fetch(`${API}/users/profile`, {
         method: 'POST',
         headers: {
@@ -151,6 +153,8 @@ const App = () => {
       });
 
       const data = await response.json();
+      console.log('Profile save response:', { status: response.status, data });
+
       if (response.ok) {
         setUser(data);
         localStorage.setItem('ai_companion_user', JSON.stringify(data));
@@ -158,16 +162,22 @@ const App = () => {
         await loadParentalControls(data.id);
         toast.success('Profile created successfully!');
       } else {
-        throw new Error(data.detail || 'Failed to create profile');
+        console.error('Profile save failed:', response.status, data);
+        throw new Error(data.detail || `Failed to create profile (HTTP ${response.status})`);
       }
     } catch (error) {
       console.error('Error saving profile:', error);
+      toast.error(`Failed to save profile: ${error.message}`);
       throw error;
     }
   };
 
   const updateUserProfile = async (profileData) => {
     try {
+      if (!user?.id) {
+        throw new Error('No user profile to update');
+      }
+
       // Filter profile data to only include fields that backend accepts
       const backendProfileData = {
         name: profileData.name,
@@ -181,6 +191,8 @@ const App = () => {
         parent_email: profileData.parent_email || null
       };
 
+      console.log('Updating profile data for user:', user.id, backendProfileData);
+
       const response = await fetch(`${API}/users/profile/${user.id}`, {
         method: 'PUT',
         headers: {
@@ -190,15 +202,19 @@ const App = () => {
       });
 
       const data = await response.json();
+      console.log('Profile update response:', { status: response.status, data });
+
       if (response.ok) {
         setUser(data);
         localStorage.setItem('ai_companion_user', JSON.stringify(data));
         toast.success('Profile updated successfully!');
       } else {
-        throw new Error(data.detail || 'Failed to update profile');
+        console.error('Profile update failed:', response.status, data);
+        throw new Error(data.detail || `Failed to update profile (HTTP ${response.status})`);
       }
     } catch (error) {
       console.error('Error updating profile:', error);
+      toast.error(`Failed to update profile: ${error.message}`);
       throw error;
     }
   };
