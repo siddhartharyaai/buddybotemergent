@@ -622,11 +622,28 @@ class ConversationAgent:
             r'\btell me\b',  # Direct requests
             r'\bwhat do you think\b',  # Opinion requests
             r'\bready\b.*\?',  # Ready questions
-            r'\bwant to\b.*\?',  # Want to questions
+            r'\bwant to\b.*\?',  # Want to questions - THIS SHOULD MATCH THE OCTOPUS CASE
+            r'\bwould you like\b.*\?',  # Would you like questions
+            r'\bdo you want\b.*\?',  # Do you want questions  
             r'\bshould we\b.*\?',  # Should we questions
+            r'\blet me know\b',  # Let me know requests
+            r'\blearn more\b.*\?',  # Learn more questions
+            r'\bchoose\b',  # Choice prompts
+            r'\bpick\b',  # Pick prompts
         ]
         
         last_bot_lower = last_bot_message.lower()
+        
+        # Additional check for common response patterns
+        user_lower = user_input.lower().strip()
+        response_patterns = ['yes', 'no', 'yeah', 'sure', 'okay', 'ok', 'please', 'yes please', 'no thanks']
+        
+        # If user gave a simple response, check if bot asked a question
+        if any(user_lower.startswith(pattern) for pattern in response_patterns):
+            # More likely to be a follow-through if it's a simple response to a question
+            if '?' in last_bot_message:
+                return True
+        
         for pattern in followthrough_patterns:
             if re.search(pattern, last_bot_lower):
                 return True
