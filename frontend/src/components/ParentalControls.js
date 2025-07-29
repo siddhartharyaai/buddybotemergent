@@ -117,9 +117,32 @@ const ParentalControls = ({ isOpen, onClose, userId, controls, onSave }) => {
             </div>
           </div>
 
-          <div className="flex h-[calc(90vh-120px)]">
-            {/* Sidebar */}
-            <div className="w-64 bg-gray-50 border-r border-gray-200 p-4">
+          {/* Mobile Tabs (Horizontal) - Hidden on desktop */}
+          <div className="block md:hidden border-b border-gray-200">
+            <nav className="flex overflow-x-auto">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center space-x-2 px-4 py-3 whitespace-nowrap font-medium transition-all duration-200 border-b-2 ${
+                      activeTab === tab.id
+                        ? 'border-blue-500 text-blue-600 bg-blue-50'
+                        : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span className="text-sm">{tab.name}</span>
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+
+          <div className="flex h-[calc(90vh-120px)] md:h-[calc(90vh-120px)] overflow-hidden">
+            {/* Desktop Sidebar - Hidden on mobile */}
+            <div className="hidden md:block w-64 bg-gray-50 border-r border-gray-200 p-4">
               <nav className="space-y-2">
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
@@ -141,8 +164,8 @@ const ParentalControls = ({ isOpen, onClose, userId, controls, onSave }) => {
               </nav>
             </div>
 
-            {/* Content */}
-            <div className="flex-1 p-6 overflow-y-auto max-h-full">
+            {/* Content - Full width on mobile, flexible on desktop */}
+            <div className="flex-1 p-4 md:p-6 overflow-y-auto max-h-full">
               <form onSubmit={handleSubmit(onSubmit)}>
                 {/* Time Limits Tab */}
                 {activeTab === 'time' && (
