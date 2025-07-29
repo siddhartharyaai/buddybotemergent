@@ -411,6 +411,18 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
 
   const handleMicPress = (e) => {
     e.preventDefault();
+    e.stopPropagation();
+    
+    // Prevent any focus changes that might trigger mobile keyboard
+    if (e.target) {
+      e.target.blur();
+    }
+    
+    // Prevent touch events from bubbling up
+    if (e.type === 'touchstart') {
+      e.preventDefault();
+    }
+    
     console.log('Mic button pressed, isBotSpeaking:', isBotSpeaking, 'isRecording:', isRecording);
     
     // BARGE-IN FEATURE: If bot is speaking, immediately interrupt and start recording
