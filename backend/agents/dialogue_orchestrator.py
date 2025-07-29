@@ -237,6 +237,18 @@ class DialogueOrchestrator:
                              emotional_state: Dict[str, Any]) -> DialogueMode:
         """Determine the target dialogue mode based on situation analysis"""
         
+        # Priority 0: Content requests (highest priority)
+        if situation_analysis.get("content_request_detected", False):
+            content_type = situation_analysis.get("content_type", "")
+            if content_type in ["story", "tale"]:
+                return DialogueMode.STORY
+            elif content_type in ["song", "rhyme", "poem"]:
+                return DialogueMode.STORY  # Use STORY mode for all content with long token budget
+            elif content_type in ["joke", "riddle", "game"]:
+                return DialogueMode.GAME
+            else:
+                return DialogueMode.TEACHING  # For facts and educational content
+        
         # Priority 1: Repair if needed
         if situation_analysis.get("repair_needed", False):
             return DialogueMode.REPAIR
