@@ -232,6 +232,42 @@ class DialogueOrchestrator:
             "user_engagement": self._assess_user_engagement(user_input, emotional_state)
         }
     
+    def _detect_content_request(self, user_input: str) -> tuple:
+        """Detect if user is requesting specific content like stories, songs, etc."""
+        user_input_lower = user_input.lower()
+        
+        # Story detection
+        story_keywords = ['story', 'tale', 'tell me about', 'once upon', 'adventure', 'fairy tale']
+        if any(keyword in user_input_lower for keyword in story_keywords):
+            return True, "story"
+        
+        # Song detection
+        song_keywords = ['song', 'sing', 'music', 'lullaby', 'rhyme about']
+        if any(keyword in user_input_lower for keyword in song_keywords):
+            return True, "song"
+        
+        # Riddle detection
+        riddle_keywords = ['riddle', 'puzzle', 'guess', 'brain teaser']
+        if any(keyword in user_input_lower for keyword in riddle_keywords):
+            return True, "riddle"
+        
+        # Joke detection
+        joke_keywords = ['joke', 'funny', 'make me laugh', 'something silly']
+        if any(keyword in user_input_lower for keyword in joke_keywords):
+            return True, "joke"
+        
+        # Rhyme/Poem detection
+        rhyme_keywords = ['rhyme', 'poem', 'poetry', 'verse']
+        if any(keyword in user_input_lower for keyword in rhyme_keywords):
+            return True, "rhyme"
+        
+        # Game detection
+        game_keywords = ['game', 'play', 'let\'s play', 'activity', 'something fun']
+        if any(keyword in user_input_lower for keyword in game_keywords):
+            return True, "game"
+        
+        return False, ""
+    
     def _determine_target_mode(self, 
                              situation_analysis: Dict[str, Any],
                              emotional_state: Dict[str, Any]) -> DialogueMode:
