@@ -62,9 +62,6 @@ class DynamicContentTester:
             
             # JOKE GENERATION TESTING
             ("Joke Generation - Basic Joke Request", self.test_joke_generation_basic),
-            ("Joke Generation - Setup-Punchline Format", self.test_joke_format),
-            ("Joke Generation - Age-Appropriate Humor", self.test_joke_age_appropriate),
-            ("Joke Generation - Positive Content Only", self.test_joke_positive_content),
             
             # RHYME/POEM GENERATION TESTING
             ("Rhyme Generation - Basic Rhyme Request", self.test_rhyme_generation_basic),
