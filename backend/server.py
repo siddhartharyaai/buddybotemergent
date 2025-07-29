@@ -232,6 +232,65 @@ async def create_conversation_session(session_data: ConversationSessionCreate):
         logger.error(f"Error creating conversation session: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to create conversation session")
 
+@api_router.get("/content/stories", response_model=Dict[str, Any])
+async def get_stories():
+    """Get all available stories"""
+    try:
+        stories = await orchestrator.enhanced_content_agent.get_stories()
+        return {"stories": stories}
+    except Exception as e:
+        logger.error(f"Error fetching stories: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch stories")
+
+@api_router.post("/content/stories/{story_id}/narrate")
+async def narrate_story(story_id: str, request: Dict[str, Any]):
+    """Narrate a full story without interruptions"""
+    try:
+        if not orchestrator:
+            raise HTTPException(status_code=500, detail="Multi-agent system not initialized")
+        
+        user_id = request.get('user_id')
+        full_narration = request.get('full_narration', True)
+        voice_personality = request.get('voice_personality', 'friendly_companion')
+        
+        if not user_id:
+            raise HTTPException(status_code=400, detail="user_id is required")
+        
+        # Get the story content
+        story = await orchestrator.enhanced_content_agent.get_story_by_id(story_id)
+        if not story:
+            raise HTTPException(status_code=404, detail="Story not found")
+        
+        # Create a full narration prompt
+        narration_prompt = f"""Please narrate the complete story "{story.get('title', story_id)}" from beginning to end. 
+        This should be a full, uninterrupted storytelling session suitable for a child. 
+        Use an engaging, age-appropriate tone and pace. Include all story elements: beginning, middle, and end.
+        Do not ask questions or pause for interaction - just tell the complete story.
+        
+        Story content: {story.get('content', story.get('description', ''))}"""
+        
+        # Generate the full story narration
+        response = await orchestrator.process_text_input(
+            user_id=user_id,
+            message=narration_prompt,
+            session_id=f"story_session_{story_id}_{int(time.time())}",
+            context={"content_type": "story_narration", "story_id": story_id, "full_narration": True}
+        )
+        
+        return {
+            "response_text": response.get("response", ""),
+            "response_audio": response.get("response_audio", ""),
+            "story_id": story_id,
+            "user_id": user_id,
+            "narration_complete": True
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error narrating story: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to narrate story")
+
 # Voice Processing Endpoints
 @api_router.post("/voice/process_audio")
 async def process_audio_simple(
