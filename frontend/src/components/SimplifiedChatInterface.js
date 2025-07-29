@@ -261,60 +261,35 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
   };
 
   const sendVoiceMessage = async (audioBlob) => {
-    console.log('Sending voice message, blob size:', audioBlob.size, 'type:', audioBlob.type);
+    console.log('🎵 Sending voice message, blob size:', audioBlob.size, 'type:', audioBlob.type);
     
-    // Enhanced mobile audio blob validation
-    if (!audioBlob || audioBlob.size === 0) {
-      console.error('Invalid audio blob - size:', audioBlob?.size, 'type:', audioBlob?.type);
-      
-      // Mobile-specific error handling
-      const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      if (isMobile) {
-        toast.error('Mobile recording failed. Please try holding the mic button longer and speaking clearly.');
-      } else {
-        toast.error('Recording failed - no audio data. Please check microphone permissions.');
+    // Enhanced validation with detailed logging
+    if (!audioBlob) {
+      console.error('❌ Audio blob is null/undefined');
+      toast.error('🎤 Recording failed - no audio captured. Please try again.');
+      return;
+    }
+    
+    if (audioBlob.size === 0) {
+      console.error('❌ Audio blob size is 0');
+      toast.error('🎤 Recording failed - empty audio. Please speak louder and hold the mic button longer.');
+      return;
+    }
+
+    // More forgiving size threshold for mobile
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const minSize = isMobile ? 500 : 1000; // Lower threshold for mobile
+    
+    if (audioBlob.size < minSize) {
+      console.warn('⚠️ Audio blob very small:', audioBlob.size, 'bytes');
+      // Don't block on mobile - try to process anyway
+      if (!isMobile) {
+        toast.error('Recording too short. Please hold the mic button and speak for at least 1 second.');
+        return;
       }
-      return;
-    }
-
-    // Mobile browser blob size threshold
-    if (audioBlob.size < 1000) {
-      console.warn('Audio blob very small, might be empty recording');
-      toast.error('Recording too short. Please hold the mic button and speak for at least 1 second.');
-      return;
     }
     
-    // Mobile-optimized base64 conversion
-    const convertToBase64 = (blob) => {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          try {
-            // Remove data URL prefix for base64
-            const base64 = reader.result.split(',')[1];
-            if (!base64 || base64.length === 0) {
-              reject(new Error('Base64 conversion failed'));
-              return;
-            }
-            resolve(base64);
-          } catch (error) {
-            reject(error);
-          }
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-    };
-
-    let audioBase64;
-    try {
-      audioBase64 = await convertToBase64(audioBlob);
-      console.log('Base64 conversion successful, length:', audioBase64.length);
-    } catch (conversionError) {
-      console.error('Base64 conversion failed:', conversionError);
-      toast.error('Audio processing failed. Please try again.');
-      return;
-    }
+    console.log('✅ Audio blob validation passed');
     
     // Create temporary user message for processing
     const userMessage = {
@@ -329,12 +304,57 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
     setIsLoading(true);
 
     try {
-      // Convert audio blob to ArrayBuffer first for better handling
-      const arrayBuffer = await audioBlob.arrayBuffer();
-      const uint8Array = new Uint8Array(arrayBuffer);
-      const base64Audio = btoa(String.fromCharCode(...uint8Array));
+      // Enhanced mobile-compatible base64 conversion
+      console.log('🔄 Converting audio to base64...');
       
-      console.log('Audio converted to base64, length:', base64Audio.length);
+      // Method 1: ArrayBuffer conversion (more reliable on mobile)
+      let base64Audio;
+      try {
+        const arrayBuffer = await audioBlob.arrayBuffer();
+        console.log('📦 ArrayBuffer size:', arrayBuffer.byteLength);
+        
+        const uint8Array = new Uint8Array(arrayBuffer);
+        base64Audio = btoa(String.fromCharCode(...uint8Array));
+        console.log('✅ ArrayBuffer to base64 conversion successful, length:', base64Audio.length);
+      } catch (arrayBufferError) {
+        console.warn('⚠️ ArrayBuffer method failed, trying FileReader:', arrayBufferError);
+        
+        // Method 2: FileReader fallback
+        try {
+          base64Audio = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              try {
+                const result = reader.result;
+                if (!result || typeof result !== 'string') {
+                  reject(new Error('FileReader result is not a string'));
+                  return;
+                }
+                const base64 = result.split(',')[1];
+                if (!base64 || base64.length === 0) {
+                  reject(new Error('Base64 extraction failed'));
+                  return;
+                }
+                resolve(base64);
+              } catch (error) {
+                reject(error);
+              }
+            };
+            reader.onerror = () => reject(new Error('FileReader error'));
+            reader.readAsDataURL(audioBlob);
+          });
+          console.log('✅ FileReader to base64 conversion successful, length:', base64Audio.length);
+        } catch (fileReaderError) {
+          console.error('❌ Both conversion methods failed:', fileReaderError);
+          throw new Error('Audio conversion failed');
+        }
+      }
+      
+      if (!base64Audio || base64Audio.length === 0) {
+        throw new Error('Base64 conversion resulted in empty string');
+      }
+      
+      console.log('📡 Sending to backend...');
       
       // Create form data with proper content type
       const formData = new FormData();
@@ -342,17 +362,25 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
       formData.append('user_id', user.id);
       formData.append('audio_base64', base64Audio);
 
-      console.log('Sending request to voice endpoint...');
+      console.log('🌐 Making API call to voice endpoint...');
       
       const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/voice/process_audio`, {
         method: 'POST',
         body: formData
       });
 
-      const data = await response.json();
-      console.log('Voice processing response:', data);
+      console.log('📨 Response status:', response.status);
       
-      if (response.ok && data.status === 'success') {
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ API error response:', errorText);
+        throw new Error(`Server error: ${response.status} - ${errorText}`);
+      }
+      
+      const data = await response.json();
+      console.log('✅ Voice processing response:', data);
+      
+      if (data.status === 'success') {
         // Add AI response
         const aiMessage = {
           id: Date.now() + 1,
@@ -371,23 +399,36 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
           playAudio(data.response_audio);
         }
         
-        toast.success('Voice message processed!');
+        toast.success('🎉 Voice message processed!');
       } else {
         throw new Error(data.detail || data.message || 'Voice processing failed');
       }
       
     } catch (error) {
-      console.error('Voice message error:', error);
-      toast.error(`Voice processing failed: ${error.message}`);
+      console.error('💥 Voice message error:', error);
+      
+      // More specific error messages
+      let errorMessage = '🎤 Voice processing failed. ';
+      if (error.message.includes('conversion failed')) {
+        errorMessage += 'Audio format issue - please try again.';
+      } else if (error.message.includes('Server error')) {
+        errorMessage += 'Server issue - please check your connection.';
+      } else if (error.message.includes('fetch')) {
+        errorMessage += 'Network error - please check your internet connection.';
+      } else {
+        errorMessage += 'Please try speaking louder and holding the mic button longer.';
+      }
+      
+      toast.error(errorMessage);
       
       // Add error message since we can't update existing message
-      const errorMessage = {
+      const errorMsg = {
         id: Date.now() + 1,
         type: 'system',
         content: '❌ Voice processing failed - try again',
         timestamp: new Date()
       };
-      onAddMessage(errorMessage);
+      onAddMessage(errorMsg);
     } finally {
       setIsLoading(false);
     }
