@@ -869,8 +869,8 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
             </div>
           </div>
 
-          {/* Large Centered Microphone Button */}
-          <div className="px-4 pb-6 pt-2">
+          {/* Large Centered Microphone Button - Mobile Optimized */}
+          <div className="px-4 pb-8 pt-4">
             <div className="flex flex-col items-center">
               <motion.button
                 onMouseDown={handleMicPress}
@@ -879,13 +879,12 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
                 onTouchStart={handleMicPress}
                 onTouchEnd={handleMicRelease}
                 onTouchCancel={handleMicRelease}
-                onKeyDown={handleMicKeyDown}
-                onKeyUp={handleMicKeyUp}
-                className={`relative w-20 h-20 rounded-full transition-all duration-200 select-none shadow-lg flex items-center justify-center touch-manipulation ${
+                onContextMenu={(e) => e.preventDefault()}
+                className={`relative w-20 h-20 rounded-full transition-all duration-200 select-none shadow-lg flex items-center justify-center touch-manipulation z-50 ${
                   isRecording 
                     ? 'bg-gradient-to-br from-red-500 to-red-600 text-white scale-110 shadow-red-500/50' 
                     : isBotSpeaking
-                    ? 'bg-gradient-to-br from-orange-500 to-orange-600 text-white animate-pulse shadow-orange-500/50'  // Barge-in mode
+                    ? 'bg-gradient-to-br from-orange-500 to-orange-600 text-white animate-pulse shadow-orange-500/50'
                     : darkMode
                     ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white hover:from-blue-500 hover:to-blue-600 shadow-blue-600/30'
                     : 'bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:from-blue-400 hover:to-blue-500 shadow-blue-500/30'
@@ -893,13 +892,16 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
                 disabled={isLoading}
                 type="button"
                 tabIndex="-1"
+                aria-label="Press and hold to record voice message"
                 style={{ 
                   WebkitUserSelect: 'none',
                   WebkitTouchCallout: 'none',
                   WebkitTapHighlightColor: 'transparent',
                   touchAction: 'manipulation',
                   userSelect: 'none',
-                  outline: 'none'
+                  outline: 'none',
+                  position: 'relative',
+                  zIndex: 50
                 }}
                 whileHover={{ scale: isLoading ? 1 : 1.05 }}
                 whileTap={{ scale: isLoading ? 1 : 0.95 }}
