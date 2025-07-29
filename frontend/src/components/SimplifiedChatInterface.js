@@ -535,6 +535,7 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
   const handleMicPress = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    e.stopImmediatePropagation();
     
     console.log('🎤 Mic button pressed, type:', e.type);
     
@@ -543,13 +544,19 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
       e.target.blur();
     }
     
-    // For touch events, add additional prevention (check if method exists)
+    // Prevent document focus and text selection
+    if (typeof document !== 'undefined') {
+      const activeElement = document.activeElement;
+      if (activeElement && activeElement !== e.target && typeof activeElement.blur === 'function') {
+        activeElement.blur();
+      }
+    }
+    
+    // For touch events, add additional prevention
     if (e.type === 'touchstart') {
       e.preventDefault();
-      // Only call stopImmediatePropagation if it exists
-      if (typeof e.stopImmediatePropagation === 'function') {
-        e.stopImmediatePropagation();
-      }
+      e.stopPropagation();
+      e.stopImmediatePropagation();
     }
     
     console.log('🎯 Mic state check - isBotSpeaking:', isBotSpeaking, 'isRecording:', isRecording, 'isLoading:', isLoading);
