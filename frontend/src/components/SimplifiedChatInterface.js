@@ -592,10 +592,13 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
     
     console.log('🛑 Mic button released, type:', e.type);
     
-    // For touch events, add additional prevention
+    // For touch events, add additional prevention (check if method exists)
     if (e.type === 'touchend') {
       e.preventDefault();
-      e.stopImmediatePropagation();
+      // Only call stopImmediatePropagation if it exists
+      if (typeof e.stopImmediatePropagation === 'function') {
+        e.stopImmediatePropagation();
+      }
     }
     
     console.log('⏹️ Recording state check - isRecording:', isRecording);
