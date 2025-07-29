@@ -768,55 +768,7 @@ QUALITY REQUIREMENTS:
         
         return fallback_responses[age_group]
     
-    def _is_content_request(self, user_input: str) -> Tuple[bool, Optional[str]]:
-        """Enhanced content detection for multiple content types"""
-        content_patterns = {
-            "joke": [
-                r"\b(joke|funny|laugh|giggle|humor|hilarious)\b",
-                r"\b(tell me something funny|make me laugh)\b",
-                r"\b(know any jokes|got a joke)\b"
-            ],
-            "riddle": [
-                r"\b(riddle|puzzle|guess|brain teaser|mystery)\b",
-                r"\b(can you give me a riddle|riddle me this)\b",
-                r"\b(what am I|guess what)\b"
-            ],
-            "fact": [
-                r"\b(fact|did you know|tell me about|trivia|interesting|learn)\b",
-                r"\b(what is|how does|why does|explain)\b",
-                r"\b(cool fact|amazing fact)\b"
-            ],
-            "rhyme": [
-                r"\b(rhyme|poem|nursery rhyme|poetry|verse)\b",
-                r"\b(roses are red|twinkle twinkle|hickory dickory)\b",
-                r"\b(recite a poem|tell me a rhyme)\b"
-            ],
-            "song": [
-                r"\b(song|sing|music|melody|tune|lullaby)\b",
-                r"\b(let's sing|can you sing|sing me|play a song)\b",
-                r"\b(favorite song|nursery song)\b"
-            ],
-            "story": [
-                r"\b(story|tale|once upon|tell me about|adventure|fairy tale)\b",
-                r"\b(bedtime story|read me|story time)\b",
-                r"\b(what happened|tell me the story)\b"
-            ],
-            "game": [
-                r"\b(game|play|fun|activity|challenge|let's play)\b",
-                r"\b(what can we do|something fun|play with me)\b",
-                r"\b(bored|entertain me)\b"
-            ]
-        }
-        
-        user_input_lower = user_input.lower()
-        
-        # Check each content type
-        for content_type, patterns in content_patterns.items():
-            for pattern in patterns:
-                if re.search(pattern, user_input_lower):
-                    return True, content_type
-        
-        return False, None
+
 
     def _format_content_response_with_emotion(self, content_type: str, content: Dict[str, Any], user_profile: Dict[str, Any]) -> str:
         """Format content responses with proper emotional expression and re-engagement"""
