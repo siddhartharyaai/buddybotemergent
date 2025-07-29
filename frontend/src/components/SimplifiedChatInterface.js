@@ -27,12 +27,12 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
   const recordingIntervalRef = useRef(null);
   const streamRef = useRef(null);
 
+  // Voice-only suggestions
   const suggestions = [
     "Tell me a story",
-    "Sing a song", 
-    "What's a fun fact?",
-    "Let's play a game",
-    "Help me learn something"
+    "Sing me a song", 
+    "Ask me a riddle",
+    "Let's play a game"
   ];
 
   useEffect(() => {
