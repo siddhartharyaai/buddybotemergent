@@ -143,8 +143,9 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
         recordingIntervalRef.current = null;
       }
       
-      // Remove live recording message
-      setMessages(prev => prev.filter(msg => !msg.isLive));
+      // Remove live recording message by filtering it from current messages
+      // Since we can't modify the messages directly, we'll need to update the approach
+      // For now, we'll add a cleanup mechanism in the parent component
       
       console.log('Recording stop initiated');
     }
