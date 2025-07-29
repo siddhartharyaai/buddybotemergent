@@ -945,17 +945,20 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
                 </AnimatePresence>
               </motion.button>
               
-              {/* Voice-Only Instructions */}
+              {/* Voice-Only Instructions - Device Specific */}
               <div className="text-center mt-4">
                 <p className={`text-lg font-medium mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-                  {isRecording 
-                    ? `🎤 Recording ${recordingTimer}s - Release to send` 
+                  {!streamReady 
+                    ? '🎤 Preparing microphone...'
+                    : isRecording 
+                    ? `🎤 Recording ${recordingTimer}s - ${isTouchDevice ? 'Release to send' : 'Release to send'}` 
                     : isBotSpeaking
-                    ? '🔴 Tap to interrupt and speak'
-                    : '🎤 Press and hold to speak'}
+                    ? `🔴 ${isTouchDevice ? 'Tap to interrupt and speak' : 'Click to interrupt and speak'}`
+                    : `🎤 ${isTouchDevice ? 'Press and hold to speak' : 'Click and hold to speak'}`}
                 </p>
                 <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  {!isRecording && !isBotSpeaking && 'Voice-only AI companion - just speak naturally!'}
+                  {streamReady && !isRecording && !isBotSpeaking && 
+                    `Voice-only AI companion - ${isTouchDevice ? 'hold button to talk!' : 'hold button to talk!'}`}
                 </p>
               </div>
             </div>
