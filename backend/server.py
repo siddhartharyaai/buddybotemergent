@@ -215,15 +215,18 @@ async def process_audio_simple(
         if not orchestrator:
             raise HTTPException(status_code=500, detail="Multi-agent system not initialized")
         
-        # Get user profile
+        # Get user profile or create a default one
         user_profile = await db.user_profiles.find_one({"id": user_id})
         if not user_profile:
             # Create a default profile for testing
             user_profile = {
                 "id": user_id,
+                "user_id": user_id,
                 "name": "Test User",
                 "age": 7,
-                "preferences": {}
+                "preferences": {
+                    "voice_personality": "friendly_companion"
+                }
             }
         
         # Decode base64 audio
