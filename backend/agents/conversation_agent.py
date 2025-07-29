@@ -150,33 +150,43 @@ class ConversationAgent:
         
         if content_type == "story":
             enhanced_message += f"""
-STORY CREATION FRAMEWORK:
-You are creating a complete, well-structured story. Follow these essential elements:
+STORY CREATION FRAMEWORK - GENERATE COMPLETE, FULL-LENGTH STORIES:
 
-1. CHARACTERS: Create compelling main character(s) and supporting characters
-2. SETTING: Establish a vivid where and when for the story
-3. PLOT STRUCTURE:
-   - Introduction: Set the scene and introduce characters
-   - Rising Action: Build tension and develop the conflict
-   - Climax: The most exciting/challenging moment
-   - Falling Action: Begin resolving the conflict
-   - Resolution: Satisfying conclusion with lesson learned
+MANDATORY REQUIREMENTS:
+- MINIMUM 300 WORDS (aim for 400-800 words for rich storytelling)
+- This is NOT a summary or preview - tell the COMPLETE story from start to finish
+- Do NOT stop in the middle or ask if user wants more - tell the entire story
+
+ESSENTIAL STORY ELEMENTS (ALL REQUIRED):
+1. CHARACTERS: Create compelling main character(s) with names, personalities, and clear descriptions
+2. SETTING: Establish vivid time and place with rich descriptive details  
+3. COMPLETE PLOT STRUCTURE:
+   - Opening: Detailed introduction of characters and setting (50+ words)
+   - Rising Action: Build tension and develop the conflict (100+ words)  
+   - Climax: The most exciting/challenging moment (50+ words)
+   - Falling Action: Begin resolving the conflict (50+ words)
+   - Resolution: Satisfying conclusion with lesson learned (50+ words)
 4. CONFLICT: Present a meaningful challenge for characters to overcome
-5. THEME: Include valuable life lessons (friendship, courage, honesty, perseverance)
-6. LANGUAGE: Use age-appropriate vocabulary and sentence structure
+5. DIALOGUE: Include conversations between characters to bring story to life
+6. DESCRIPTIVE LANGUAGE: Rich sensory details that paint vivid mental pictures
+7. THEME: Include valuable life lessons (friendship, courage, honesty, perseverance)
+8. EMOTIONAL JOURNEY: Show character growth and emotional development
 
-AGE GUIDELINES ({age} years): {content_guidelines['guidelines']}
+AGE GUIDELINES FOR {age}-YEAR-OLD: {content_guidelines['guidelines']}
 
-QUALITY REQUIREMENTS:
-- Rich descriptive language to paint vivid mental pictures
-- Engaging dialogue between characters
-- Emotional depth appropriate for age
-- Educational or moral value
-- Complete narrative arc from beginning to satisfying end
-- NO arbitrary length restrictions - create the story the content deserves
+QUALITY REQUIREMENTS FOR COMPLETE STORYTELLING:
+- Use engaging, descriptive language throughout
+- Include multiple scenes and story beats
+- Show character emotions and motivations  
+- Create immersive world-building appropriate for age
+- Include meaningful dialogue that advances the story
+- Build to a satisfying climax and resolution
+- End with a clear moral or lesson learned
+- NO STOPPING MID-STORY - tell the complete tale from beginning to end
 
-Remember: A good story takes the time it needs to be told properly!
-"""
+REMEMBER: You are telling a COMPLETE story, not a story fragment or summary. The child expects the full narrative experience from "Once upon a time" to "The End."
+
+MINIMUM LENGTH VERIFICATION: Your response should be at least 300 words. Count as you go and ensure you reach this minimum for a truly engaging story experience."""
         
         elif content_type == "song":
             enhanced_message += f"""
