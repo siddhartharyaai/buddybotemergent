@@ -155,6 +155,22 @@ const ProfileSetup = ({ isOpen, onClose, onSave, onDelete, initialData = null })
     setValue('learning_goals', newGoals);
   };
 
+  const handleDelete = async () => {
+    if (!onDelete) return;
+    
+    setIsSubmitting(true);
+    try {
+      await onDelete();
+      setShowDeleteConfirm(false);
+      onClose();
+    } catch (error) {
+      console.error('Error deleting profile:', error);
+      toast.error('Failed to delete profile');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const onSubmit = async (data) => {
     setIsSubmitting(true);
     try {
