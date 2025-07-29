@@ -670,7 +670,9 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId }) => 
             </div>
             
             <p className={`text-center text-sm mt-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              {isRecording ? '🎤 Release to stop recording' : '🎤 Press and hold to speak'}
+              {isRecording 
+                ? `🎤 Recording ${recordingTimer}s - Release to stop` 
+                : '🎤 Press and hold to speak'}
             </p>
           </div>
         </div>
