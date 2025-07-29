@@ -728,25 +728,25 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
               </h4>
               <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-6 text-lg`}>
                 {isRecording ? `Recording ${recordingTimer}s...` : 
-                 isBotSpeaking ? '🔴 Tap to interrupt and speak' :
-                 'Start talking with the big microphone button below!'}
+                 isBotSpeaking ? '🔴 Tap mic to interrupt and speak' :
+                 'Press and hold the microphone button below to start talking!'}
               </p>
               
               <div className="flex flex-col space-y-2 max-w-md mx-auto">
+                <p className={`text-center text-sm mb-3 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                  Try saying:
+                </p>
                 {suggestions.map((suggestion, index) => (
-                  <motion.button
+                  <div
                     key={index}
-                    onClick={() => sendTextMessage(suggestion)}
-                    className={`px-4 py-2 rounded-full text-sm transition-colors ${
+                    className={`px-4 py-2 rounded-full text-sm text-center ${
                       darkMode 
-                        ? 'bg-blue-900 text-blue-200 hover:bg-blue-800' 
-                        : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                        ? 'bg-blue-900 text-blue-200' 
+                        : 'bg-blue-50 text-blue-600'
                     }`}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
                   >
-                    {suggestion}
-                  </motion.button>
+                    "{suggestion}"
+                  </div>
                 ))}
               </div>
             </div>
