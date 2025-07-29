@@ -507,7 +507,7 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
               </h4>
               <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-6 text-lg`}>
                 {isRecording ? `Recording ${recordingTimer}s...` : 
-                 isBotSpeaking ? 'I\'m speaking...' :
+                 isBotSpeaking ? '🔴 Tap to interrupt and speak' :
                  'Start talking with the big microphone button below!'}
               </p>
               
