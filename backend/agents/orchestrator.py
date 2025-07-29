@@ -946,7 +946,7 @@ class OrchestratorAgent:
             return {"error": "Processing error occurred"}
     
     async def process_text_input(self, session_id: str, text: str, user_profile: Dict[str, Any]) -> Dict[str, Any]:
-        """Process text input through the agent pipeline"""
+        """Process text input through the agent pipeline with enhanced context and memory"""
         try:
             # Step 1: Safety check
             safety_result = await self.safety_agent.check_content_safety(text, user_profile.get('age', 5))
@@ -954,27 +954,35 @@ class OrchestratorAgent:
             if not safety_result.get('is_safe', False):
                 return {
                     "error": "Content not appropriate", 
-                    "message": "Let's talk about something else!"
+                    "message": "Let's talk about something else!",
+                    "response_text": "Let's talk about something fun instead! 😊"
                 }
             
-            # Step 2: Generate response
-            response = await self.conversation_agent.generate_response(
+            # Step 2: Get conversation context and memory
+            context = await self._get_conversation_context(session_id)
+            memory_context = await self._get_memory_context(user_profile.get('user_id', 'unknown'))
+            
+            # Step 3: Generate response with full context
+            response = await self.conversation_agent.generate_response_with_dialogue_plan(
                 text, 
                 user_profile, 
-                session_id
+                session_id,
+                context=context,
+                memory_context=memory_context
             )
             
-            # Step 3: Content enhancement
+            # Step 4: Content enhancement
             enhanced_response = await self.content_agent.enhance_response(response, user_profile)
             
-            # Step 4: Convert to speech
+            # Step 5: Convert to speech for voice response
             audio_response = await self.voice_agent.text_to_speech(
                 enhanced_response['text'], 
                 user_profile.get('voice_personality', 'friendly_companion')
             )
             
-            # Store conversation
+            # Step 6: Store conversation and update memory
             await self._store_conversation(session_id, text, enhanced_response['text'], user_profile)
+            await self._update_memory(session_id, text, enhanced_response['text'], user_profile)
             
             return {
                 "response_text": enhanced_response['text'],
@@ -985,7 +993,10 @@ class OrchestratorAgent:
             
         except Exception as e:
             logger.error(f"Error processing text input: {str(e)}")
-            return {"error": "Processing error occurred"}
+            return {
+                "error": "Processing error occurred",
+                "response_text": "Sorry, I had trouble understanding that. Can you try again? 😊"
+            }
     
     async def get_content_suggestion(self, user_profile: Dict[str, Any], content_type: str) -> Dict[str, Any]:
         """Get content suggestions based on user profile"""
