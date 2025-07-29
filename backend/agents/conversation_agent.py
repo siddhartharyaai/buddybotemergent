@@ -299,9 +299,7 @@ QUALITY REQUIREMENTS:
                 if response_guidelines.get("use_examples", False):
                     base_system_message += "\n\nUse examples to explain concepts."
                 
-                # Add token budget constraint
-                token_budget = dialogue_plan.get("token_budget", 150)
-                base_system_message += f"\n\nKeep response under {token_budget} tokens."
+                # Remove artificial token budget constraints - let content be appropriate length
             
             # Add user context
             enhanced_system_message = f"{base_system_message}\n\nUser Profile:\n"
