@@ -536,21 +536,24 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
     e.preventDefault();
     e.stopPropagation();
     
+    console.log('🎤 Mic button pressed, type:', e.type);
+    
     // Prevent any focus changes that might trigger mobile keyboard
-    if (e.target) {
+    if (e.target && typeof e.target.blur === 'function') {
       e.target.blur();
     }
     
-    // Prevent touch events from bubbling up
+    // For touch events, add additional prevention
     if (e.type === 'touchstart') {
       e.preventDefault();
+      e.stopImmediatePropagation();
     }
     
-    console.log('Mic button pressed, isBotSpeaking:', isBotSpeaking, 'isRecording:', isRecording);
+    console.log('🎯 Mic state check - isBotSpeaking:', isBotSpeaking, 'isRecording:', isRecording, 'isLoading:', isLoading);
     
     // BARGE-IN FEATURE: If bot is speaking, immediately interrupt and start recording
     if (isBotSpeaking) {
-      console.log('Barge-in detected: Interrupting bot speech and starting recording');
+      console.log('🔀 Barge-in detected: Interrupting bot speech and starting recording');
       
       // Immediately stop all audio playback
       stopAudio();
@@ -573,7 +576,10 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
     
     // Normal mic button behavior when bot is not speaking
     if (!isRecording && !isLoading) {
+      console.log('▶️ Starting normal recording');
       startRecording();
+    } else {
+      console.log('⏸️ Cannot start recording - isRecording:', isRecording, 'isLoading:', isLoading);
     }
   };
 
