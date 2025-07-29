@@ -655,20 +655,12 @@ QUALITY REQUIREMENTS:
                 enhanced_system_message += f"- Location: {user_profile.get('location', 'Unknown')}\n"
                 enhanced_system_message += f"\n\nProvide rich, thoughtful responses appropriate for this {age}-year-old child. No artificial length restrictions - respond with the depth and detail the conversation deserves!"
             
-            # Set token limit based on content type
-            max_tokens = 200  # Default for regular conversation
-            if content_type in ["story", "song", "rhyme", "poem", "joke", "riddle"]:
-                if content_type in ["story", "song"]:
-                    max_tokens = 1000  # Much higher for stories and songs
-                elif content_type in ["joke", "riddle", "rhyme", "poem"]:
-                    max_tokens = 400  # Medium for interactive content
-            
-            # Initialize chat with session
+            # Initialize chat with session - NO TOKEN LIMITS for dynamic content length
             chat = LlmChat(
                 api_key=self.gemini_api_key,
                 session_id=session_id,
                 system_message=enhanced_system_message
-            ).with_model("gemini", "gemini-2.0-flash").with_max_tokens(max_tokens)
+            ).with_model("gemini", "gemini-2.0-flash")
             
             # Create user message
             user_message = UserMessage(text=user_input)
