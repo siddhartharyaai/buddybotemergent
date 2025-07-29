@@ -46,8 +46,8 @@ const Header = ({ user, onOpenProfile, onOpenSettings }) => {
             </motion.div>
           </Link>
           
-          {/* Navigation */}
-          <nav className="hidden md:flex space-x-1">
+          {/* Mobile-First Navigation - Always visible */}
+          <nav className="flex space-x-1 overflow-x-auto">
             {navigation.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.href;
@@ -56,15 +56,15 @@ const Header = ({ user, onOpenProfile, onOpenSettings }) => {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`relative px-4 py-2 rounded-xl transition-all duration-200 ${
+                  className={`relative px-3 py-2 rounded-xl transition-all duration-200 whitespace-nowrap ${
                     isActive 
                       ? 'bg-blue-50 text-blue-600' 
                       : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50/50'
                   }`}
                 >
-                  <div className="flex items-center space-x-2">
-                    <Icon className="w-5 h-5" />
-                    <span className="font-medium">{item.name}</span>
+                  <div className="flex items-center space-x-1 md:space-x-2">
+                    <Icon className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
+                    <span className="font-medium text-xs md:text-sm">{item.name}</span>
                   </div>
                   {isActive && (
                     <motion.div
