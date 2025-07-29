@@ -479,158 +479,211 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId }) => 
 
   return (
     <div className={`h-full ${getBackgroundClass()} transition-all duration-1000`}>
-      {/* Modern 2-Panel Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 h-full">
-        {/* Left Panel - Animated Bot Avatar */}
-        <div className="flex items-center justify-center min-h-96 lg:min-h-full">
-          <BotAvatar />
+      {/* Full Height Chat Interface - No more split panel layout */}
+      <div className="h-full flex flex-col">
+        
+        {/* Header */}
+        <div className={`flex-shrink-0 p-4 border-b ${darkMode ? 'border-gray-700 bg-gray-900' : 'border-gray-200 bg-gray-50'}`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <ChatBubbleLeftEllipsisIcon className={`w-6 h-6 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
+              <h3 className="text-lg font-semibold">Chat with Buddy 🤖</h3>
+              
+              {/* Recording Status Indicator */}
+              {isRecording && (
+                <motion.div 
+                  className="flex items-center space-x-2 text-red-500"
+                  animate={{ opacity: [1, 0.5, 1] }}
+                  transition={{ duration: 1, repeat: Infinity }}
+                >
+                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                  <span className="text-sm font-medium">Recording {recordingTimer}s</span>
+                </motion.div>
+              )}
+              
+              {/* Bot Speaking Indicator */}
+              {isBotSpeaking && (
+                <motion.div 
+                  className="flex items-center space-x-2 text-blue-500"
+                  animate={{ opacity: [1, 0.7, 1] }}
+                  transition={{ duration: 0.8, repeat: Infinity }}
+                >
+                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                  <span className="text-sm font-medium">Speaking...</span>
+                </motion.div>
+              )}
+            </div>
+            
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className={`p-2 rounded-full transition-colors ${
+                darkMode ? 'bg-gray-700 text-yellow-400 hover:bg-gray-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {darkMode ? <SunIcon className="w-5 h-5" /> : <MoonIcon className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
 
-        {/* Right Panel - Live Transcript */}
-        <div className={`h-full min-h-96 lg:min-h-full ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} border-l ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-          {/* Header */}
-          <div className={`flex-shrink-0 p-4 border-b ${darkMode ? 'border-gray-700 bg-gray-900' : 'border-gray-200 bg-gray-50'}`}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <ChatBubbleLeftEllipsisIcon className={`w-6 h-6 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
-                <h3 className="text-lg font-semibold">Chat with Buddy</h3>
-              </div>
-              
-              <button
-                onClick={() => setDarkMode(!darkMode)}
-                className={`p-2 rounded-full transition-colors ${
-                  darkMode ? 'bg-gray-700 text-yellow-400 hover:bg-gray-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                {darkMode ? <SunIcon className="w-5 h-5" /> : <MoonIcon className="w-5 h-5" />}
-              </button>
-            </div>
-          </div>
-
-          {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{ height: 'calc(100% - 160px)' }}>
-            {messages.length === 0 ? (
-              <div className="text-center py-8">
-                <div className="text-6xl mb-4">🎙️</div>
-                <h4 className={`text-lg font-semibold mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-                  Start Talking!
-                </h4>
-                <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-6`}>
-                  Your conversation will appear here in real-time
-                </p>
-                
-                <div className="flex flex-col space-y-2">
-                  {suggestions.map((suggestion, index) => (
-                    <motion.button
-                      key={index}
-                      onClick={() => sendTextMessage(suggestion)}
-                      className={`px-4 py-2 rounded-full text-sm transition-colors ${
-                        darkMode 
-                          ? 'bg-blue-900 text-blue-200 hover:bg-blue-800' 
-                          : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
-                      }`}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      {suggestion}
-                    </motion.button>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <AnimatePresence>
-                {messages.map((message) => (
-                  <motion.div
-                    key={message.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div className="max-w-sm">
-                      <div
-                        className={`px-4 py-3 rounded-2xl ${
-                          message.type === 'user'
-                            ? darkMode 
-                              ? 'bg-gradient-to-r from-blue-600 to-purple-700 text-white'
-                              : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
-                            : darkMode
-                            ? 'bg-gray-700 text-gray-100'
-                            : 'bg-gray-100 text-gray-900'
-                        }`}
-                      >
-                        <div className="flex items-start space-x-2">
-                          {message.type === 'ai' && (
-                            <span className="text-xl">🤖</span>
-                          )}
-                          {message.type === 'user' && (
-                            <span className="text-xl">👶</span>
-                          )}
-                          <p className="text-sm leading-relaxed">{message.content}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center justify-between mt-1 px-2">
-                        <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                          {formatTime(message.timestamp)}
-                        </span>
-                        
-                        {message.audioData && (
-                          <button
-                            onClick={() => playAudio(message.audioData)}
-                            className={`p-1 rounded transition-colors ${
-                              darkMode 
-                                ? 'text-blue-400 hover:text-blue-300 hover:bg-gray-700' 
-                                : 'text-blue-500 hover:text-blue-600 hover:bg-blue-50'
-                            }`}
-                          >
-                            <SpeakerWaveIcon className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            )}
-            
-            {/* Loading Animation */}
-            {isLoading && (
+        {/* Messages Area - Full Height */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {messages.length === 0 ? (
+            <div className="text-center py-12">
+              {/* Animated Bot Avatar - Smaller and Centered */}
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex justify-start"
+                className={`mx-auto w-32 h-32 rounded-full flex items-center justify-center mb-6 ${
+                  darkMode ? 'bg-gradient-to-br from-blue-600 to-purple-700' : 'bg-gradient-to-br from-blue-500 to-purple-600'
+                }`}
+                animate={{
+                  scale: isBotSpeaking ? [1, 1.05, 1] : [1, 1.02, 1],
+                }}
+                transition={{
+                  scale: { duration: 2, repeat: Infinity, ease: "easeInOut" },
+                }}
               >
-                <div className={`px-4 py-3 rounded-2xl ${
-                  darkMode ? 'bg-gray-700' : 'bg-gray-100'
-                }`}>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xl">🤖</span>
-                    <div className="flex space-x-1">
-                      <div className={`w-2 h-2 rounded-full animate-bounce ${
-                        darkMode ? 'bg-blue-400' : 'bg-blue-500'
-                      }`}></div>
-                      <div className={`w-2 h-2 rounded-full animate-bounce ${
-                        darkMode ? 'bg-blue-400' : 'bg-blue-500'
-                      }`} style={{ animationDelay: '0.1s' }}></div>
-                      <div className={`w-2 h-2 rounded-full animate-bounce ${
-                        darkMode ? 'bg-blue-400' : 'bg-blue-500'
-                      }`} style={{ animationDelay: '0.2s' }}></div>
-                    </div>
-                    <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                      Thinking...
-                    </span>
-                  </div>
+                {/* Eyes */}
+                <div className="flex space-x-4">
+                  <motion.div 
+                    className="w-4 h-8 bg-white rounded-full"
+                    animate={{
+                      scaleY: isBotSpeaking ? [1, 0.3, 1] : [1, 0.8, 1]
+                    }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                  <motion.div 
+                    className="w-4 h-8 bg-white rounded-full"
+                    animate={{
+                      scaleY: isBotSpeaking ? [1, 0.3, 1] : [1, 0.8, 1]
+                    }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.1 }}
+                  />
                 </div>
               </motion.div>
-            )}
-            
-            <div ref={messagesEndRef} />
-          </div>
+              
+              <h4 className={`text-xl font-semibold mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                Hi {user?.name || 'there'}! 👋
+              </h4>
+              <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-6 text-lg`}>
+                {isRecording ? `Recording ${recordingTimer}s...` : 
+                 isBotSpeaking ? 'I\'m speaking...' :
+                 'Start talking with the big microphone button below!'}
+              </p>
+              
+              <div className="flex flex-col space-y-2 max-w-md mx-auto">
+                {suggestions.map((suggestion, index) => (
+                  <motion.button
+                    key={index}
+                    onClick={() => sendTextMessage(suggestion)}
+                    className={`px-4 py-2 rounded-full text-sm transition-colors ${
+                      darkMode 
+                        ? 'bg-blue-900 text-blue-200 hover:bg-blue-800' 
+                        : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                    }`}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {suggestion}
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <AnimatePresence>
+              {messages.map((message) => (
+                <motion.div
+                  key={message.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div className="max-w-sm">
+                    <div
+                      className={`px-4 py-3 rounded-2xl ${
+                        message.type === 'user'
+                          ? darkMode 
+                            ? 'bg-gradient-to-r from-blue-600 to-purple-700 text-white'
+                            : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
+                          : darkMode
+                          ? 'bg-gray-700 text-gray-100'
+                          : 'bg-gray-100 text-gray-900'
+                      }`}
+                    >
+                      <div className="flex items-start space-x-2">
+                        {message.type === 'ai' && (
+                          <span className="text-xl">🤖</span>
+                        )}
+                        {message.type === 'user' && (
+                          <span className="text-xl">👶</span>
+                        )}
+                        <p className="text-sm leading-relaxed">{message.content}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between mt-1 px-2">
+                      <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        {formatTime(message.timestamp)}
+                      </span>
+                      
+                      {message.audioData && (
+                        <button
+                          onClick={() => playAudio(message.audioData)}
+                          className={`p-1 rounded transition-colors ${
+                            darkMode 
+                              ? 'text-blue-400 hover:text-blue-300 hover:bg-gray-700' 
+                              : 'text-blue-500 hover:text-blue-600 hover:bg-blue-50'
+                          }`}
+                        >
+                          <SpeakerWaveIcon className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          )}
+          
+          {/* Loading Animation */}
+          {isLoading && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex justify-start"
+            >
+              <div className={`px-4 py-3 rounded-2xl ${
+                darkMode ? 'bg-gray-700' : 'bg-gray-100'
+              }`}>
+                <div className="flex items-center space-x-2">
+                  <span className="text-xl">🤖</span>
+                  <div className="flex space-x-1">
+                    <div className={`w-2 h-2 rounded-full animate-bounce ${
+                      darkMode ? 'bg-blue-400' : 'bg-blue-500'
+                    }`}></div>
+                    <div className={`w-2 h-2 rounded-full animate-bounce ${
+                      darkMode ? 'bg-blue-400' : 'bg-blue-500'
+                    }`} style={{ animationDelay: '0.1s' }}></div>
+                    <div className={`w-2 h-2 rounded-full animate-bounce ${
+                      darkMode ? 'bg-blue-400' : 'bg-blue-500'
+                    }`} style={{ animationDelay: '0.2s' }}></div>
+                  </div>
+                  <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                    Thinking...
+                  </span>
+                </div>
+              </div>
+            </motion.div>
+          )}
+          
+          <div ref={messagesEndRef} />
+        </div>
 
-          {/* Input Area */}
-          <div className={`flex-shrink-0 p-4 border-t ${darkMode ? 'border-gray-700 bg-gray-900' : 'border-gray-200 bg-gray-50'}`}>
-            <div className="flex items-center justify-between space-x-4">
+        {/* Bottom Input Area with Large Mic Button */}
+        <div className={`flex-shrink-0 border-t ${darkMode ? 'border-gray-700 bg-gray-900' : 'border-gray-200 bg-gray-50'}`}>
+          
+          {/* Text Input Row */}
+          <div className="px-4 py-3">
+            <div className="flex items-center space-x-3">
               <div className="flex-1">
                 <TextInput 
                   onSendMessage={sendTextMessage} 
@@ -638,9 +691,13 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId }) => 
                   darkMode={darkMode}
                 />
               </div>
-              
-              {/* Microphone Button */}
-              <button
+            </div>
+          </div>
+
+          {/* Large Centered Microphone Button */}
+          <div className="px-4 pb-6 pt-2">
+            <div className="flex flex-col items-center">
+              <motion.button
                 onMouseDown={handleMicPress}
                 onMouseUp={handleMicRelease}
                 onMouseLeave={handleMicRelease}
@@ -648,32 +705,62 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId }) => 
                 onTouchEnd={handleMicRelease}
                 onKeyDown={handleMicKeyDown}
                 onKeyUp={handleMicKeyUp}
-                className={`p-3 rounded-full transition-all duration-200 select-none ${
+                className={`relative w-20 h-20 rounded-full transition-all duration-200 select-none shadow-lg ${
                   isRecording 
-                    ? 'bg-red-500 text-white scale-110 animate-pulse' 
+                    ? 'bg-gradient-to-br from-red-500 to-red-600 text-white scale-110 shadow-red-500/50' 
                     : darkMode
-                    ? 'bg-blue-600 text-white hover:bg-blue-500'
-                    : 'bg-blue-500 text-white hover:bg-blue-600'
+                    ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white hover:from-blue-500 hover:to-blue-600 shadow-blue-600/30'
+                    : 'bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:from-blue-400 hover:to-blue-500 shadow-blue-500/30'
                 } ${isLoading ? 'opacity-50' : ''}`}
                 disabled={isLoading}
                 tabIndex={0}
+                whileHover={{ scale: isLoading ? 1 : 1.05 }}
+                whileTap={{ scale: isLoading ? 1 : 0.95 }}
+                animate={{
+                  boxShadow: isRecording 
+                    ? ['0 0 0 0 rgba(239, 68, 68, 0.4)', '0 0 0 20px rgba(239, 68, 68, 0)', '0 0 0 0 rgba(239, 68, 68, 0.4)']
+                    : ['0 0 0 0 rgba(59, 130, 246, 0.3)', '0 0 0 10px rgba(59, 130, 246, 0)', '0 0 0 0 rgba(59, 130, 246, 0.3)']
+                }}
+                transition={{
+                  boxShadow: { duration: isRecording ? 1 : 2, repeat: Infinity, ease: "easeOut" }
+                }}
               >
                 {isRecording ? (
-                  <div className="flex items-center space-x-1">
-                    <StopIcon className="w-6 h-6" />
-                    <span className="text-xs">{recordingTimer}s</span>
+                  <div className="flex flex-col items-center justify-center">
+                    <StopIcon className="w-8 h-8 mb-1" />
+                    <span className="text-xs font-bold">{recordingTimer}s</span>
                   </div>
                 ) : (
-                  <MicrophoneIcon className="w-6 h-6" />
+                  <MicrophoneIcon className="w-8 h-8" />
                 )}
-              </button>
+                
+                {/* Pulsing Animation Ring */}
+                <AnimatePresence>
+                  {!isLoading && (
+                    <motion.div
+                      className={`absolute inset-0 rounded-full border-2 ${
+                        isRecording ? 'border-red-300' : 'border-blue-300'
+                      }`}
+                      initial={{ scale: 1, opacity: 0.6 }}
+                      animate={{ scale: 1.8, opacity: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ 
+                        duration: isRecording ? 1 : 2, 
+                        repeat: Infinity, 
+                        ease: "easeOut" 
+                      }}
+                    />
+                  )}
+                </AnimatePresence>
+              </motion.button>
+              
+              {/* Instructions */}
+              <p className={`text-center text-sm mt-3 font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                {isRecording 
+                  ? `🎤 Recording ${recordingTimer}s - Release to send` 
+                  : '🎤 Press and hold to speak'}
+              </p>
             </div>
-            
-            <p className={`text-center text-sm mt-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              {isRecording 
-                ? `🎤 Recording ${recordingTimer}s - Release to stop` 
-                : '🎤 Press and hold to speak'}
-            </p>
           </div>
         </div>
       </div>
