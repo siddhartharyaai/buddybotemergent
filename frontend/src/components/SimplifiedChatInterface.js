@@ -14,10 +14,9 @@ import {
 import toast from 'react-hot-toast';
 import TextInput from './TextInput';
 
-const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId }) => {
+const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messages, onAddMessage }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
   const [currentTranscript, setCurrentTranscript] = useState('');
