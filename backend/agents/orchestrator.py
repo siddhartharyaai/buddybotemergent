@@ -821,7 +821,7 @@ class OrchestratorAgent:
             return {"status": "error", "message": str(e)}
     
     async def process_voice_input(self, session_id: str, audio_data: bytes, user_profile: Dict[str, Any]) -> Dict[str, Any]:
-        """Process voice input through the agent pipeline"""
+        """Process voice input through the agent pipeline with enhanced context and memory"""
         try:
             # Step 1: Voice processing (STT)
             transcript = await self.voice_agent.speech_to_text(audio_data)
@@ -838,24 +838,31 @@ class OrchestratorAgent:
                     "message": "Let's talk about something else!"
                 }
             
-            # Step 3: Generate response
-            response = await self.conversation_agent.generate_response(
+            # Step 3: Get conversation context and memory
+            context = await self._get_conversation_context(session_id)
+            memory_context = await self._get_memory_context(user_profile.get('user_id', 'unknown'))
+            
+            # Step 4: Generate response with full context
+            response = await self.conversation_agent.generate_response_with_dialogue_plan(
                 transcript, 
                 user_profile, 
-                session_id
+                session_id,
+                context=context,
+                memory_context=memory_context
             )
             
-            # Step 4: Content enhancement
+            # Step 5: Content enhancement
             enhanced_response = await self.content_agent.enhance_response(response, user_profile)
             
-            # Step 5: Convert to speech
+            # Step 6: Convert to speech
             audio_response = await self.voice_agent.text_to_speech(
                 enhanced_response['text'], 
                 user_profile.get('voice_personality', 'friendly_companion')
             )
             
-            # Store conversation
+            # Step 7: Store conversation and update memory
             await self._store_conversation(session_id, transcript, enhanced_response['text'], user_profile)
+            await self._update_memory(session_id, transcript, enhanced_response['text'], user_profile)
             
             return {
                 "transcript": transcript,
