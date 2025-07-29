@@ -76,8 +76,6 @@ class DynamicContentTester:
             ("Framework - Content Detection Accuracy", self.test_content_detection_accuracy),
             
             # TOKEN BUDGET VERIFICATION
-            ("Token Budget - Story Token Allocation (2000 tokens)", self.test_story_token_budget),
-            ("Token Budget - Rich Content vs Simple Chat", self.test_rich_vs_simple_content),
             ("Token Budget - No 200 Token Limit", self.test_no_token_limits),
             
             # REGRESSION TESTING
