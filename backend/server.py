@@ -304,11 +304,13 @@ async def narrate_story(story_id: str, request: Dict[str, Any]):
         )
         
         return {
-            "response_text": response.get("response", ""),
+            "response_text": response.get("response_text", ""),
             "response_audio": response.get("response_audio", ""),
             "story_id": story_id,
             "user_id": user_id,
-            "narration_complete": True
+            "narration_complete": True,
+            "content_type": response.get("content_type", "story"),
+            "metadata": response.get("metadata", {})
         }
         
     except HTTPException:
