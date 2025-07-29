@@ -134,7 +134,14 @@ class BackendTester:
             ("CRITICAL - Simple Response Handling", self.test_simple_response_handling),
             ("CRITICAL - Conversation History Storage", self.test_conversation_history_storage),
             ("CRITICAL - Follow-Through Pattern Detection", self.test_followthrough_pattern_detection),
-            ("CRITICAL - Enhanced Logging Analysis", self.test_enhanced_logging_analysis)
+            ("CRITICAL - Enhanced Logging Analysis", self.test_enhanced_logging_analysis),
+            
+            # JSON VALIDATION AND CONVERSATION CONTEXT TESTS - REQUESTED BY USER
+            ("JSON VALIDATION - Conversation Text Endpoint JSON Response", self.test_conversation_text_json_validation),
+            ("CONTEXT TEST - Riddle Conversation Follow-Through", self.test_riddle_conversation_context),
+            ("CONTEXT TEST - Question Conversation Context Maintenance", self.test_question_conversation_context),
+            ("MEMORY TEST - Memory System Working Correctly", self.test_memory_system_working),
+            ("JSON EDGE CASES - Serialization Edge Cases", self.test_json_serialization_edge_cases)
         ]
         
         for test_name, test_func in test_sequence:
