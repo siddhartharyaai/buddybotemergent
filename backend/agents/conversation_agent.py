@@ -549,6 +549,52 @@ class ConversationAgent:
         
         return content.get('text', str(content))
     
+    def _get_last_bot_message(self, context: List[Dict[str, Any]]) -> Optional[str]:
+        """Get the last bot message from context"""
+        if not context:
+            return None
+        
+        for ctx in reversed(context):
+            if ctx.get('role') == 'assistant' or ctx.get('sender') == 'bot':
+                return ctx.get('text', '')
+        return None
+    
+    def _get_last_user_message(self, context: List[Dict[str, Any]]) -> Optional[str]:
+        """Get the last user message from context"""
+        if not context:
+            return None
+        
+        for ctx in reversed(context):
+            if ctx.get('role') == 'user' or ctx.get('sender') == 'user':
+                return ctx.get('text', '')
+        return None
+    
+    def _requires_followthrough(self, last_bot_message: Optional[str], user_input: str) -> bool:
+        """Check if the last bot message requires follow-through"""
+        if not last_bot_message:
+            return False
+        
+        # Check for questions, riddles, games that need responses
+        followthrough_patterns = [
+            r'\?',  # Any question
+            r'\bguess\b',  # Guessing games
+            r'\briddle\b',  # Riddles
+            r'\bwhat am i\b',  # What am I riddles
+            r'\bthink about\b',  # Thinking prompts
+            r'\btell me\b',  # Direct requests
+            r'\bwhat do you think\b',  # Opinion requests
+            r'\bready\b.*\?',  # Ready questions
+            r'\bwant to\b.*\?',  # Want to questions
+            r'\bshould we\b.*\?',  # Should we questions
+        ]
+        
+        last_bot_lower = last_bot_message.lower()
+        for pattern in followthrough_patterns:
+            if re.search(pattern, last_bot_lower):
+                return True
+        
+        return False
+    
     async def get_conversation_history(self, session_id: str) -> list:
         """Get conversation history for a session"""
         return self.conversations.get(session_id, [])
