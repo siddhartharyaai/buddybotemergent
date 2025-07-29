@@ -269,7 +269,7 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
   };
 
   const stopRecording = () => {
-    console.log('🛑 Stopping recording...');
+    console.log('🛑 === STOPPING RECORDING ===');
     
     try {
       // Clear recording timer
@@ -278,9 +278,9 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
         recordingIntervalRef.current = null;
       }
       
-      // Stop MediaRecorder
+      // Stop MediaRecorder (but keep stream alive for reuse)
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-        console.log('⏹️ Stopping MediaRecorder...');
+        console.log('⏹️ Stopping MediaRecorder (keeping stream alive)...');
         mediaRecorderRef.current.stop();
       }
       
@@ -290,7 +290,7 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
     } catch (error) {
       console.error('❌ Error stopping recording:', error);
       setIsRecording(false);
-      toast.error('🎤 Error stopping recording');
+      toast.error('Error stopping recording');
     }
   };
 
