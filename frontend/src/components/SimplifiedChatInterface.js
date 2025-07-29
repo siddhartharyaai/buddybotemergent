@@ -739,7 +739,7 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
                 onTouchEnd={handleMicRelease}
                 onKeyDown={handleMicKeyDown}
                 onKeyUp={handleMicKeyUp}
-                className={`relative w-20 h-20 rounded-full transition-all duration-200 select-none shadow-lg flex items-center justify-center ${
+                className={`relative w-20 h-20 rounded-full transition-all duration-200 select-none shadow-lg flex items-center justify-center touch-manipulation ${
                   isRecording 
                     ? 'bg-gradient-to-br from-red-500 to-red-600 text-white scale-110 shadow-red-500/50' 
                     : isBotSpeaking
@@ -749,7 +749,12 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
                     : 'bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:from-blue-400 hover:to-blue-500 shadow-blue-500/30'
                 } ${isLoading ? 'opacity-50' : ''}`}
                 disabled={isLoading}
-                tabIndex={0}
+                style={{ 
+                  WebkitUserSelect: 'none',
+                  WebkitTouchCallout: 'none',
+                  WebkitTapHighlightColor: 'transparent',
+                  touchAction: 'manipulation'
+                }}
                 whileHover={{ scale: isLoading ? 1 : 1.05 }}
                 whileTap={{ scale: isLoading ? 1 : 0.95 }}
                 animate={{
