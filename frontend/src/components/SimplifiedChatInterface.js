@@ -170,7 +170,7 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
       timestamp: new Date()
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    onAddMessage(userMessage);
     setIsLoading(true);
 
     try {
