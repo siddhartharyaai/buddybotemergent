@@ -335,17 +335,48 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId }) => 
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const handleMicPress = () => {
-    if (!isRecording) {
+  const handleMicPress = (e) => {
+    e.preventDefault();
+    console.log('Mic button pressed');
+    if (!isRecording && !isLoading) {
       startRecording();
     }
   };
 
-  const handleMicRelease = () => {
+  const handleMicRelease = (e) => {
+    e.preventDefault();
+    console.log('Mic button released');
     if (isRecording) {
       stopRecording();
     }
   };
+
+  // Handle keyboard interactions
+  const handleMicKeyDown = (e) => {
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      handleMicPress(e);
+    }
+  };
+
+  const handleMicKeyUp = (e) => {
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      handleMicRelease(e);
+    }
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
 
   // Dynamic background based on bot speaking
   const getBackgroundClass = () => {
