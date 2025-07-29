@@ -210,24 +210,28 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
   };
 
   const stopRecording = () => {
-    console.log('Stopping recording...');
+    console.log('🛑 Stopping recording...');
     
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-      setRecordingTimer(0);
-      
+    try {
       // Clear recording timer
       if (recordingIntervalRef.current) {
         clearInterval(recordingIntervalRef.current);
         recordingIntervalRef.current = null;
       }
       
-      // Remove live recording message by filtering it from current messages
-      // Since we can't modify the messages directly, we'll need to update the approach
-      // For now, we'll add a cleanup mechanism in the parent component
+      // Stop MediaRecorder
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        console.log('⏹️ Stopping MediaRecorder...');
+        mediaRecorderRef.current.stop();
+      }
       
-      console.log('Recording stop initiated');
+      setIsRecording(false);
+      console.log('✅ Recording stopped successfully');
+      
+    } catch (error) {
+      console.error('❌ Error stopping recording:', error);
+      setIsRecording(false);
+      toast.error('🎤 Error stopping recording');
     }
   };
 
