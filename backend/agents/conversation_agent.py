@@ -125,6 +125,135 @@ class ConversationAgent:
         
         logger.info("Conversation Agent initialized with Gemini")
     
+    def _get_dynamic_content_guidelines(self, content_type: str, age: int) -> Dict[str, Any]:
+        """Get dynamic content guidelines based on type and age"""
+        framework = self.content_frameworks.get(content_type, {})
+        structure = framework.get("structure", [])
+        
+        # Get age-appropriate guidelines
+        age_guidelines = framework.get("age_guidelines", {})
+        closest_age = min(age_guidelines.keys(), key=lambda x: abs(x - age)) if age_guidelines else age
+        guidelines = age_guidelines.get(closest_age, "")
+        
+        return {
+            "structure": structure,
+            "guidelines": guidelines,
+            "framework": framework
+        }
+
+    def _create_content_system_message(self, content_type: str, user_profile: Dict[str, Any], base_message: str) -> str:
+        """Create enhanced system message for specific content types"""
+        age = user_profile.get('age', 7)
+        content_guidelines = self._get_dynamic_content_guidelines(content_type, age)
+        
+        enhanced_message = f"{base_message}\n\n"
+        
+        if content_type == "story":
+            enhanced_message += f"""
+STORY CREATION FRAMEWORK:
+You are creating a complete, well-structured story. Follow these essential elements:
+
+1. CHARACTERS: Create compelling main character(s) and supporting characters
+2. SETTING: Establish a vivid where and when for the story
+3. PLOT STRUCTURE:
+   - Introduction: Set the scene and introduce characters
+   - Rising Action: Build tension and develop the conflict
+   - Climax: The most exciting/challenging moment
+   - Falling Action: Begin resolving the conflict
+   - Resolution: Satisfying conclusion with lesson learned
+4. CONFLICT: Present a meaningful challenge for characters to overcome
+5. THEME: Include valuable life lessons (friendship, courage, honesty, perseverance)
+6. LANGUAGE: Use age-appropriate vocabulary and sentence structure
+
+AGE GUIDELINES ({age} years): {content_guidelines['guidelines']}
+
+QUALITY REQUIREMENTS:
+- Rich descriptive language to paint vivid mental pictures
+- Engaging dialogue between characters
+- Emotional depth appropriate for age
+- Educational or moral value
+- Complete narrative arc from beginning to satisfying end
+- NO arbitrary length restrictions - create the story the content deserves
+
+Remember: A good story takes the time it needs to be told properly!
+"""
+        
+        elif content_type == "song":
+            enhanced_message += f"""
+SONG CREATION FRAMEWORK:
+Create a complete, engaging song with these elements:
+
+STRUCTURE: {' | '.join(content_guidelines['structure'])}
+
+AGE GUIDELINES ({age} years): {content_guidelines['guidelines']}
+
+QUALITY REQUIREMENTS:
+- Consistent rhythm and meter throughout
+- Memorable melody-friendly lyrics
+- Positive, uplifting message
+- Age-appropriate themes and vocabulary
+- Complete verses and chorus
+- Natural flow when sung aloud
+
+Create a full song, not just a snippet!
+"""
+        
+        elif content_type in ["rhyme", "poem"]:
+            enhanced_message += f"""
+RHYME/POEM CREATION FRAMEWORK:
+Create engaging rhymes with these elements:
+
+STRUCTURE: {' | '.join(content_guidelines['structure'])}
+
+AGE GUIDELINES ({age} years): {content_guidelines['guidelines']}
+
+QUALITY REQUIREMENTS:
+- Consistent rhythm and rhyming pattern
+- Playful, musical quality
+- Age-appropriate vocabulary and themes
+- Often includes movement or action elements
+- Complete verses, not fragments
+"""
+        
+        elif content_type == "joke":
+            enhanced_message += f"""
+JOKE CREATION FRAMEWORK:
+Create age-appropriate humor with these elements:
+
+STRUCTURE: {' | '.join(content_guidelines['structure'])}
+
+AGE GUIDELINES ({age} years): {content_guidelines['guidelines']}
+
+QUALITY REQUIREMENTS:
+- Clean, positive humor
+- Age-appropriate wordplay and concepts
+- Clear setup and punchline
+- Not mean-spirited or scary
+- Educational when possible
+"""
+        
+        elif content_type == "riddle":
+            enhanced_message += f"""
+RIDDLE CREATION FRAMEWORK:
+Create engaging riddles with these elements:
+
+STRUCTURE: {' | '.join(content_guidelines['structure'])}
+
+AGE GUIDELINES ({age} years): {content_guidelines['guidelines']}
+
+QUALITY REQUIREMENTS:
+- Clear, engaging question or puzzle
+- Logical answer that makes sense
+- Age-appropriate difficulty level
+- Educational value when possible
+- Creative wordplay or misdirection
+- Fair clues that lead to the answer
+"""
+        
+        enhanced_message += f"\n\nIMPORTANT: Generate content of appropriate length and depth for the user's age ({age} years) and the content type. Do not artificially limit length - create rich, complete content that fully serves its purpose!"
+        
+        return enhanced_message
+
     async def generate_response_with_dialogue_plan(self, user_input: str, user_profile: Dict[str, Any], session_id: str, context: List[Dict[str, Any]] = None, dialogue_plan: Dict[str, Any] = None, memory_context: Dict[str, Any] = None) -> str:
         """Generate response with conversation context and dialogue plan"""
         try:
