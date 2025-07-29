@@ -126,7 +126,15 @@ class BackendTester:
             # NEW CONTENT API ENDPOINTS TESTS - STORIES PAGE REGRESSION FIX
             ("Content API - Stories Endpoint", self.test_content_api_stories),
             ("Content API - Content Type Endpoints", self.test_content_api_content_types),
-            ("Content API - Generate Content Endpoint", self.test_content_api_generate)
+            ("Content API - Generate Content Endpoint", self.test_content_api_generate),
+            
+            # CRITICAL CONVERSATION CONTINUITY TESTS - OCTOPUS SCENARIO FIX
+            ("CRITICAL - Octopus Scenario Recreation", self.test_octopus_scenario_recreation),
+            ("CRITICAL - Context Detection System", self.test_context_detection_system),
+            ("CRITICAL - Simple Response Handling", self.test_simple_response_handling),
+            ("CRITICAL - Conversation History Storage", self.test_conversation_history_storage),
+            ("CRITICAL - Follow-Through Pattern Detection", self.test_followthrough_pattern_detection),
+            ("CRITICAL - Enhanced Logging Analysis", self.test_enhanced_logging_analysis)
         ]
         
         for test_name, test_func in test_sequence:
