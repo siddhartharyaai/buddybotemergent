@@ -951,7 +951,7 @@ class OrchestratorAgent:
             logger.error(f"Error processing voice input: {str(e)}")
             return {"error": "Processing error occurred"}
     
-    async def process_text_input(self, session_id: str, text: str, user_profile: Dict[str, Any]) -> Dict[str, Any]:
+    async def process_text_input(self, session_id: str, text: str, user_profile: Dict[str, Any], content_type: str = None) -> Dict[str, Any]:
         """Process text input through the agent pipeline with enhanced context and memory"""
         try:
             # Step 1: Safety check
@@ -981,10 +981,18 @@ class OrchestratorAgent:
             enhanced_response = await self.content_agent.enhance_response(response, user_profile)
             
             # Step 5: Convert to speech for voice response
-            audio_response = await self.voice_agent.text_to_speech(
-                enhanced_response['text'], 
-                user_profile.get('voice_personality', 'friendly_companion')
-            )
+            # Use chunked TTS for story narrations or long content
+            if content_type == "story_narration" or len(enhanced_response['text']) > 1500:
+                logger.info("Using chunked TTS for long content")
+                audio_response = await self.voice_agent.text_to_speech_chunked(
+                    enhanced_response['text'], 
+                    user_profile.get('voice_personality', 'friendly_companion')
+                )
+            else:
+                audio_response = await self.voice_agent.text_to_speech(
+                    enhanced_response['text'], 
+                    user_profile.get('voice_personality', 'friendly_companion')
+                )
             
             # Step 6: Store conversation and update memory
             await self._store_conversation(session_id, text, enhanced_response['text'], user_profile)
