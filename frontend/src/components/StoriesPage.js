@@ -193,46 +193,94 @@ The End.`
   const playStory = async (story) => {
     try {
       setCurrentlyPlaying(story.id);
+      setIsStoryPaused(false);
       
-      const response = await fetch(`${BACKEND_URL}/api/conversations/text`, {
+      // Request the full story to be narrated (not interactive conversation)
+      const response = await fetch(`${BACKEND_URL}/api/content/stories/${story.id}/narrate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          session_id: sessionId,
           user_id: user?.id,
-          message: `Please tell me the story "${story.title}" in full detail with good storytelling pace and engaging narration.`,
+          full_narration: true, // Flag to indicate we want full story, not conversation
+          voice_personality: user?.voice_personality || 'friendly_companion'
         })
       });
 
       if (response.ok) {
         const data = await response.json();
+        
         if (data.response_audio) {
-          // Play the audio
-          const audioBlob = new Blob(
-            [Uint8Array.from(atob(data.response_audio), c => c.charCodeAt(0))], 
-            { type: 'audio/wav' }
-          );
+          // Play the full story audio
+          const audioBlob = new Blob([
+            Uint8Array.from(atob(data.response_audio), c => c.charCodeAt(0))
+          ], { type: 'audio/mpeg' });
+          
           const audioUrl = URL.createObjectURL(audioBlob);
           const audio = new Audio(audioUrl);
           
-          audio.play();
-          toast.success(`Playing: ${story.title}`);
+          audio.onloadedmetadata = () => {
+            setStoryProgress(0);
+            audio.play();
+          };
+          
+          audio.ontimeupdate = () => {
+            if (audio.duration > 0) {
+              setStoryProgress((audio.currentTime / audio.duration) * 100);
+            }
+          };
           
           audio.onended = () => {
             setCurrentlyPlaying(null);
-            URL.revokeObjectURL(audioUrl);
+            setStoryAudio(null);
+            setStoryProgress(0);
+            toast.success('Story completed! 📖');
           };
+          
+          audio.onerror = () => {
+            toast.error('Error playing story audio');
+            setCurrentlyPlaying(null);
+            setStoryAudio(null);
+          };
+          
+          setStoryAudio(audio);
         } else {
-          toast.error('Story audio not available');
-          setCurrentlyPlaying(null);
+          throw new Error('No audio received for story');
         }
+      } else {
+        throw new Error('Failed to get story narration');
       }
     } catch (error) {
       console.error('Error playing story:', error);
       toast.error('Failed to play story');
       setCurrentlyPlaying(null);
+      setStoryAudio(null);
+    }
+  };
+
+  const pauseStory = () => {
+    if (storyAudio && !isStoryPaused) {
+      storyAudio.pause();
+      setIsStoryPaused(true);
+    }
+  };
+
+  const resumeStory = () => {
+    if (storyAudio && isStoryPaused) {
+      storyAudio.play();
+      setIsStoryPaused(false);
+    }
+  };
+
+  const stopStory = () => {
+    if (storyAudio) {
+      storyAudio.pause();
+      storyAudio.currentTime = 0;
+      setCurrentlyPlaying(null);
+      setStoryAudio(null);
+      setIsStoryPaused(false);
+      setStoryProgress(0);
     }
   };
 
