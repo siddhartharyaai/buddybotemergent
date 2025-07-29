@@ -496,6 +496,21 @@ frontend:
           agent: "testing"
           comment: "✅ TESTED: Enhanced conversation agent working with memory context parameter. Conversation agent properly accepts memory_context parameter and integrates user preferences, favorite topics, and achievements into responses. Enhanced conversation flow generates appropriate responses with memory awareness."
 
+  - task: "Dynamic Content Generation System - Token Limits & Content Frameworks"
+    implemented: true
+    working: false
+    file: "backend/agents/conversation_agent.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implemented enhanced content generation system with removed token limits (200 → 2000 tokens) and proper content frameworks for stories, songs, riddles, jokes, and rhymes. Added content type detection and dynamic length allocation."
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL FAILURE: Comprehensive testing reveals major issues. Stories generating only 54-82 words instead of 200+ words (76.5% below target). Token limits NOT removed - responses as short as 11 words (14 tokens). Dynamic length broken - chat (79 words) vs stories (81 words) nearly identical. Content frameworks incomplete. System still applying severe token restrictions despite implementation claims. 76.5% overall success rate but 0% success on core requirements (word count, token limits, dynamic length). URGENT FIXES NEEDED."
+
   - task: "Content API Endpoints - Stories Page Regression Fix"
     implemented: true
     working: true
