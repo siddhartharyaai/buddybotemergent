@@ -53,28 +53,55 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
       setCurrentTranscript('');
       setRecordingTimer(0);
       
-      const stream = await navigator.mediaDevices.getUserMedia({ 
+      // Mobile-optimized audio constraints
+      const audioConstraints = {
         audio: {
           sampleRate: 16000,
           channelCount: 1,
           echoCancellation: true,
           noiseSuppression: true,
-          autoGainControl: true
+          autoGainControl: true,
+          // Mobile-specific constraints
+          latency: 0,
+          volume: 1.0
         }
-      });
+      };
+
+      // Request microphone permission (critical for mobile)
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia(audioConstraints);
+      } catch (permissionError) {
+        console.error('Microphone permission denied:', permissionError);
+        toast.error('Microphone access required. Please allow microphone permission and try again.');
+        return;
+      }
       
       streamRef.current = stream;
       
-      // Use higher quality audio recording
-      const options = {
+      // Mobile-compatible audio recording options
+      let options = {
         mimeType: 'audio/webm;codecs=opus',
         audioBitsPerSecond: 128000
       };
       
-      // Fallback for browsers that don't support webm
+      // Mobile browser fallback chain
       if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-        options.mimeType = 'audio/wav';
+        console.log('WebM not supported, trying MP4...');
+        options.mimeType = 'audio/mp4';
+        
+        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+          console.log('MP4 not supported, trying WAV...');
+          options.mimeType = 'audio/wav';
+          
+          if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+            console.log('Using default audio format for mobile');
+            options = { audioBitsPerSecond: 128000 }; // No mimeType restriction
+          }
+        }
       }
+
+      console.log('Using audio format:', options.mimeType || 'default');
       
       mediaRecorderRef.current = new MediaRecorder(stream, options);
       audioChunksRef.current = [];
