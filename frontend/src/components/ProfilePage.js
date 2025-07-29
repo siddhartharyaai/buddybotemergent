@@ -100,21 +100,21 @@ const ProfilePage = ({ user, onOpenProfileSetup }) => {
   const formattedGoals = formatLearningGoals(user?.learning_goals);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-2 sm:p-4">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
+        {/* Header - Mobile optimized */}
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="text-center mb-8"
+          className="text-center mb-6 sm:mb-8"
         >
-          <div className="flex items-center justify-center mb-4">
-            <UserCircleIcon className="w-12 h-12 text-purple-600 mr-3" />
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+          <div className="flex items-center justify-center mb-3 sm:mb-4">
+            <UserCircleIcon className="w-8 h-8 sm:w-12 sm:h-12 text-purple-600 mr-2 sm:mr-3" />
+            <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
               My Profile
             </h1>
           </div>
-          <p className="text-gray-600 text-lg">
+          <p className="text-gray-600 text-base sm:text-lg px-4">
             Here's everything about you, {user?.name}! 👤✨
           </p>
         </motion.div>
