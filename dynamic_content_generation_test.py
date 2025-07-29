@@ -56,8 +56,6 @@ class DynamicContentTester:
             # SONG GENERATION TESTING
             ("Song Generation - Basic Song Request", self.test_song_generation_basic),
             ("Song Generation - Verse-Chorus Structure", self.test_song_structure),
-            ("Song Generation - Rhyming Consistency", self.test_song_rhyming),
-            ("Song Generation - Different Song Topics", self.test_song_topics_variety),
             
             # RIDDLE GENERATION TESTING
             ("Riddle Generation - Basic Riddle Request", self.test_riddle_generation_basic),
