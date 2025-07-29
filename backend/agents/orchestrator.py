@@ -105,21 +105,17 @@ class OrchestratorAgent:
             if user_id == 'unknown':
                 user_id = user_profile.get('id', 'unknown')  # Try alternative key
             
-            if user_id == 'unknown':
-                logger.warning("No user_id found in user_profile, using session-based storage only")
-            else:
-                # Store interaction in memory
-                await self.memory_agent.store_interaction(
-                    user_id=user_id,
-                    session_id=session_id,
-                    user_input=user_input,
-                    bot_response=bot_response,
-                    interaction_type='text',
-                    metadata={
-                        'timestamp': datetime.now().isoformat(),
-                        'content_type': 'conversation'
-                    }
-                )
+            if user_id != 'unknown':
+                # Store interaction in memory using the correct method
+                interaction_data = {
+                    'user_input': user_input,
+                    'ai_response': bot_response,
+                    'interaction_type': 'text',
+                    'timestamp': datetime.now().isoformat(),
+                    'user_id': user_id,
+                    'session_id': session_id
+                }
+                await self.memory_agent.update_session_memory(session_id, interaction_data)
             
             # CRITICAL: Update session conversation history (this is the main context source)
             if session_id not in self.session_store:
@@ -145,6 +141,7 @@ class OrchestratorAgent:
             logger.error(f"Error updating memory: {str(e)}")
             import traceback
             logger.error(f"Traceback: {traceback.format_exc()}")
+    
     
     
     def _should_suggest_break(self, session_id: str) -> bool:
