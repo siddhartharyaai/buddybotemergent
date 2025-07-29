@@ -856,15 +856,17 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
         {/* Bottom Input Area with Large Mic Button */}
         <div className={`flex-shrink-0 border-t ${darkMode ? 'border-gray-700 bg-gray-900' : 'border-gray-200 bg-gray-50'}`}>
           
-          {/* Text Input Row */}
-          <div className="px-4 py-3">
+          {/* Text Input Row - Mobile Separated */}
+          <div className="px-4 py-3 border-b border-gray-200">
             <div className="flex items-center space-x-3">
               <div className="flex-1">
-                <TextInput 
-                  onSendMessage={sendTextMessage} 
-                  isLoading={isLoading}
-                  darkMode={darkMode}
-                />
+                <div style={{ touchAction: 'auto', zIndex: 10, position: 'relative' }}>
+                  <TextInput 
+                    onSendMessage={sendTextMessage} 
+                    isLoading={isLoading}
+                    darkMode={darkMode}
+                  />
+                </div>
               </div>
             </div>
           </div>
