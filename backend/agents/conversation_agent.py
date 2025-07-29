@@ -519,12 +519,13 @@ QUALITY REQUIREMENTS:
             # Add ambient listening context
             enhanced_system_message += f"\n\nNote: This is an ambient listening conversation. The child may have said a wake word like 'Hey Buddy' before this message. Be natural and conversational."
             
-            # Initialize chat with session - Set high token limit for rich content
+            # Initialize chat with session - COMPLETELY REMOVE TOKEN LIMITS
             chat = LlmChat(
                 api_key=self.gemini_api_key,
                 session_id=session_id,
                 system_message=enhanced_system_message
-            ).with_model("gemini", "gemini-2.0-flash").with_max_tokens(2000)  # High limit for rich content
+            ).with_model("gemini", "gemini-2.0-flash")
+            # INTENTIONALLY NO .with_max_tokens() - Allow unlimited length
             
             # Create user message
             user_message = UserMessage(text=user_input)
