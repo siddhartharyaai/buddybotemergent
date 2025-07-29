@@ -45,31 +45,41 @@ const App = () => {
       // Check if user profile exists in localStorage
       const savedUser = localStorage.getItem('ai_companion_user');
       
-      // FOR TESTING: Create a temporary user if none exists
       if (!savedUser) {
-        const testUser = {
-          id: `test_${Date.now()}`,
-          name: 'Test Child',
-          age: 8,
-          location: 'Test City',
-          timezone: 'America/New_York',
-          language: 'english',
-          voice_personality: 'friendly_companion',
-          interests: ['stories', 'games', 'music'],
-          learning_goals: ['reading', 'counting'],
-          parent_email: 'parent@test.com'
-        };
+        // No user exists, open profile setup
+        setIsProfileSetupOpen(true);
+        setIsLoading(false);
+        return;
+      }
+      
+      // User exists in localStorage, verify it exists in backend
+      const userData = JSON.parse(savedUser);
+      
+      try {
+        // Verify user exists in backend database
+        const response = await fetch(`${API}/users/profile/${userData.id}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
         
-        // Save test user and create session immediately
-        localStorage.setItem('ai_companion_user', JSON.stringify(testUser));
-        setUser(testUser);
-        await createSession(testUser.id);
-        await loadParentalControls(testUser.id);
-      } else {
-        const userData = JSON.parse(savedUser);
-        setUser(userData);
-        await createSession(userData.id);
-        await loadParentalControls(userData.id);
+        if (response.ok) {
+          // User exists in backend, proceed normally
+          const backendUser = await response.json();
+          setUser(backendUser);
+          await createSession(backendUser.id);
+          await loadParentalControls(backendUser.id);
+        } else {
+          // User doesn't exist in backend, clear localStorage and show setup
+          localStorage.removeItem('ai_companion_user');
+          setIsProfileSetupOpen(true);
+        }
+      } catch (error) {
+        console.error('Error verifying user profile with backend:', error);
+        // Network error, clear localStorage and show setup
+        localStorage.removeItem('ai_companion_user');
+        setIsProfileSetupOpen(true);
       }
     } catch (error) {
       console.error('Error checking user profile:', error);
