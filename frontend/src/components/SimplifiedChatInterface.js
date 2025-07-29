@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   MicrophoneIcon, 
   StopIcon, 
-  PaperAirplaneIcon,
   SpeakerWaveIcon,
   SpeakerXMarkIcon,
   SparklesIcon,
@@ -12,7 +11,6 @@ import {
   MoonIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
-import TextInput from './TextInput';
 
 const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messages, onAddMessage }) => {
   const [isRecording, setIsRecording] = useState(false);
