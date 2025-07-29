@@ -843,26 +843,11 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Bottom Input Area with Large Mic Button */}
+        {/* Bottom Voice-Only Interface - No Text Input */}
         <div className={`flex-shrink-0 border-t ${darkMode ? 'border-gray-700 bg-gray-900' : 'border-gray-200 bg-gray-50'}`}>
           
-          {/* Text Input Row - Mobile Separated */}
-          <div className="px-4 py-3 border-b border-gray-200">
-            <div className="flex items-center space-x-3">
-              <div className="flex-1">
-                <div style={{ touchAction: 'auto', zIndex: 10, position: 'relative' }}>
-                  <TextInput 
-                    onSendMessage={sendTextMessage} 
-                    isLoading={isLoading}
-                    darkMode={darkMode}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Large Centered Microphone Button - Mobile Optimized */}
-          <div className="px-4 pb-8 pt-4">
+          {/* Large Centered Microphone Button - Voice Only */}
+          <div className="px-4 py-8">
             <div className="flex flex-col items-center">
               <motion.button
                 onMouseDown={handleMicPress}
@@ -872,7 +857,7 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
                 onTouchEnd={handleMicRelease}
                 onTouchCancel={handleMicRelease}
                 onContextMenu={(e) => e.preventDefault()}
-                className={`relative w-20 h-20 rounded-full transition-all duration-200 select-none shadow-lg flex items-center justify-center touch-manipulation z-50 ${
+                className={`relative w-24 h-24 rounded-full transition-all duration-200 select-none shadow-lg flex items-center justify-center touch-manipulation z-50 ${
                   isRecording 
                     ? 'bg-gradient-to-br from-red-500 to-red-600 text-white scale-110 shadow-red-500/50' 
                     : isBotSpeaking
@@ -899,8 +884,8 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
                 whileTap={{ scale: isLoading ? 1 : 0.95 }}
                 animate={{
                   boxShadow: isRecording 
-                    ? ['0 0 0 0 rgba(239, 68, 68, 0.4)', '0 0 0 20px rgba(239, 68, 68, 0)', '0 0 0 0 rgba(239, 68, 68, 0.4)']
-                    : ['0 0 0 0 rgba(59, 130, 246, 0.3)', '0 0 0 10px rgba(59, 130, 246, 0)', '0 0 0 0 rgba(59, 130, 246, 0.3)']
+                    ? ['0 0 0 0 rgba(239, 68, 68, 0.4)', '0 0 0 30px rgba(239, 68, 68, 0)', '0 0 0 0 rgba(239, 68, 68, 0.4)']
+                    : ['0 0 0 0 rgba(59, 130, 246, 0.3)', '0 0 0 15px rgba(59, 130, 246, 0)', '0 0 0 0 rgba(59, 130, 246, 0.3)']
                 }}
                 transition={{
                   boxShadow: { duration: isRecording ? 1 : 2, repeat: Infinity, ease: "easeOut" }
@@ -908,22 +893,22 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
               >
                 {isRecording ? (
                   <div className="flex flex-col items-center justify-center">
-                    <StopIcon className="w-8 h-8 mb-1" />
-                    <span className="text-xs font-bold">{recordingTimer}s</span>
+                    <StopIcon className="w-10 h-10 mb-1" />
+                    <span className="text-sm font-bold">{recordingTimer}s</span>
                   </div>
                 ) : (
-                  <MicrophoneIcon className="w-8 h-8" />
+                  <MicrophoneIcon className="w-10 h-10" />
                 )}
                 
-                {/* Pulsing Animation Ring */}
+                {/* Enhanced Pulsing Animation Ring */}
                 <AnimatePresence>
                   {!isLoading && (
                     <motion.div
-                      className={`absolute inset-0 rounded-full border-2 ${
+                      className={`absolute inset-0 rounded-full border-4 ${
                         isRecording ? 'border-red-300' : 'border-blue-300'
                       }`}
-                      initial={{ scale: 1, opacity: 0.6 }}
-                      animate={{ scale: 1.8, opacity: 0 }}
+                      initial={{ scale: 1, opacity: 0.8 }}
+                      animate={{ scale: 2, opacity: 0 }}
                       exit={{ opacity: 0 }}
                       transition={{ 
                         duration: isRecording ? 1 : 2, 
@@ -935,12 +920,19 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
                 </AnimatePresence>
               </motion.button>
               
-              {/* Instructions */}
-              <p className={`text-center text-sm mt-3 font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                {isRecording 
-                  ? `🎤 Recording ${recordingTimer}s - Release to send` 
-                  : '🎤 Press and hold to speak'}
-              </p>
+              {/* Voice-Only Instructions */}
+              <div className="text-center mt-4">
+                <p className={`text-lg font-medium mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                  {isRecording 
+                    ? `🎤 Recording ${recordingTimer}s - Release to send` 
+                    : isBotSpeaking
+                    ? '🔴 Tap to interrupt and speak'
+                    : '🎤 Press and hold to speak'}
+                </p>
+                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  {!isRecording && !isBotSpeaking && 'Voice-only AI companion - just speak naturally!'}
+                </p>
+              </div>
             </div>
           </div>
         </div>
