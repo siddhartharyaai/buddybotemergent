@@ -20,11 +20,15 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId }) => 
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
+  const [currentTranscript, setCurrentTranscript] = useState('');
+  const [recordingTimer, setRecordingTimer] = useState(0);
   
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const messagesEndRef = useRef(null);
   const audioRef = useRef(null);
+  const recordingIntervalRef = useRef(null);
+  const streamRef = useRef(null);
 
   const suggestions = [
     "Tell me a story",
