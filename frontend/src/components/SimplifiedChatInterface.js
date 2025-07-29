@@ -114,115 +114,70 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const startRecording = async () => {
-    console.log('🎤 === STARTING MOBILE RECORDING PROCESS ===');
+  // Voice-only suggestions
+  const suggestions = [
+    "Tell me a story",
+    "Sing me a song", 
+    "Ask me a riddle",
+    "Let's play a game"
+  ];
+
+  const startRecording = () => {
+    console.log('🎤 === STARTING RECORDING (REUSING STREAM) ===');
     
     try {
-      // Reset states
-      setCurrentTranscript('');
-      setRecordingTimer(0);
-      
-      // Critical: Check if we're in a secure context (HTTPS)
-      if (!window.isSecureContext) {
-        throw new Error('Recording requires HTTPS secure context');
-      }
-      
-      console.log('✅ Secure context confirmed');
-      
-      // Check basic browser support
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('getUserMedia not supported in this browser');
-      }
-      
-      if (!window.MediaRecorder) {
-        throw new Error('MediaRecorder not supported in this browser');
-      }
-      
-      console.log('✅ Browser support confirmed');
-      
-      // Request microphone with minimal constraints
-      console.log('🎯 Requesting microphone permission...');
-      
-      let stream;
-      try {
-        // Simplest possible constraints for mobile compatibility
-        stream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            echoCancellation: false,
-            noiseSuppression: false,
-            autoGainControl: false
-          }
-        });
-        
-        console.log('✅ Microphone stream obtained');
-        console.log('📊 Stream details:', {
-          active: stream.active,
-          tracks: stream.getAudioTracks().length,
-          trackState: stream.getAudioTracks()[0]?.readyState
-        });
-        
-      } catch (error) {
-        console.error('❌ getUserMedia failed:', error);
-        
-        let message = 'Microphone access failed: ';
-        if (error.name === 'NotAllowedError') {
-          message += 'Permission denied. Please allow microphone access and refresh.';
-        } else if (error.name === 'NotFoundError') {
-          message += 'No microphone found.';
-        } else if (error.name === 'NotReadableError') {
-          message += 'Microphone in use by another app.';
-        } else {
-          message += error.message;
-        }
-        
-        toast.error(message);
+      // Check if stream is ready
+      if (!audioStream || !streamReady) {
+        console.error('❌ Audio stream not ready');
+        toast.error('Microphone not ready. Please refresh the page.');
         return;
       }
       
-      streamRef.current = stream;
+      // Check if stream is still active
+      if (!audioStream.active) {
+        console.error('❌ Audio stream is not active');
+        toast.error('Microphone stream lost. Please refresh the page.');
+        return;
+      }
       
-      // Create MediaRecorder with the most compatible settings
-      console.log('🎚️ Creating MediaRecorder...');
+      console.log('✅ Using existing audio stream for recording');
+      
+      // Reset recording state
+      setCurrentTranscript('');
+      setRecordingTimer(0);
+      audioChunksRef.current = [];
+      
+      // Create new MediaRecorder from existing stream
+      console.log('🎚️ Creating MediaRecorder from existing stream...');
       
       let recorder;
       try {
-        // Try different MIME types in order of compatibility
-        const mimeTypes = ['audio/webm', 'audio/ogg', 'audio/mp4', ''];
-        let selectedMimeType = '';
+        // Use mobile-friendly MIME type
+        const options = {
+          mimeType: 'audio/webm; codecs=opus' // Android Chrome default
+        };
         
-        for (const mimeType of mimeTypes) {
-          if (!mimeType || MediaRecorder.isTypeSupported(mimeType)) {
-            selectedMimeType = mimeType;
-            console.log('📝 Using MIME type:', mimeType || 'default');
-            break;
-          }
+        // Fallback if opus not supported
+        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+          console.log('⚠️ Opus not supported, using default');
+          recorder = new MediaRecorder(audioStream);
+        } else {
+          recorder = new MediaRecorder(audioStream, options);
         }
         
-        const options = selectedMimeType ? { mimeType: selectedMimeType } : {};
-        recorder = new MediaRecorder(stream, options);
-        
-        console.log('✅ MediaRecorder created successfully');
-        console.log('📊 MediaRecorder state:', recorder.state);
+        console.log('✅ MediaRecorder created, MIME type:', recorder.mimeType);
         
       } catch (error) {
         console.error('❌ MediaRecorder creation failed:', error);
-        
-        // Clean up stream
-        stream.getTracks().forEach(track => track.stop());
-        streamRef.current = null;
-        
-        toast.error('Recording not supported on this device/browser');
+        toast.error('Recording not supported on this device');
         return;
       }
       
       mediaRecorderRef.current = recorder;
-      audioChunksRef.current = [];
       
       // Set up event handlers
-      console.log('📦 Setting up MediaRecorder event handlers...');
-      
       recorder.ondataavailable = (event) => {
-        console.log('📦 Data available:', {
+        console.log('📦 Data chunk received:', {
           size: event.data.size,
           type: event.data.type,
           timestamp: Date.now()
@@ -230,19 +185,17 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
         
         if (event.data && event.data.size > 0) {
           audioChunksRef.current.push(event.data);
-          console.log('✅ Audio chunk stored, total chunks:', audioChunksRef.current.length);
-        } else {
-          console.warn('⚠️ Received empty audio chunk');
+          console.log('✅ Chunk stored, total chunks:', audioChunksRef.current.length);
         }
       };
       
       recorder.onstop = () => {
-        console.log('🛑 MediaRecorder stopped');
-        console.log('📊 Final chunk count:', audioChunksRef.current.length);
+        console.log('🛑 Recording stopped');
+        console.log('📊 Total chunks:', audioChunksRef.current.length);
         
         if (audioChunksRef.current.length === 0) {
           console.error('❌ No audio chunks captured');
-          toast.error('No audio was captured. Please check microphone permissions.');
+          toast.error('No audio captured. Please speak louder and try again.');
           return;
         }
         
@@ -261,21 +214,19 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
           type: recorder.mimeType || 'audio/webm'
         });
         
-        console.log('🎵 Audio blob created:', {
+        console.log('🎵 Final audio blob:', {
           size: audioBlob.size,
           type: audioBlob.type
         });
         
-        sendVoiceMessage(audioBlob);
-        
-        // Clean up
-        if (streamRef.current) {
-          streamRef.current.getTracks().forEach(track => {
-            track.stop();
-            console.log('🔇 Audio track stopped');
-          });
-          streamRef.current = null;
+        if (audioBlob.size === 0) {
+          console.error('❌ Final blob is empty');
+          toast.error('Recording failed - no audio captured. Please try again.');
+          return;
         }
+        
+        // Send to backend
+        sendVoiceMessage(audioBlob);
       };
       
       recorder.onerror = (event) => {
@@ -284,56 +235,36 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
       };
       
       recorder.onstart = () => {
-        console.log('▶️ MediaRecorder started');
+        console.log('▶️ MediaRecorder started successfully');
       };
       
-      // Start recording with frequent data collection for mobile
-      console.log('🎬 Starting MediaRecorder...');
+      // Start recording with timeslice for reliable mobile capture
+      console.log('🎬 Starting MediaRecorder with 100ms timeslice...');
+      recorder.start(100); // Key fix: frequent data collection
       
-      try {
-        recorder.start(500); // Collect data every 500ms
-        console.log('✅ MediaRecorder.start() called successfully');
-        
-        setIsRecording(true);
-        
-        // Add recording message
-        const recordingMessage = {
-          id: `recording-${Date.now()}`,
-          type: 'user',
-          content: '🎤 Recording... (hold to continue)',
-          isVoice: true,
-          isLive: true,
-          timestamp: new Date()
-        };
-        onAddMessage(recordingMessage);
-        
-        // Start timer
-        recordingIntervalRef.current = setInterval(() => {
-          setRecordingTimer(prev => prev + 1);
-        }, 1000);
-        
-        console.log('🎉 Recording started successfully');
-        
-      } catch (startError) {
-        console.error('❌ recorder.start() failed:', startError);
-        
-        // Clean up
-        stream.getTracks().forEach(track => track.stop());
-        streamRef.current = null;
-        
-        toast.error('Failed to start recording: ' + startError.message);
-      }
+      setIsRecording(true);
+      
+      // Add recording message
+      const recordingMessage = {
+        id: `recording-${Date.now()}`,
+        type: 'user',
+        content: '🎤 Recording... (hold to continue)',
+        isVoice: true,
+        isLive: true,
+        timestamp: new Date()
+      };
+      onAddMessage(recordingMessage);
+      
+      // Start timer
+      recordingIntervalRef.current = setInterval(() => {
+        setRecordingTimer(prev => prev + 1);
+      }, 1000);
+      
+      console.log('🎉 Recording started successfully');
       
     } catch (error) {
-      console.error('💥 Critical recording error:', error);
-      
-      // Clean up any resources
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-        streamRef.current = null;
-      }
-      
-      toast.error('Recording failed: ' + error.message);
+      console.error('💥 Recording start error:', error);
+      toast.error('Failed to start recording: ' + error.message);
     }
   };
 
