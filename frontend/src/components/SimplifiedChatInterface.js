@@ -621,7 +621,7 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId }) => 
                 onTouchEnd={handleMicRelease}
                 onKeyDown={handleMicKeyDown}
                 onKeyUp={handleMicKeyUp}
-                className={`relative w-20 h-20 rounded-full transition-all duration-200 select-none shadow-lg ${
+                className={`relative w-20 h-20 rounded-full transition-all duration-200 select-none shadow-lg flex items-center justify-center ${
                   isRecording 
                     ? 'bg-gradient-to-br from-red-500 to-red-600 text-white scale-110 shadow-red-500/50' 
                     : darkMode
