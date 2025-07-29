@@ -627,7 +627,7 @@ const ProfileSetup = ({ isOpen, onClose, onSave, onDelete, initialData = null })
 
             {/* Footer */}
             <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-100">
-              <div>
+              <div className="flex items-center space-x-4">
                 {step > 1 && (
                   <button
                     type="button"
@@ -635,6 +635,17 @@ const ProfileSetup = ({ isOpen, onClose, onSave, onDelete, initialData = null })
                     className="px-6 py-3 text-gray-600 hover:text-gray-800 font-medium transition-colors"
                   >
                     Previous
+                  </button>
+                )}
+                
+                {/* Delete Profile Button - Only show for existing profiles */}
+                {initialData && onDelete && (
+                  <button
+                    type="button"
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="px-4 py-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg font-medium transition-colors border border-red-200 hover:border-red-300"
+                  >
+                    Delete Profile
                   </button>
                 )}
               </div>
@@ -654,11 +665,39 @@ const ProfileSetup = ({ isOpen, onClose, onSave, onDelete, initialData = null })
                     disabled={isSubmitting}
                     className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isSubmitting ? 'Saving...' : 'Save Profile'}
+                    {isSubmitting ? 'Saving...' : initialData ? 'Update Profile' : 'Create Profile'}
                   </button>
                 )}
               </div>
             </div>
+            
+            {/* Delete Confirmation Modal */}
+            {showDeleteConfirm && (
+              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Profile</h3>
+                  <p className="text-gray-600 mb-6">
+                    Are you sure you want to delete this profile? This action cannot be undone and will remove all associated data.
+                  </p>
+                  <div className="flex justify-end space-x-3">
+                    <button
+                      onClick={() => setShowDeleteConfirm(false)}
+                      className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium transition-colors"
+                      disabled={isSubmitting}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleDelete}
+                      disabled={isSubmitting}
+                      className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isSubmitting ? 'Deleting...' : 'Delete'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </form>
         </motion.div>
       </motion.div>
