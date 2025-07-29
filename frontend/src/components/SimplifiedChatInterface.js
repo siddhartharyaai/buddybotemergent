@@ -463,14 +463,14 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId }) => 
       >
         <h2 className="text-2xl font-bold mb-2">Hi {user?.name || 'there'}! 👋</h2>
         <p className="text-lg opacity-80">
-          {isRecording ? 'I\'m listening...' : 
+          {isRecording ? `🎤 Recording... ${recordingTimer}s` : 
            isBotSpeaking ? 'Speaking...' :
            'Press and hold the mic to talk!'}
         </p>
       </motion.div>
 
       <div className="mt-6 text-4xl">
-        {isRecording && '🎤'}
+        {isRecording && `🎤 ${recordingTimer}s`}
         {isBotSpeaking && '🗣️'}
         {!isRecording && !isBotSpeaking && '😊'}
       </div>
