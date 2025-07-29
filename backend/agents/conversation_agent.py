@@ -629,28 +629,38 @@ QUALITY REQUIREMENTS:
         return fallback_responses[age_group]
 
     async def generate_response(self, user_input: str, user_profile: Dict[str, Any], session_id: str) -> str:
-        """Generate age-appropriate response using Gemini 2.0 Flash"""
+        """Generate age-appropriate response using Gemini 2.0 Flash with content frameworks"""
         try:
             # Determine age group
             age = user_profile.get('age', 5)
             age_group = self._get_age_group(age)
             
-            # Get system message for age group
-            system_message = self.system_messages[age_group]
+            # Detect content type
+            content_type = self._detect_content_type(user_input)
             
-            # Add user context to system message
-            enhanced_system_message = f"{system_message}\n\nUser Profile:\n"
-            enhanced_system_message += f"- Age: {age}\n"
-            enhanced_system_message += f"- Name: {user_profile.get('name', 'Friend')}\n"
-            enhanced_system_message += f"- Interests: {', '.join(user_profile.get('interests', ['stories', 'games']))}\n"
-            enhanced_system_message += f"- Location: {user_profile.get('location', 'Unknown')}\n"
+            # Get base system message for age group
+            base_system_message = self.system_messages[age_group]
             
-            # Initialize chat with session
+            # Create enhanced system message based on content type
+            if content_type in ["story", "song", "rhyme", "poem", "joke", "riddle"]:
+                enhanced_system_message = self._create_content_system_message(
+                    content_type, user_profile, base_system_message
+                )
+            else:
+                # Regular conversation
+                enhanced_system_message = f"{base_system_message}\n\nUser Profile:\n"
+                enhanced_system_message += f"- Age: {age}\n"
+                enhanced_system_message += f"- Name: {user_profile.get('name', 'Friend')}\n"
+                enhanced_system_message += f"- Interests: {', '.join(user_profile.get('interests', ['stories', 'games']))}\n"
+                enhanced_system_message += f"- Location: {user_profile.get('location', 'Unknown')}\n"
+                enhanced_system_message += f"\n\nProvide rich, thoughtful responses appropriate for this {age}-year-old child. No artificial length restrictions - respond with the depth and detail the conversation deserves!"
+            
+            # Initialize chat with session - NO TOKEN LIMITS
             chat = LlmChat(
                 api_key=self.gemini_api_key,
                 session_id=session_id,
                 system_message=enhanced_system_message
-            ).with_model("gemini", "gemini-2.0-flash").with_max_tokens(300)
+            ).with_model("gemini", "gemini-2.0-flash")
             
             # Create user message
             user_message = UserMessage(text=user_input)
@@ -658,15 +668,68 @@ QUALITY REQUIREMENTS:
             # Generate response
             response = await chat.send_message(user_message)
             
-            # Post-process response for age appropriateness
-            processed_response = self._post_process_response(response, age_group)
+            # Light post-processing (no artificial truncation)
+            processed_response = self._post_process_response_enhanced(response, age_group, content_type)
             
-            logger.info(f"Generated response for age {age}: {processed_response[:100]}...")
+            logger.info(f"Generated {content_type} response for age {age}: {processed_response[:100]}...")
             return processed_response
             
         except Exception as e:
             logger.error(f"Error generating response: {str(e)}")
             return self._get_fallback_response(user_profile.get('age', 5))
+
+    def _detect_content_type(self, user_input: str) -> str:
+        """Detect what type of content the user is requesting"""
+        user_input_lower = user_input.lower()
+        
+        # Story detection
+        story_keywords = ['story', 'tale', 'tell me about', 'once upon', 'adventure', 'fairy tale']
+        if any(keyword in user_input_lower for keyword in story_keywords):
+            return "story"
+        
+        # Song detection
+        song_keywords = ['song', 'sing', 'music', 'lullaby', 'rhyme about']
+        if any(keyword in user_input_lower for keyword in song_keywords):
+            return "song"
+        
+        # Riddle detection
+        riddle_keywords = ['riddle', 'puzzle', 'guess', 'brain teaser']
+        if any(keyword in user_input_lower for keyword in riddle_keywords):
+            return "riddle"
+        
+        # Joke detection
+        joke_keywords = ['joke', 'funny', 'make me laugh', 'something silly']
+        if any(keyword in user_input_lower for keyword in joke_keywords):
+            return "joke"
+        
+        # Rhyme/Poem detection
+        rhyme_keywords = ['rhyme', 'poem', 'poetry', 'verse']
+        if any(keyword in user_input_lower for keyword in rhyme_keywords):
+            return "rhyme"
+        
+        return "conversation"
+
+    def _post_process_response_enhanced(self, response: str, age_group: str, content_type: str) -> str:
+        """Enhanced post-processing without artificial truncation"""
+        if age_group == "toddler":
+            # Simple vocabulary replacements only
+            response = response.replace("understand", "know")
+            response = response.replace("excellent", "great")
+            response = response.replace("magnificent", "amazing")
+        
+        # Add encouraging elements occasionally (but don't truncate)
+        encouraging_phrases = {
+            "toddler": ["Good job!", "You're so smart!", "That's wonderful!"],
+            "child": ["Great question!", "You're doing awesome!", "I love how curious you are!"],
+            "preteen": ["Excellent thinking!", "You're really getting it!", "That's a thoughtful question!"]
+        }
+        
+        import random
+        if random.random() < 0.2 and content_type == "conversation":  # 20% chance for regular conversation only
+            phrase = random.choice(encouraging_phrases[age_group])
+            response = f"{phrase} {response}"
+        
+        return response
     
     def _get_age_group(self, age: int) -> str:
         """Determine age group category"""
