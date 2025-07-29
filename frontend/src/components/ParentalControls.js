@@ -117,7 +117,7 @@ const ParentalControls = ({ isOpen, onClose, userId, controls, onSave }) => {
             </div>
           </div>
 
-          <div className="flex">
+          <div className="flex h-[calc(90vh-120px)]">
             {/* Sidebar */}
             <div className="w-64 bg-gray-50 border-r border-gray-200 p-4">
               <nav className="space-y-2">
@@ -142,7 +142,7 @@ const ParentalControls = ({ isOpen, onClose, userId, controls, onSave }) => {
             </div>
 
             {/* Content */}
-            <div className="flex-1 p-6 overflow-y-auto">
+            <div className="flex-1 p-6 overflow-y-auto max-h-full">
               <form onSubmit={handleSubmit(onSubmit)}>
                 {/* Time Limits Tab */}
                 {activeTab === 'time' && (
