@@ -624,18 +624,26 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
     }
   };
 
-  // Handle keyboard interactions
+  // Handle keyboard interactions (for accessibility)
   const handleMicKeyDown = (e) => {
     if (e.key === ' ' || e.key === 'Enter') {
       e.preventDefault();
-      handleMicPress(e);
+      if (isTouchDevice) {
+        handleTouchStart(e);
+      } else {
+        handleMouseDown(e);
+      }
     }
   };
 
   const handleMicKeyUp = (e) => {
     if (e.key === ' ' || e.key === 'Enter') {
       e.preventDefault();
-      handleMicRelease(e);
+      if (isTouchDevice) {
+        handleTouchEnd(e);
+      } else {
+        handleMouseUp(e);
+      }
     }
   };
 
