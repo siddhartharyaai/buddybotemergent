@@ -181,10 +181,56 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
   const sendVoiceMessage = async (audioBlob) => {
     console.log('Sending voice message, blob size:', audioBlob.size, 'type:', audioBlob.type);
     
-    // Validate audio blob
+    // Enhanced mobile audio blob validation
     if (!audioBlob || audioBlob.size === 0) {
-      console.error('Invalid audio blob');
-      toast.error('Recording failed - no audio data');
+      console.error('Invalid audio blob - size:', audioBlob?.size, 'type:', audioBlob?.type);
+      
+      // Mobile-specific error handling
+      const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      if (isMobile) {
+        toast.error('Mobile recording failed. Please try holding the mic button longer and speaking clearly.');
+      } else {
+        toast.error('Recording failed - no audio data. Please check microphone permissions.');
+      }
+      return;
+    }
+
+    // Mobile browser blob size threshold
+    if (audioBlob.size < 1000) {
+      console.warn('Audio blob very small, might be empty recording');
+      toast.error('Recording too short. Please hold the mic button and speak for at least 1 second.');
+      return;
+    }
+    
+    // Mobile-optimized base64 conversion
+    const convertToBase64 = (blob) => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          try {
+            // Remove data URL prefix for base64
+            const base64 = reader.result.split(',')[1];
+            if (!base64 || base64.length === 0) {
+              reject(new Error('Base64 conversion failed'));
+              return;
+            }
+            resolve(base64);
+          } catch (error) {
+            reject(error);
+          }
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    };
+
+    let audioBase64;
+    try {
+      audioBase64 = await convertToBase64(audioBlob);
+      console.log('Base64 conversion successful, length:', audioBase64.length);
+    } catch (conversionError) {
+      console.error('Base64 conversion failed:', conversionError);
+      toast.error('Audio processing failed. Please try again.');
       return;
     }
     
