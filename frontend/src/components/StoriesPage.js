@@ -377,29 +377,60 @@ The End.`
                     </div>
                   </div>
 
-                  <motion.button
-                    onClick={() => playStory(story)}
-                    disabled={currentlyPlaying === story.id}
-                    className={`w-full py-3 rounded-xl font-medium flex items-center justify-center transition-all duration-200 ${
-                      currentlyPlaying === story.id
-                        ? 'bg-gray-400 text-white cursor-not-allowed'
-                        : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 shadow-lg hover:shadow-xl'
-                    }`}
-                    whileHover={{ scale: currentlyPlaying === story.id ? 1 : 1.02 }}
-                    whileTap={{ scale: currentlyPlaying === story.id ? 1 : 0.98 }}
-                  >
-                    {currentlyPlaying === story.id ? (
-                      <>
-                        <SpeakerWaveIcon className="w-5 h-5 mr-2 animate-pulse" />
-                        Playing...
-                      </>
-                    ) : (
-                      <>
-                        <PlayIcon className="w-5 h-5 mr-2" />
-                        Listen to Story
-                      </>
-                    )}
-                  </motion.button>
+                  {/* Story Audio Controls */}
+                  {currentlyPlaying === story.id ? (
+                    <div className="space-y-3">
+                      {/* Progress Bar */}
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-gradient-to-r from-purple-600 to-pink-600 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${storyProgress}%` }}
+                        />
+                      </div>
+                      
+                      {/* Control Buttons */}
+                      <div className="flex items-center justify-center space-x-3">
+                        <motion.button
+                          onClick={isStoryPaused ? resumeStory : pauseStory}
+                          className="flex items-center justify-center w-12 h-12 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-lg transition-colors"
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          {isStoryPaused ? (
+                            <PlayIcon className="w-6 h-6 ml-1" />
+                          ) : (
+                            <div className="flex space-x-1">
+                              <div className="w-1 h-4 bg-white rounded-full"></div>
+                              <div className="w-1 h-4 bg-white rounded-full"></div>
+                            </div>
+                          )}
+                        </motion.button>
+                        
+                        <motion.button
+                          onClick={stopStory}
+                          className="flex items-center justify-center w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg transition-colors"
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <StopIcon className="w-5 h-5" />
+                        </motion.button>
+                      </div>
+                      
+                      <p className="text-center text-sm text-purple-600 font-medium">
+                        {isStoryPaused ? 'Story Paused' : 'Now Playing...'}
+                      </p>
+                    </div>
+                  ) : (
+                    <motion.button
+                      onClick={() => playStory(story)}
+                      className="w-full py-3 rounded-xl font-medium flex items-center justify-center transition-all duration-200 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 shadow-lg hover:shadow-xl"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <PlayIcon className="w-5 h-5 mr-2" />
+                      Listen to Story
+                    </motion.button>
+                  )}
                 </div>
               </motion.div>
             ))}
