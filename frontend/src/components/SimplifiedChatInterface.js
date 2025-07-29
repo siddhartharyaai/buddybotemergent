@@ -432,64 +432,7 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
     }
   };
 
-  const sendTextMessage = async (messageText) => {
-    if (!messageText || !messageText.trim() || isLoading) return;
-
-    const messageContent = messageText.trim();
-    
-    const userMessage = {
-      id: Date.now(),
-      type: 'user',
-      content: messageContent,
-      isVoice: false,
-      timestamp: new Date()
-    };
-
-    onAddMessage(userMessage);
-    setIsLoading(true);
-
-    try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/conversations/text`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          session_id: sessionId,
-          user_id: user.id,
-          message: messageContent
-        })
-      });
-
-      const data = await response.json();
-      
-      if (response.ok) {
-        const aiMessage = {
-          id: Date.now() + 1,
-          type: 'ai',
-          content: data.response_text,
-          audioData: data.response_audio,
-          contentType: data.content_type,
-          metadata: data.metadata,
-          timestamp: new Date()
-        };
-
-        onAddMessage(aiMessage);
-        
-        // Auto-play AI response
-        if (data.response_audio) {
-          playAudio(data.response_audio);
-        }
-      } else {
-        throw new Error(data.detail || 'Failed to send message');
-      }
-    } catch (error) {
-      toast.error('Failed to send message');
-      console.error('Text message error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Voice-only interface - no text messaging functionality
 
   const playAudio = (base64Audio) => {
     if (audioRef.current) {
