@@ -510,17 +510,24 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
   };
 
   const handleMicRelease = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+    console.log('🛑 Microphone button released');
     
-    console.log('🛑 Mic button released, type:', e.type);
-    
-    console.log('⏹️ Recording state check - isRecording:', isRecording);
-    if (isRecording) {
-      console.log('🔴 Stopping recording...');
-      stopRecording();
-    } else {
-      console.log('ℹ️ Not recording, nothing to stop');
+    try {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      console.log('⏹️ Current recording state:', isRecording);
+      
+      if (isRecording) {
+        console.log('🔴 Stopping recording...');
+        stopRecording();
+      } else {
+        console.log('ℹ️ Not recording, nothing to stop');
+      }
+      
+    } catch (error) {
+      console.error('❌ Error in handleMicRelease:', error);
+      toast.error('🎤 Button release error');
     }
   };
 
