@@ -643,19 +643,26 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId }) => 
               <button
                 onMouseDown={handleMicPress}
                 onMouseUp={handleMicRelease}
+                onMouseLeave={handleMicRelease}
                 onTouchStart={handleMicPress}
                 onTouchEnd={handleMicRelease}
-                className={`p-3 rounded-full transition-all duration-200 ${
+                onKeyDown={handleMicKeyDown}
+                onKeyUp={handleMicKeyUp}
+                className={`p-3 rounded-full transition-all duration-200 select-none ${
                   isRecording 
-                    ? 'bg-red-500 text-white scale-110' 
+                    ? 'bg-red-500 text-white scale-110 animate-pulse' 
                     : darkMode
                     ? 'bg-blue-600 text-white hover:bg-blue-500'
                     : 'bg-blue-500 text-white hover:bg-blue-600'
                 } ${isLoading ? 'opacity-50' : ''}`}
                 disabled={isLoading}
+                tabIndex={0}
               >
                 {isRecording ? (
-                  <StopIcon className="w-6 h-6" />
+                  <div className="flex items-center space-x-1">
+                    <StopIcon className="w-6 h-6" />
+                    <span className="text-xs">{recordingTimer}s</span>
+                  </div>
                 ) : (
                   <MicrophoneIcon className="w-6 h-6" />
                 )}
