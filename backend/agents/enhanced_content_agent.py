@@ -1038,7 +1038,8 @@ The End! ✨""",
 
     async def get_stories(self) -> List[Dict[str, Any]]:
         """Get all available stories"""
-        stories = self.content_library.get("stories", [])
+        # Access stories from the local_content dictionary
+        stories = self.local_content.get("stories", [])
         
         # Format stories for API response
         formatted_stories = []
@@ -1061,7 +1062,8 @@ The End! ✨""",
 
     async def get_story_by_id(self, story_id: str) -> Optional[Dict[str, Any]]:
         """Get a specific story by ID"""
-        stories = self.content_library.get("stories", [])
+        # Access stories from the local_content dictionary
+        stories = self.local_content.get("stories", [])
         
         for story in stories:
             if story["id"] == story_id:
