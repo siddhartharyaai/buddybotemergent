@@ -451,56 +451,18 @@ QUALITY REQUIREMENTS:
             # Build context-aware system message
             system_message = self.system_messages[age_group]
             
-            # Enhance system message for content requests
+            # Create enhanced system message based on content type
             if is_content_request:
-                if content_type == "story":
-                    system_message += "\n\nIMPORTANT: The user is asking for a story. Please tell a COMPLETE, FULL-LENGTH story with:\n"
-                    system_message += "- A clear beginning, middle, and end\n"
-                    system_message += "- Detailed characters and settings\n"
-                    system_message += "- An engaging plot with dialogue\n"
-                    system_message += "- Age-appropriate length (400-800 words)\n"
-                    system_message += "- Use storytelling language like 'Once upon a time' and 'The End'\n"
-                    system_message += "- Include descriptive details to make it engaging\n"
-                    system_message += "- End with asking if they want another story\n"
-                elif content_type == "song":
-                    system_message += "\n\nIMPORTANT: The user is asking for a song. Please provide a COMPLETE song with:\n"
-                    system_message += "- Full verses and chorus\n"
-                    system_message += "- Age-appropriate lyrics\n"
-                    system_message += "- Rhyming pattern\n"
-                    system_message += "- Fun and engaging content\n"
-                    system_message += "- End with asking if they want to sing more\n"
-                elif content_type == "joke":
-                    system_message += "\n\nIMPORTANT: The user wants a joke. Please:\n"
-                    system_message += "- Tell a complete clean joke with setup and punchline\n"
-                    system_message += "- Add a cheerful reaction like 'Haha!' or '😂'\n"
-                    system_message += "- Ask if they want another joke\n"
-                elif content_type == "riddle":
-                    system_message += "\n\nIMPORTANT: The user wants a riddle. Please:\n"
-                    system_message += "- Present the riddle question clearly\n"
-                    system_message += "- Ask them to think and give their answer\n"
-                    system_message += "- Wait for their response before revealing the answer\n"
-                elif content_type == "fact":
-                    system_message += "\n\nIMPORTANT: The user wants a fact. Please:\n"
-                    system_message += "- Share an amazing, age-appropriate fact\n"
-                    system_message += "- Add an enthusiastic reaction\n"
-                    system_message += "- Ask if they want to learn more\n"
-                elif content_type == "rhyme":
-                    system_message += "\n\nIMPORTANT: The user wants a rhyme. Please:\n"
-                    system_message += "- Recite a complete nursery rhyme or poem\n"
-                    system_message += "- Make it age-appropriate and pleasant\n"
-                    system_message += "- Add a gentle, appreciative reaction\n"
-                elif content_type == "game":
-                    system_message += "\n\nIMPORTANT: The user wants to play a game. Please:\n"
-                    system_message += "- Suggest an appropriate game for their age\n"
-                    system_message += "- Explain the rules clearly\n"
-                    system_message += "- Start the first round or ask if they're ready\n"
-            
-            # Add user context
-            enhanced_system_message = f"{system_message}\n\nUser Profile:\n"
-            enhanced_system_message += f"- Age: {age}\n"
-            enhanced_system_message += f"- Name: {user_profile.get('name', 'Friend')}\n"
-            enhanced_system_message += f"- Interests: {', '.join(user_profile.get('interests', ['stories', 'games']))}\n"
-            enhanced_system_message += f"- Location: {user_profile.get('location', 'Unknown')}\n"
+                enhanced_system_message = self._create_content_system_message(
+                    content_type, user_profile, system_message
+                )
+            else:
+                # Regular conversation - add user context
+                enhanced_system_message = f"{system_message}\n\nUser Profile:\n"
+                enhanced_system_message += f"- Age: {age}\n"
+                enhanced_system_message += f"- Name: {user_profile.get('name', 'Friend')}\n"
+                enhanced_system_message += f"- Interests: {', '.join(user_profile.get('interests', ['stories', 'games']))}\n"
+                enhanced_system_message += f"- Location: {user_profile.get('location', 'Unknown')}\n"
             
             # Add conversation context if available
             if context:
