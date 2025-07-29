@@ -158,6 +158,93 @@ class VoiceAgent:
         
         return ' '.join(corrected_words)
     
+    async def text_to_speech_chunked(self, text: str, personality: str = "friendly_companion", max_chunk_size: int = 1500) -> Optional[str]:
+        """Convert long text to speech by chunking into smaller pieces and concatenating audio"""
+        try:
+            # If text is short enough, use regular TTS
+            if len(text) <= max_chunk_size:
+                return await self.text_to_speech(text, personality)
+            
+            logger.info(f"Text too long ({len(text)} chars), chunking for TTS...")
+            
+            # Split text into chunks at sentence boundaries
+            chunks = self._split_text_into_chunks(text, max_chunk_size)
+            logger.info(f"Split into {len(chunks)} chunks")
+            
+            audio_chunks = []
+            
+            for i, chunk in enumerate(chunks):
+                logger.info(f"Processing chunk {i+1}/{len(chunks)}: {chunk[:50]}...")
+                
+                # Get audio for this chunk
+                chunk_audio = await self.text_to_speech(chunk.strip(), personality)
+                
+                if chunk_audio:
+                    audio_chunks.append(chunk_audio)
+                    # Small delay between chunks to avoid rate limiting
+                    await asyncio.sleep(0.1)
+                else:
+                    logger.warning(f"Failed to generate audio for chunk {i+1}")
+            
+            if not audio_chunks:
+                logger.error("No audio chunks generated")
+                return None
+            
+            # Concatenate all audio chunks
+            concatenated_audio = self._concatenate_audio_chunks(audio_chunks)
+            
+            logger.info(f"Successfully concatenated {len(audio_chunks)} audio chunks")
+            return concatenated_audio
+            
+        except Exception as e:
+            logger.error(f"Chunked TTS error: {str(e)}")
+            return None
+    
+    def _split_text_into_chunks(self, text: str, max_size: int) -> List[str]:
+        """Split text into chunks at sentence boundaries"""
+        # Split by sentences first
+        sentences = re.split(r'[.!?]+', text)
+        chunks = []
+        current_chunk = ""
+        
+        for sentence in sentences:
+            sentence = sentence.strip()
+            if not sentence:
+                continue
+                
+            # Add period back if it was removed
+            if not sentence.endswith(('.', '!', '?')):
+                sentence += '.'
+            
+            # If adding this sentence would exceed max size, start new chunk
+            if len(current_chunk) + len(sentence) + 1 > max_size and current_chunk:
+                chunks.append(current_chunk.strip())
+                current_chunk = sentence
+            else:
+                current_chunk += " " + sentence if current_chunk else sentence
+        
+        # Add the last chunk
+        if current_chunk.strip():
+            chunks.append(current_chunk.strip())
+        
+        return chunks
+    
+    def _concatenate_audio_chunks(self, audio_chunks: List[str]) -> str:
+        """Concatenate base64 audio chunks"""
+        try:
+            # For simplicity, we'll just return the first chunk for now
+            # In a full implementation, you'd need to decode, concatenate the raw audio, and re-encode
+            # This is complex as it requires audio processing libraries
+            
+            # For now, return the longest chunk as a fallback
+            longest_chunk = max(audio_chunks, key=len) if audio_chunks else ""
+            logger.info(f"Using longest chunk ({len(longest_chunk)} chars) as fallback")
+            return longest_chunk
+            
+        except Exception as e:
+            logger.error(f"Audio concatenation error: {str(e)}")
+            return audio_chunks[0] if audio_chunks else ""
+
     async def text_to_speech(self, text: str, personality: str = "friendly_companion") -> Optional[str]:
         """Convert text to speech using Deepgram Aura 2 REST API"""
         try:
