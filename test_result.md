@@ -578,9 +578,9 @@ test_plan:
 
   - task: "Story Narration Full Length Fix" 
     implemented: true
-    working: true
+    working: false
     file: "backend/agents/voice_agent.py, orchestrator.py, server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
@@ -593,6 +593,9 @@ test_plan:
         - working: true
           agent: "testing"
           comment: "✅ BACKEND STORY NARRATION SYSTEM FULLY FUNCTIONAL: Comprehensive testing confirms backend story narration capabilities are working correctly. Key findings: ✅ Content Stories API operational (5 stories available: The Clever Rabbit and the Lion, The Three Little Pigs, The Tortoise and the Hare, etc.) ✅ Text Conversation generates full-length responses (413+ character stories) ✅ TTS Integration produces complete audio responses (153KB+ base64 audio) ✅ Story content type properly detected and processed ✅ Voice personalities working (friendly_companion, story_narrator, learning_buddy) ✅ Chunked TTS implementation ready for long content processing. The backend story narration system is production-ready. Any story length issues are likely frontend audio playback or user interface related, not backend processing limitations."
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL ISSUE IDENTIFIED: Story narration endpoint returning empty responses. Testing POST /api/content/stories/story_clever_rabbit/narrate with valid payload returns: response_text='', response_audio='', narration_complete=true. This indicates the chunked TTS implementation is not functioning correctly in the story narration endpoint. While text conversation generates proper story content (400+ chars), the dedicated story narration endpoint fails to produce output. This is a blocking issue for story narration functionality. Main agent needs to investigate the orchestrator.process_text_input() method when called with content_type='story_narration' parameter."
 
   - task: "Mobile Responsive Design Overhaul"
     implemented: true
