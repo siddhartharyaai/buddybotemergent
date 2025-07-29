@@ -221,6 +221,8 @@ class DialogueOrchestrator:
         bedtime_appropriate = 19 <= current_hour <= 22  # 7 PM to 10 PM
         
         return {
+            "content_request_detected": content_request_detected,
+            "content_type": content_type,
             "silence_detected": silence_detected,
             "boredom_detected": boredom_detected,
             "interruption_detected": interruption_detected,
