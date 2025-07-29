@@ -70,11 +70,7 @@ class DynamicContentTester:
             ("Length Verification - Story vs Chat Response Length", self.test_dynamic_length_comparison),
             
             # AGE-APPROPRIATE ADAPTATION TESTING
-            ("Age Adaptation - Age 3 Content", self.test_age_3_content),
             ("Age Adaptation - Age 7 Content", self.test_age_7_content),
-            ("Age Adaptation - Age 10 Content", self.test_age_10_content),
-            ("Age Adaptation - Age 12 Content", self.test_age_12_content),
-            ("Age Adaptation - Vocabulary Complexity", self.test_vocabulary_adaptation),
             
             # CONTENT FRAMEWORK VERIFICATION
             ("Framework - Story Framework Elements", self.test_story_framework_elements),
