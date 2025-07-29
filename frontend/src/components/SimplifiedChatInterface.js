@@ -587,14 +587,20 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
     e.preventDefault();
     e.stopPropagation();
     
-    // Prevent touch events from bubbling up
+    console.log('🛑 Mic button released, type:', e.type);
+    
+    // For touch events, add additional prevention
     if (e.type === 'touchend') {
       e.preventDefault();
+      e.stopImmediatePropagation();
     }
     
-    console.log('Mic button released');
+    console.log('⏹️ Recording state check - isRecording:', isRecording);
     if (isRecording) {
+      console.log('🔴 Stopping recording...');
       stopRecording();
+    } else {
+      console.log('ℹ️ Not recording, nothing to stop');
     }
   };
 
