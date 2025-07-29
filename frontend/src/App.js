@@ -203,6 +203,37 @@ const App = () => {
     }
   };
 
+  const deleteUserProfile = async () => {
+    try {
+      if (!user?.id) {
+        throw new Error('No user profile to delete');
+      }
+
+      const response = await fetch(`${API}/users/profile/${user.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        // Clear user data and redirect to setup
+        setUser(null);
+        setSessionId(null);
+        localStorage.removeItem('ai_companion_user');
+        setIsProfileSetupOpen(true);
+        toast.success('Profile deleted successfully!');
+      } else {
+        const data = await response.json();
+        throw new Error(data.detail || 'Failed to delete profile');
+      }
+    } catch (error) {
+      console.error('Error deleting profile:', error);
+      toast.error('Failed to delete profile');
+      throw error;
+    }
+  };
+
   const saveParentalControls = async (controlsData) => {
     try {
       const response = await fetch(`${API}/users/${user.id}/parental-controls`, {
