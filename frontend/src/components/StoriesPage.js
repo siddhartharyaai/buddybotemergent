@@ -290,32 +290,32 @@ The End.`
     : stories.filter(story => story.category === selectedCategory);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-2 sm:p-4">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
+        {/* Header - Mobile optimized */}
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="text-center mb-8"
+          className="text-center mb-6 sm:mb-8"
         >
-          <div className="flex items-center justify-center mb-4">
-            <BookOpenIcon className="w-12 h-12 text-purple-600 mr-3" />
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+          <div className="flex items-center justify-center mb-3 sm:mb-4">
+            <BookOpenIcon className="w-8 h-8 sm:w-12 sm:h-12 text-purple-600 mr-2 sm:mr-3" />
+            <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
               Story Time
             </h1>
           </div>
-          <p className="text-gray-600 text-lg">
+          <p className="text-gray-600 text-base sm:text-lg px-4">
             Discover magical stories tailored just for you, {user?.name}! 📚✨
           </p>
         </motion.div>
 
-        {/* Category Filter */}
-        <div className="flex flex-wrap justify-center gap-3 mb-8">
+        {/* Category Filter - Mobile responsive */}
+        <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-6 sm:mb-8 px-2">
           {categories.map((category) => (
             <motion.button
               key={category.id}
               onClick={() => setSelectedCategory(category.id)}
-              className={`px-4 py-2 rounded-full font-medium transition-all duration-200 ${
+              className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-full font-medium transition-all duration-200 text-sm sm:text-base ${
                 selectedCategory === category.id
                   ? 'bg-purple-600 text-white shadow-lg'
                   : 'bg-white text-gray-700 hover:bg-purple-50 border border-gray-200'
@@ -323,20 +323,21 @@ The End.`
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <span className="mr-2">{category.emoji}</span>
-              {category.name}
+              <span className="mr-1 sm:mr-2">{category.emoji}</span>
+              <span className="hidden sm:inline">{category.name}</span>
+              <span className="sm:hidden">{category.name.split(' ')[0]}</span>
             </motion.button>
           ))}
         </div>
 
-        {/* Stories Grid */}
+        {/* Stories Grid - Mobile first */}
         {isLoading ? (
           <div className="text-center py-12">
-            <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <p className="text-gray-600">Loading magical stories...</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {filteredStories.map((story) => (
               <motion.div
                 key={story.id}
@@ -344,41 +345,39 @@ The End.`
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 overflow-hidden"
               >
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">
-                        {story.title}
-                      </h3>
-                      <p className="text-gray-600 text-sm mb-4">
+                <div className="p-4 sm:p-6">
+                  <div className="flex items-start justify-between mb-3 sm:mb-4">
+                    <div className="flex-1 pr-2">
+                      <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 leading-tight">{story.title}</h3>
+                      <p className="text-gray-600 text-sm mb-3 sm:mb-4 line-clamp-3">
                         {story.description}
                       </p>
                     </div>
                     
                     <button
                       onClick={() => toggleFavorite(story.id)}
-                      className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                      className="p-2 rounded-full hover:bg-gray-100 transition-colors flex-shrink-0"
                     >
                       {favorites.includes(story.id) ? (
-                        <HeartSolidIcon className="w-6 h-6 text-red-500" />
+                        <HeartSolidIcon className="w-5 h-5 sm:w-6 sm:h-6 text-red-500" />
                       ) : (
-                        <HeartIcon className="w-6 h-6 text-gray-400" />
+                        <HeartIcon className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
                       )}
                     </button>
                   </div>
 
                   <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
                     <div className="flex items-center">
-                      <ClockIcon className="w-4 h-4 mr-1" />
-                      {story.duration}
+                      <ClockIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                      <span className="text-xs sm:text-sm">{story.duration}</span>
                     </div>
                     <div className="flex items-center">
-                      <UserIcon className="w-4 h-4 mr-1" />
-                      Ages {story.age_group}
+                      <UserIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                      <span className="text-xs sm:text-sm">Ages {story.age_group}</span>
                     </div>
                   </div>
 
-                  {/* Story Audio Controls */}
+                  {/* Story Audio Controls - Mobile optimized */}
                   {currentlyPlaying === story.id ? (
                     <div className="space-y-3">
                       {/* Progress Bar */}
@@ -389,31 +388,31 @@ The End.`
                         />
                       </div>
                       
-                      {/* Control Buttons */}
+                      {/* Control Buttons - Mobile friendly */}
                       <div className="flex items-center justify-center space-x-3">
                         <motion.button
                           onClick={isStoryPaused ? resumeStory : pauseStory}
-                          className="flex items-center justify-center w-12 h-12 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-lg transition-colors"
+                          className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-lg transition-colors"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.95 }}
                         >
                           {isStoryPaused ? (
-                            <PlayIcon className="w-6 h-6 ml-1" />
+                            <PlayIcon className="w-5 h-5 sm:w-6 sm:h-6 ml-0.5" />
                           ) : (
-                            <div className="flex space-x-1">
-                              <div className="w-1 h-4 bg-white rounded-full"></div>
-                              <div className="w-1 h-4 bg-white rounded-full"></div>
+                            <div className="flex space-x-0.5 sm:space-x-1">
+                              <div className="w-1 h-3 sm:h-4 bg-white rounded-full"></div>
+                              <div className="w-1 h-3 sm:h-4 bg-white rounded-full"></div>
                             </div>
                           )}
                         </motion.button>
                         
                         <motion.button
                           onClick={stopStory}
-                          className="flex items-center justify-center w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg transition-colors"
+                          className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg transition-colors"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.95 }}
                         >
-                          <StopIcon className="w-5 h-5" />
+                          <StopIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                         </motion.button>
                       </div>
                       
@@ -424,11 +423,11 @@ The End.`
                   ) : (
                     <motion.button
                       onClick={() => playStory(story)}
-                      className="w-full py-3 rounded-xl font-medium flex items-center justify-center transition-all duration-200 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 shadow-lg hover:shadow-xl"
+                      className="w-full py-2.5 sm:py-3 rounded-xl font-medium flex items-center justify-center transition-all duration-200 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 shadow-lg hover:shadow-xl text-sm sm:text-base"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      <PlayIcon className="w-5 h-5 mr-2" />
+                      <PlayIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                       Listen to Story
                     </motion.button>
                   )}
