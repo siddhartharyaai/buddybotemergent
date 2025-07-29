@@ -31,9 +31,10 @@ const schema = yup.object().shape({
   parent_email: yup.string().email('Invalid email').required('Parent email is required'),
 });
 
-const ProfileSetup = ({ isOpen, onClose, onSave, initialData = null }) => {
+const ProfileSetup = ({ isOpen, onClose, onSave, onDelete, initialData = null }) => {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
   const { register, handleSubmit, formState: { errors }, watch, setValue, getValues } = useForm({
     resolver: yupResolver(schema),
