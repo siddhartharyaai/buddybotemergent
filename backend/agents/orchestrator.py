@@ -91,8 +91,8 @@ class OrchestratorAgent:
             if user_id == 'unknown':
                 return {}
             
-            # Get user memory from memory agent
-            memory_data = await self.memory_agent.get_user_memory(user_id)
+            # Get user memory from memory agent using the correct method
+            memory_data = await self.memory_agent.get_user_memory_context(user_id, days=7)
             return memory_data if memory_data else {}
         except Exception as e:
             logger.error(f"Error getting memory context: {str(e)}")
