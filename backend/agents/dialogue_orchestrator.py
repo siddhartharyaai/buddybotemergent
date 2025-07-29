@@ -125,11 +125,11 @@ class DialogueOrchestrator:
             }
         }
         
-        # Token budgets for different ages and modes
+        # Token budgets for different ages and modes - INCREASED for rich content
         self.token_budgets = {
-            "toddler": {"short": 50, "medium": 80, "long": 120},
-            "child": {"short": 80, "medium": 150, "long": 200},
-            "preteen": {"short": 120, "medium": 200, "long": 300}
+            "toddler": {"short": 200, "medium": 400, "long": 600},
+            "child": {"short": 400, "medium": 800, "long": 1200},
+            "preteen": {"short": 600, "medium": 1000, "long": 1600}
         }
         
         logger.info("Dialogue Orchestrator initialized")
