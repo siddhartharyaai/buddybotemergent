@@ -17,26 +17,110 @@ class ConversationAgent:
         self.gemini_api_key = gemini_api_key
         self.conversations = {}  # Store conversation history
         
-        # Age-appropriate system messages
+        # Enhanced age-appropriate system messages with content frameworks
         self.system_messages = {
             "toddler": (
                 "You are a friendly AI companion for children aged 3-5. Use very simple words, "
                 "short sentences, and a playful tone. Always be encouraging and patient. "
                 "Focus on basic concepts like colors, shapes, animals, and simple stories. "
-                "Avoid complex topics and keep responses under 2 sentences."
+                "When creating content, make it developmentally appropriate with repetitive elements and simple concepts."
             ),
             "child": (
                 "You are an AI companion for children aged 6-9. Use clear, simple language "
                 "and be educational while staying fun. You can discuss school topics, "
                 "tell stories, play simple games, and answer basic questions about the world. "
-                "Keep responses engaging but not overwhelming."
+                "Create rich, engaging content that follows proper storytelling and educational frameworks."
             ),
             "preteen": (
                 "You are an AI companion for children aged 10-12. Use more sophisticated "
                 "vocabulary and can discuss more complex topics like science, history, "
                 "and help with homework. Maintain a friendly, encouraging tone while "
-                "providing detailed explanations when needed."
+                "providing detailed, well-structured content that challenges their thinking."
             )
+        }
+        
+        # Content generation frameworks by type
+        self.content_frameworks = {
+            "story": {
+                "structure": [
+                    "Characters: Introduce main character(s) and supporting characters",
+                    "Setting: Establish where and when the story takes place",
+                    "Plot: Beginning (introduction) → Rising Action → Climax → Falling Action → Resolution",
+                    "Conflict: Present a problem or challenge for characters to overcome",
+                    "Theme: Include an underlying message or lesson (friendship, courage, honesty, etc.)",
+                    "Language: Use age-appropriate vocabulary and sentence structure"
+                ],
+                "age_guidelines": {
+                    3: "100-300 words, simple plot, repetitive elements, happy ending",
+                    5: "200-500 words, clear moral lesson, simple conflicts",
+                    7: "300-800 words, more complex characters, detailed descriptions",
+                    10: "500-1200 words, sophisticated themes, character development",
+                    12: "800-1500 words, complex plots, meaningful themes"
+                }
+            },
+            "song": {
+                "structure": [
+                    "Verse-Chorus-Verse-Chorus structure or simple AABA pattern",
+                    "Consistent rhythm and meter",
+                    "Age-appropriate rhyming scheme",
+                    "Repetitive elements for memorability",
+                    "Positive, uplifting message"
+                ],
+                "age_guidelines": {
+                    3: "4-8 lines, simple AABB rhyme scheme, repetitive chorus",
+                    5: "8-12 lines, basic verse-chorus structure",
+                    7: "12-20 lines, more complex rhyming patterns",
+                    10: "16-32 lines, sophisticated themes and wordplay",
+                    12: "20-40 lines, advanced structure and meaning"
+                }
+            },
+            "rhyme": {
+                "structure": [
+                    "Consistent rhythm and meter",
+                    "Clear rhyming pattern (AABB, ABAB, or ABCB)",
+                    "Playful, musical quality",
+                    "Age-appropriate vocabulary",
+                    "Often includes action or movement words"
+                ],
+                "age_guidelines": {
+                    3: "4-6 lines, simple AABB pattern",
+                    5: "6-8 lines, basic rhythm",
+                    7: "8-12 lines, varied patterns",
+                    10: "10-16 lines, complex wordplay",
+                    12: "12-20 lines, sophisticated themes"
+                }
+            },
+            "joke": {
+                "structure": [
+                    "Setup: Establish context or scenario",
+                    "Punchline: Deliver surprising or funny conclusion",
+                    "Age-appropriate humor (wordplay, silly situations, not mean-spirited)",
+                    "Clean and positive content"
+                ],
+                "age_guidelines": {
+                    3: "Very simple, often repetitive (knock-knock style)",
+                    5: "Simple wordplay and silly situations",
+                    7: "Puns and basic humor concepts",
+                    10: "More sophisticated wordplay and situational humor",
+                    12: "Complex puns and intelligent humor"
+                }
+            },
+            "riddle": {
+                "structure": [
+                    "Clear, engaging question or puzzle",
+                    "Age-appropriate difficulty level",
+                    "Logical answer that makes sense when revealed",
+                    "Often uses wordplay, rhyme, or clever misdirection",
+                    "Educational element when possible"
+                ],
+                "age_guidelines": {
+                    3: "Very simple, concrete objects and concepts",
+                    5: "Basic wordplay and familiar objects",
+                    7: "More complex wordplay and abstract thinking",
+                    10: "Logic puzzles and sophisticated wordplay",
+                    12: "Complex reasoning and advanced concepts"
+                }
+            }
         }
         
         logger.info("Conversation Agent initialized with Gemini")
