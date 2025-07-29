@@ -119,12 +119,25 @@ const App = () => {
 
   const saveUserProfile = async (profileData) => {
     try {
+      // Filter profile data to only include fields that backend accepts
+      const backendProfileData = {
+        name: profileData.name,
+        age: profileData.age,
+        location: profileData.location,
+        timezone: profileData.timezone || 'UTC',
+        language: profileData.language || 'english',
+        voice_personality: profileData.voice_personality || 'friendly_companion',
+        interests: profileData.interests || [],
+        learning_goals: profileData.learning_goals || [],
+        parent_email: profileData.parent_email || null
+      };
+
       const response = await fetch(`${API}/users/profile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(profileData)
+        body: JSON.stringify(backendProfileData)
       });
 
       const data = await response.json();
