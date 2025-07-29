@@ -42,6 +42,71 @@ const App = () => {
     localStorage.setItem('ai_companion_dark_mode', JSON.stringify(darkMode));
   }, [darkMode]);
 
+  // Load chat history when session changes
+  useEffect(() => {
+    if (sessionId && user?.id) {
+      loadChatHistory(sessionId);
+    }
+  }, [sessionId, user?.id]);
+
+  const loadChatHistory = async (currentSessionId) => {
+    try {
+      // First try to load from localStorage
+      const savedHistory = localStorage.getItem(`chat_history_${user?.id}_${currentSessionId}`);
+      if (savedHistory) {
+        const messages = JSON.parse(savedHistory);
+        setChatMessages(messages);
+        setChatHistory(prev => ({ ...prev, [currentSessionId]: messages }));
+      } else {
+        // Initialize with welcome message if no history exists
+        const welcomeMessage = {
+          id: Date.now(),
+          type: 'bot',
+          content: `Hi ${user?.name}! 👋 I'm Buddy, your AI companion. How can I help you today?`,
+          timestamp: new Date().toISOString()
+        };
+        setChatMessages([welcomeMessage]);
+        setChatHistory(prev => ({ ...prev, [currentSessionId]: [welcomeMessage] }));
+      }
+    } catch (error) {
+      console.error('Error loading chat history:', error);
+      // Fallback welcome message
+      const welcomeMessage = {
+        id: Date.now(),
+        type: 'bot',
+        content: `Hi ${user?.name}! 👋 I'm Buddy, your AI companion. How can I help you today?`,
+        timestamp: new Date().toISOString()
+      };
+      setChatMessages([welcomeMessage]);
+    }
+  };
+
+  const saveChatHistory = (currentSessionId, messages) => {
+    try {
+      localStorage.setItem(`chat_history_${user?.id}_${currentSessionId}`, JSON.stringify(messages));
+      setChatHistory(prev => ({ ...prev, [currentSessionId]: messages }));
+    } catch (error) {
+      console.error('Error saving chat history:', error);
+    }
+  };
+
+  const addMessage = (message) => {
+    const newMessage = {
+      ...message,
+      id: Date.now(),
+      timestamp: new Date().toISOString()
+    };
+    
+    setChatMessages(prev => {
+      const updated = [...prev, newMessage];
+      // Save to localStorage
+      if (sessionId) {
+        saveChatHistory(sessionId, updated);
+      }
+      return updated;
+    });
+  };
+
   const checkUserProfile = async () => {
     try {
       // Check if user profile exists in localStorage
