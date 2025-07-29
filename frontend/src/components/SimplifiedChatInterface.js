@@ -22,6 +22,9 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
   const [audioStream, setAudioStream] = useState(null); // Persistent stream
   const [streamReady, setStreamReady] = useState(false);
   
+  // Device detection for touch vs mouse events
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const messagesEndRef = useRef(null);
