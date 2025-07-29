@@ -114,7 +114,7 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
         isLive: true,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, liveMessage]);
+      onAddMessage(liveMessage);
       
       // Start recording timer
       recordingIntervalRef.current = setInterval(() => {
