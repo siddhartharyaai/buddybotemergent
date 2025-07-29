@@ -4648,6 +4648,348 @@ class BackendTester:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
+    # NEW TESTS FOR JSON VALIDATION AND CONVERSATION CONTEXT - REQUESTED BY USER
+    async def test_conversation_text_json_validation(self):
+        """Test POST /api/conversations/text endpoint for JSON response validation and malformed responses"""
+        if not self.test_user_id or not self.test_session_id:
+            return {"success": False, "error": "Missing test user ID or session ID"}
+        
+        try:
+            # Test simple message first
+            simple_message = {
+                "session_id": self.test_session_id,
+                "user_id": self.test_user_id,
+                "message": "Hello, how are you today?"
+            }
+            
+            async with self.session.post(
+                f"{BACKEND_URL}/conversations/text",
+                json=simple_message
+            ) as response:
+                # Check if response is valid JSON
+                response_text = await response.text()
+                
+                try:
+                    data = json.loads(response_text)
+                    json_valid = True
+                    json_error = None
+                except json.JSONDecodeError as e:
+                    json_valid = False
+                    json_error = str(e)
+                    data = None
+                
+                # Validate AIResponse model format
+                if json_valid and data:
+                    required_fields = ["response_text", "content_type"]
+                    optional_fields = ["response_audio", "metadata"]
+                    
+                    has_required_fields = all(field in data for field in required_fields)
+                    field_types_valid = (
+                        isinstance(data.get("response_text"), str) and
+                        isinstance(data.get("content_type"), str) and
+                        (data.get("response_audio") is None or isinstance(data.get("response_audio"), str)) and
+                        (data.get("metadata") is None or isinstance(data.get("metadata"), dict))
+                    )
+                    
+                    return {
+                        "success": json_valid and has_required_fields and field_types_valid,
+                        "json_valid": json_valid,
+                        "json_error": json_error,
+                        "response_status": response.status,
+                        "has_required_fields": has_required_fields,
+                        "field_types_valid": field_types_valid,
+                        "response_text_length": len(data.get("response_text", "")),
+                        "content_type": data.get("content_type"),
+                        "has_response_audio": bool(data.get("response_audio")),
+                        "has_metadata": bool(data.get("metadata")),
+                        "raw_response_preview": response_text[:200] + "..." if len(response_text) > 200 else response_text
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "json_valid": json_valid,
+                        "json_error": json_error,
+                        "response_status": response.status,
+                        "raw_response": response_text[:500] + "..." if len(response_text) > 500 else response_text
+                    }
+                    
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    async def test_riddle_conversation_context(self):
+        """Test riddle scenario: ask for a riddle, then respond with 'I don't know' to check context maintenance"""
+        if not self.test_user_id or not self.test_session_id:
+            return {"success": False, "error": "Missing test user ID or session ID"}
+        
+        try:
+            # Step 1: Ask for a riddle
+            riddle_request = {
+                "session_id": self.test_session_id,
+                "user_id": self.test_user_id,
+                "message": "Tell me a riddle"
+            }
+            
+            async with self.session.post(
+                f"{BACKEND_URL}/conversations/text",
+                json=riddle_request
+            ) as response:
+                if response.status != 200:
+                    return {"success": False, "error": f"Riddle request failed: HTTP {response.status}"}
+                
+                riddle_data = await response.json()
+                riddle_response = riddle_data.get("response_text", "")
+                
+                # Step 2: Respond with "I don't know"
+                await asyncio.sleep(0.5)  # Brief pause to simulate real conversation
+                
+                followup_request = {
+                    "session_id": self.test_session_id,
+                    "user_id": self.test_user_id,
+                    "message": "I don't know"
+                }
+                
+                async with self.session.post(
+                    f"{BACKEND_URL}/conversations/text",
+                    json=followup_request
+                ) as followup_response:
+                    if followup_response.status != 200:
+                        return {"success": False, "error": f"Followup failed: HTTP {followup_response.status}"}
+                    
+                    followup_data = await followup_response.json()
+                    followup_text = followup_data.get("response_text", "")
+                    
+                    # Check if context is maintained (bot should provide the answer)
+                    context_maintained = (
+                        "answer" in followup_text.lower() or
+                        "solution" in followup_text.lower() or
+                        len(followup_text) > 50  # Substantial response indicating context awareness
+                    )
+                    
+                    return {
+                        "success": True,
+                        "riddle_provided": len(riddle_response) > 20,
+                        "riddle_content_type": riddle_data.get("content_type"),
+                        "followup_response_received": bool(followup_text),
+                        "context_maintained": context_maintained,
+                        "followup_response_length": len(followup_text),
+                        "riddle_preview": riddle_response[:100] + "..." if len(riddle_response) > 100 else riddle_response,
+                        "followup_preview": followup_text[:100] + "..." if len(followup_text) > 100 else followup_text,
+                        "conversation_flow": "riddle → I don't know → answer provided" if context_maintained else "context lost"
+                    }
+                    
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    async def test_question_conversation_context(self):
+        """Test question scenario: ask a question and see if context is maintained in follow-up"""
+        if not self.test_user_id or not self.test_session_id:
+            return {"success": False, "error": "Missing test user ID or session ID"}
+        
+        try:
+            # Step 1: Ask a question that requires follow-up
+            question_request = {
+                "session_id": self.test_session_id,
+                "user_id": self.test_user_id,
+                "message": "What's your favorite color and why?"
+            }
+            
+            async with self.session.post(
+                f"{BACKEND_URL}/conversations/text",
+                json=question_request
+            ) as response:
+                if response.status != 200:
+                    return {"success": False, "error": f"Question request failed: HTTP {response.status}"}
+                
+                question_data = await response.json()
+                question_response = question_data.get("response_text", "")
+                
+                # Step 2: Follow up on the response
+                await asyncio.sleep(0.5)
+                
+                followup_request = {
+                    "session_id": self.test_session_id,
+                    "user_id": self.test_user_id,
+                    "message": "That's interesting! Tell me more about that."
+                }
+                
+                async with self.session.post(
+                    f"{BACKEND_URL}/conversations/text",
+                    json=followup_request
+                ) as followup_response:
+                    if followup_response.status != 200:
+                        return {"success": False, "error": f"Followup failed: HTTP {followup_response.status}"}
+                    
+                    followup_data = await followup_response.json()
+                    followup_text = followup_data.get("response_text", "")
+                    
+                    # Check if context is maintained (bot should reference previous response)
+                    context_maintained = (
+                        len(followup_text) > 30 and  # Substantial response
+                        ("color" in followup_text.lower() or
+                         "that" in followup_text.lower() or
+                         "because" in followup_text.lower())
+                    )
+                    
+                    return {
+                        "success": True,
+                        "question_answered": len(question_response) > 20,
+                        "question_content_type": question_data.get("content_type"),
+                        "followup_response_received": bool(followup_text),
+                        "context_maintained": context_maintained,
+                        "followup_response_length": len(followup_text),
+                        "question_preview": question_response[:100] + "..." if len(question_response) > 100 else question_response,
+                        "followup_preview": followup_text[:100] + "..." if len(followup_text) > 100 else followup_text,
+                        "conversation_flow": "question → answer → contextual follow-up" if context_maintained else "context lost"
+                    }
+                    
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    async def test_memory_system_working(self):
+        """Test if the memory system is working correctly across conversations"""
+        if not self.test_user_id or not self.test_session_id:
+            return {"success": False, "error": "Missing test user ID or session ID"}
+        
+        try:
+            # Step 1: Establish a preference
+            preference_request = {
+                "session_id": self.test_session_id,
+                "user_id": self.test_user_id,
+                "message": "I love stories about animals, especially rabbits!"
+            }
+            
+            async with self.session.post(
+                f"{BACKEND_URL}/conversations/text",
+                json=preference_request
+            ) as response:
+                if response.status != 200:
+                    return {"success": False, "error": f"Preference request failed: HTTP {response.status}"}
+                
+                preference_data = await response.json()
+                
+                # Step 2: Generate memory snapshot
+                await asyncio.sleep(0.5)
+                async with self.session.post(
+                    f"{BACKEND_URL}/memory/snapshot/{self.test_user_id}"
+                ) as snapshot_response:
+                    snapshot_success = snapshot_response.status == 200
+                
+                # Step 3: Ask for content that should use memory
+                await asyncio.sleep(0.5)
+                memory_test_request = {
+                    "session_id": self.test_session_id,
+                    "user_id": self.test_user_id,
+                    "message": "Tell me a story based on what I like"
+                }
+                
+                async with self.session.post(
+                    f"{BACKEND_URL}/conversations/text",
+                    json=memory_test_request
+                ) as memory_response:
+                    if memory_response.status != 200:
+                        return {"success": False, "error": f"Memory test failed: HTTP {memory_response.status}"}
+                    
+                    memory_data = await memory_response.json()
+                    memory_story = memory_data.get("response_text", "")
+                    metadata = memory_data.get("metadata", {})
+                    
+                    # Check if memory was used (story should reference animals/rabbits)
+                    memory_used = (
+                        "animal" in memory_story.lower() or
+                        "rabbit" in memory_story.lower() or
+                        bool(metadata.get("memory_context"))
+                    )
+                    
+                    return {
+                        "success": True,
+                        "preference_established": len(preference_data.get("response_text", "")) > 10,
+                        "memory_snapshot_created": snapshot_success,
+                        "memory_story_generated": len(memory_story) > 50,
+                        "memory_used": memory_used,
+                        "has_memory_metadata": bool(metadata.get("memory_context")),
+                        "story_content_type": memory_data.get("content_type"),
+                        "story_preview": memory_story[:150] + "..." if len(memory_story) > 150 else memory_story,
+                        "memory_system_working": memory_used and snapshot_success
+                    }
+                    
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    async def test_json_serialization_edge_cases(self):
+        """Test edge cases that might cause JSON serialization issues"""
+        if not self.test_user_id or not self.test_session_id:
+            return {"success": False, "error": "Missing test user ID or session ID"}
+        
+        try:
+            # Test messages that might cause JSON issues
+            edge_case_messages = [
+                'Message with "quotes" and \'apostrophes\'',
+                "Message with unicode: 🎉 🤖 ✨ 🎵",
+                "Message with\nnewlines\nand\ttabs",
+                "Message with special chars: @#$%^&*()[]{}|\\",
+                "Very long message: " + "A" * 1000,
+                "",  # Empty message
+                "Message with JSON-like content: {\"key\": \"value\", \"number\": 123}"
+            ]
+            
+            edge_case_results = []
+            
+            for message in edge_case_messages:
+                test_request = {
+                    "session_id": self.test_session_id,
+                    "user_id": self.test_user_id,
+                    "message": message
+                }
+                
+                try:
+                    async with self.session.post(
+                        f"{BACKEND_URL}/conversations/text",
+                        json=test_request
+                    ) as response:
+                        response_text = await response.text()
+                        
+                        # Try to parse JSON
+                        try:
+                            data = json.loads(response_text)
+                            json_valid = True
+                            json_error = None
+                        except json.JSONDecodeError as e:
+                            json_valid = False
+                            json_error = str(e)
+                            data = None
+                        
+                        edge_case_results.append({
+                            "message_type": message[:50] + "..." if len(message) > 50 else message or "empty",
+                            "response_status": response.status,
+                            "json_valid": json_valid,
+                            "json_error": json_error,
+                            "response_received": bool(data and data.get("response_text")) if json_valid else False,
+                            "response_length": len(data.get("response_text", "")) if json_valid and data else 0
+                        })
+                        
+                except Exception as e:
+                    edge_case_results.append({
+                        "message_type": message[:50] + "..." if len(message) > 50 else message or "empty",
+                        "error": str(e),
+                        "json_valid": False
+                    })
+                
+                await asyncio.sleep(0.2)
+            
+            successful_cases = [r for r in edge_case_results if r.get("json_valid", False)]
+            
+            return {
+                "success": True,
+                "edge_cases_tested": len(edge_case_messages),
+                "json_valid_responses": len(successful_cases),
+                "json_success_rate": f"{len(successful_cases)/len(edge_case_messages)*100:.1f}%",
+                "edge_case_results": edge_case_results,
+                "serialization_robust": len(successful_cases) == len(edge_case_messages)
+            }
+            
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
 async def main():
     """Main test execution"""
     async with BackendTester() as tester:
