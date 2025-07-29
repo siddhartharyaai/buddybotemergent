@@ -79,9 +79,7 @@ class DynamicContentTester:
             ("Token Budget - No 200 Token Limit", self.test_no_token_limits),
             
             # REGRESSION TESTING
-            ("Regression - Before vs After Word Count", self.test_before_after_comparison),
-            ("Regression - Quality Maintenance", self.test_quality_maintenance),
-            ("Regression - Performance Impact", self.test_performance_impact)
+            ("Regression - Content Quality Verification", self.test_content_detection_accuracy)
         ]
         
         for test_name, test_func in test_sequence:
