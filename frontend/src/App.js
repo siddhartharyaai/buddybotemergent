@@ -30,6 +30,8 @@ const App = () => {
     const saved = localStorage.getItem('ai_companion_dark_mode');
     return saved ? JSON.parse(saved) : false;
   });
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatHistory, setChatHistory] = useState({});
 
   useEffect(() => {
     checkUserProfile();
