@@ -611,9 +611,7 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
       if (recordingIntervalRef.current) {
         clearInterval(recordingIntervalRef.current);
       }
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-      }
+      // Stream cleanup is handled in microphone initialization useEffect
     };
   }, []);
 
