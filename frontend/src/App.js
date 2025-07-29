@@ -113,10 +113,21 @@ const App = () => {
       const savedUser = localStorage.getItem('ai_companion_user');
       
       if (!savedUser) {
-        // No user exists, open profile setup
-        setIsProfileSetupOpen(true);
-        setIsLoading(false);
-        return;
+        // Create a guest/demo user for immediate access to voice functionality
+        console.log('🎯 No user profile found, creating guest demo user for immediate access...');
+        const guestUser = await createGuestUser();
+        if (guestUser) {
+          setUser(guestUser);
+          await createSession(guestUser.id);
+          await loadParentalControls(guestUser.id);
+          setIsLoading(false);
+          return;
+        } else {
+          // Fallback to profile setup if guest creation fails
+          setIsProfileSetupOpen(true);
+          setIsLoading(false);
+          return;
+        }
       }
       
       // User exists in localStorage, verify it exists in backend
@@ -138,21 +149,94 @@ const App = () => {
           await createSession(backendUser.id);
           await loadParentalControls(backendUser.id);
         } else {
-          // User doesn't exist in backend, clear localStorage and show setup
+          // User doesn't exist in backend, create guest user instead of clearing
+          console.log('🎯 User not found in backend, creating guest demo user...');
           localStorage.removeItem('ai_companion_user');
-          setIsProfileSetupOpen(true);
+          const guestUser = await createGuestUser();
+          if (guestUser) {
+            setUser(guestUser);
+            await createSession(guestUser.id);
+            await loadParentalControls(guestUser.id);
+          } else {
+            setIsProfileSetupOpen(true);
+          }
         }
       } catch (error) {
         console.error('Error verifying user profile with backend:', error);
-        // Network error, clear localStorage and show setup
+        // Network error, create guest user instead of profile setup
+        console.log('🎯 Network error, creating guest demo user...');
         localStorage.removeItem('ai_companion_user');
-        setIsProfileSetupOpen(true);
+        const guestUser = await createGuestUser();
+        if (guestUser) {
+          setUser(guestUser);
+          await createSession(guestUser.id);
+          await loadParentalControls(guestUser.id);
+        } else {
+          setIsProfileSetupOpen(true);
+        }
       }
     } catch (error) {
       console.error('Error checking user profile:', error);
-      setIsProfileSetupOpen(true);
+      // Create guest user as fallback
+      const guestUser = await createGuestUser();
+      if (guestUser) {
+        setUser(guestUser);
+        await createSession(guestUser.id);
+        await loadParentalControls(guestUser.id);
+      } else {
+        setIsProfileSetupOpen(true);
+      }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const createGuestUser = async () => {
+    try {
+      console.log('👤 Creating guest demo user for immediate voice access...');
+      
+      const guestProfileData = {
+        name: "Demo Kid",
+        age: 7,
+        location: "Demo City",
+        timezone: "America/New_York",
+        language: "english",
+        voice_personality: "friendly_companion",
+        interests: ["stories", "games", "music"],
+        learning_goals: ["reading", "math"],
+        parent_email: "demo@example.com",
+        avatar: "bunny",
+        gender: "child",
+        speech_speed: "normal",
+        is_guest: true  // Flag this as a guest user
+      };
+
+      const response = await fetch(`${API}/users/profile`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(guestProfileData),
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        console.log('✅ Guest demo user created successfully:', userData.id);
+        
+        // Save to localStorage but mark as guest
+        localStorage.setItem('ai_companion_user', JSON.stringify({
+          ...userData,
+          is_guest: true
+        }));
+        
+        return userData;
+      } else {
+        console.error('❌ Failed to create guest user:', response.status);
+        return null;
+      }
+    } catch (error) {
+      console.error('❌ Error creating guest user:', error);
+      return null;
     }
   };
 
