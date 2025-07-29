@@ -69,6 +69,75 @@ class OrchestratorAgent:
         
         logger.info(f"Microphone locked for session {session_id} until {lock_until}")
     
+    async def _get_conversation_context(self, session_id: str) -> List[Dict[str, Any]]:
+        """Get recent conversation context for a session"""
+        try:
+            # Get conversation history from memory agent or session store
+            if hasattr(self.memory_agent, 'get_conversation_history'):
+                history = await self.memory_agent.get_conversation_history(session_id)
+            else:
+                # Fallback to session store
+                history = self.session_store.get(session_id, {}).get('conversation_history', [])
+            
+            # Return last 5 exchanges for context
+            return history[-5:] if history else []
+        except Exception as e:
+            logger.error(f"Error getting conversation context: {str(e)}")
+            return []
+    
+    async def _get_memory_context(self, user_id: str) -> Dict[str, Any]:
+        """Get memory context for a user"""
+        try:
+            if user_id == 'unknown':
+                return {}
+            
+            # Get user memory from memory agent
+            memory_data = await self.memory_agent.get_user_memory(user_id)
+            return memory_data if memory_data else {}
+        except Exception as e:
+            logger.error(f"Error getting memory context: {str(e)}")
+            return {}
+    
+    async def _update_memory(self, session_id: str, user_input: str, bot_response: str, user_profile: Dict[str, Any]):
+        """Update user memory with new conversation data"""
+        try:
+            user_id = user_profile.get('user_id', 'unknown')
+            if user_id == 'unknown':
+                return
+            
+            # Store interaction in memory
+            await self.memory_agent.store_interaction(
+                user_id=user_id,
+                session_id=session_id,
+                user_input=user_input,
+                bot_response=bot_response,
+                interaction_type='voice',
+                metadata={
+                    'timestamp': datetime.now().isoformat(),
+                    'content_type': 'conversation'
+                }
+            )
+            
+            # Update session conversation history
+            if session_id not in self.session_store:
+                self.session_store[session_id] = {}
+            
+            if 'conversation_history' not in self.session_store[session_id]:
+                self.session_store[session_id]['conversation_history'] = []
+            
+            self.session_store[session_id]['conversation_history'].extend([
+                {'role': 'user', 'text': user_input, 'timestamp': datetime.now().isoformat()},
+                {'role': 'assistant', 'text': bot_response, 'timestamp': datetime.now().isoformat()}
+            ])
+            
+            # Keep only last 20 exchanges
+            history = self.session_store[session_id]['conversation_history']
+            if len(history) > 40:  # 20 exchanges = 40 messages
+                self.session_store[session_id]['conversation_history'] = history[-40:]
+                
+        except Exception as e:
+            logger.error(f"Error updating memory: {str(e)}")
+    
     def _should_suggest_break(self, session_id: str) -> bool:
         """Check if we should suggest a break to the user"""
         if session_id not in self.session_store:
