@@ -256,6 +256,30 @@ async def narrate_story(story_id: str, request: Dict[str, Any]):
         if not user_id:
             raise HTTPException(status_code=400, detail="user_id is required")
         
+        # Get user profile (create a basic one if needed)
+        try:
+            user_profile_doc = await db.user_profiles.find_one({"id": user_id})
+            if not user_profile_doc:
+                # Create a basic user profile for story narration
+                user_profile = {
+                    "id": user_id,
+                    "name": "Story Listener",
+                    "age": 7,
+                    "voice_personality": voice_personality,
+                    "language": "english"
+                }
+            else:
+                user_profile = user_profile_doc
+        except Exception:
+            # Fallback user profile
+            user_profile = {
+                "id": user_id,
+                "name": "Story Listener", 
+                "age": 7,
+                "voice_personality": voice_personality,
+                "language": "english"
+            }
+        
         # Get the story content
         story = await orchestrator.enhanced_content_agent.get_story_by_id(story_id)
         if not story:
@@ -267,14 +291,15 @@ async def narrate_story(story_id: str, request: Dict[str, Any]):
         Use an engaging, age-appropriate tone and pace. Include all story elements: beginning, middle, and end.
         Do not ask questions or pause for interaction - just tell the complete story.
         
-        Story content: {story.get('content', story.get('description', ''))}"""
+        Here is the story content to narrate:
+        {story.get('content', '')}"""
         
         # Generate the full story narration
+        session_id = f"story_session_{story_id}_{int(time.time())}"
         response = await orchestrator.process_text_input(
-            user_id=user_id,
-            message=narration_prompt,
-            session_id=f"story_session_{story_id}_{int(time.time())}",
-            context={"content_type": "story_narration", "story_id": story_id, "full_narration": True}
+            session_id=session_id,
+            text=narration_prompt,
+            user_profile=user_profile
         )
         
         return {
