@@ -302,14 +302,19 @@ class ConversationAgent:
                 last_bot_message = self._get_last_bot_message(context)
                 last_user_message = self._get_last_user_message(context)
                 
+                logger.info(f"Context analysis - Last bot: '{last_bot_message}', User input: '{user_input}'")
+                
                 if self._requires_followthrough(last_bot_message, user_input):
-                    enhanced_system_message += f"\n⚠️  IMPORTANT: You previously asked a question/riddle/game that requires follow-through. "
-                    enhanced_system_message += f"The user responded '{user_input}'. You MUST:\n"
-                    enhanced_system_message += f"1. Address their response directly\n"
-                    enhanced_system_message += f"2. Provide the answer/solution if they don't know\n"
-                    enhanced_system_message += f"3. React emotively (wow, good job, etc.)\n"
-                    enhanced_system_message += f"4. Offer to continue with similar content\n"
-                    enhanced_system_message += f"5. Never ignore their response or change topics abruptly\n"
+                    enhanced_system_message += f"\n⚠️  CRITICAL CONTEXT CONTINUITY: You previously said '{last_bot_message}'. "
+                    enhanced_system_message += f"The user responded '{user_input}'. This is clearly a response to your question/prompt. You MUST:\n"
+                    enhanced_system_message += f"1. Recognize this as a direct response to your previous message\n"
+                    enhanced_system_message += f"2. Continue the conversation based on their response\n"
+                    enhanced_system_message += f"3. DO NOT ask 'what do you mean' or ignore the context\n"
+                    enhanced_system_message += f"4. If they said 'yes' to your question, provide what they said yes to\n"
+                    enhanced_system_message += f"5. If they said 'no', acknowledge and offer alternatives\n"
+                    logger.info(f"FOLLOW-THROUGH REQUIRED: Bot said '{last_bot_message}' and user responded '{user_input}'")
+                else:
+                    logger.info(f"No follow-through required for: '{last_bot_message}' -> '{user_input}'")
                 
                 enhanced_system_message += f"\nContinue this conversation naturally and remember what was said before."
             
