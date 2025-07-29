@@ -198,13 +198,6 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
       console.log('Voice processing response:', data);
       
       if (response.ok && data.status === 'success') {
-        // Update user message with transcript
-        setMessages(prev => prev.map(msg => 
-          msg.id === userMessage.id 
-            ? { ...msg, content: data.transcript || 'Voice message processed' }
-            : msg
-        ));
-
         // Add AI response
         const aiMessage = {
           id: Date.now() + 1,
@@ -216,7 +209,7 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
           timestamp: new Date()
         };
 
-        setMessages(prev => [...prev, aiMessage]);
+        onAddMessage(aiMessage);
         
         // Auto-play AI response if available
         if (data.response_audio) {
