@@ -201,6 +201,9 @@ class DialogueOrchestrator:
                           context: Dict[str, Any] = None) -> Dict[str, Any]:
         """Analyze the current conversational situation"""
         
+        # Check for content requests
+        content_request_detected, content_type = self._detect_content_request(user_input)
+        
         # Check for silence or low engagement
         silence_detected = context and context.get("silence_duration", 0) > self.silence_threshold
         
