@@ -19,6 +19,9 @@ const StoriesPage = ({ user, sessionId }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [favorites, setFavorites] = useState([]);
   const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
+  const [storyAudio, setStoryAudio] = useState(null);
+  const [isStoryPaused, setIsStoryPaused] = useState(false);
+  const [storyProgress, setStoryProgress] = useState(0);
 
   const categories = [
     { id: 'all', name: 'All Stories', emoji: '📚' },
