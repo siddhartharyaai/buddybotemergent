@@ -103,40 +103,49 @@ class OrchestratorAgent:
         try:
             user_id = user_profile.get('user_id', 'unknown')
             if user_id == 'unknown':
-                return
+                user_id = user_profile.get('id', 'unknown')  # Try alternative key
             
-            # Store interaction in memory
-            await self.memory_agent.store_interaction(
-                user_id=user_id,
-                session_id=session_id,
-                user_input=user_input,
-                bot_response=bot_response,
-                interaction_type='voice',
-                metadata={
-                    'timestamp': datetime.now().isoformat(),
-                    'content_type': 'conversation'
-                }
-            )
+            if user_id == 'unknown':
+                logger.warning("No user_id found in user_profile, using session-based storage only")
+            else:
+                # Store interaction in memory
+                await self.memory_agent.store_interaction(
+                    user_id=user_id,
+                    session_id=session_id,
+                    user_input=user_input,
+                    bot_response=bot_response,
+                    interaction_type='text',
+                    metadata={
+                        'timestamp': datetime.now().isoformat(),
+                        'content_type': 'conversation'
+                    }
+                )
             
-            # Update session conversation history
+            # CRITICAL: Update session conversation history (this is the main context source)
             if session_id not in self.session_store:
                 self.session_store[session_id] = {}
             
             if 'conversation_history' not in self.session_store[session_id]:
                 self.session_store[session_id]['conversation_history'] = []
             
+            # Store with consistent format for context retrieval
             self.session_store[session_id]['conversation_history'].extend([
-                {'role': 'user', 'text': user_input, 'timestamp': datetime.now().isoformat()},
-                {'role': 'assistant', 'text': bot_response, 'timestamp': datetime.now().isoformat()}
+                {'role': 'user', 'sender': 'user', 'text': user_input, 'timestamp': datetime.now().isoformat()},
+                {'role': 'assistant', 'sender': 'bot', 'text': bot_response, 'timestamp': datetime.now().isoformat()}
             ])
             
             # Keep only last 20 exchanges
             history = self.session_store[session_id]['conversation_history']
             if len(history) > 40:  # 20 exchanges = 40 messages
                 self.session_store[session_id]['conversation_history'] = history[-40:]
+            
+            logger.info(f"Updated conversation history for session {session_id}: {len(self.session_store[session_id]['conversation_history'])} messages")
                 
         except Exception as e:
             logger.error(f"Error updating memory: {str(e)}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+    
     
     def _should_suggest_break(self, session_id: str) -> bool:
         """Check if we should suggest a break to the user"""
