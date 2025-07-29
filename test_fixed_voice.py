@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Get backend URL from environment
-BACKEND_URL = "https://29ef7db8-bc0d-4307-9293-32634ebad011.preview.emergentagent.com/api"
+BACKEND_URL = "https://39e49753-2a39-4d0e-91ad-048c5749b892.preview.emergentagent.com/api"
 
 async def test_fixed_voice_endpoint():
     """Test the FIXED voice processing endpoint POST /api/voice/process_audio"""
