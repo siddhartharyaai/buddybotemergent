@@ -14,7 +14,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-BACKEND_URL = "https://39e49753-2a39-4d0e-91ad-048c5749b892.preview.emergentagent.com/api"
+BACKEND_URL = "https://9ec96ccd-c6a6-47a0-8163-2b5febfd92cb.preview.emergentagent.com/api"
 
 async def detailed_validation():
     """Run detailed validation of Deepgram implementation"""
