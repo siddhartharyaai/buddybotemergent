@@ -555,6 +555,51 @@ test_plan:
           agent: "main"
           comment: "Completed comprehensive mobile responsive design fixes: ✅ Mobile navigation visibility fixed in Header.js (removed hidden md:flex), ✅ Mobile microphone functionality enhanced in SimplifiedChatInterface.js with MediaRecorder compatibility and error handling, ✅ ParentalControls made fully mobile-responsive with horizontal tabs on mobile and sidebar on desktop, ✅ Pause/stop buttons confirmed working on Stories tab, ✅ Delete profile button confirmed implemented in ProfileSetup.js. All critical mobile UX issues resolved."
 
+  - task: "Mobile Microphone Button Fix"
+    implemented: true
+    working: true
+    file: "frontend/src/components/SimplifiedChatInterface.js"
+    stuck_count: 0
+    priority: "high"  
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user"
+          comment: "User reported mobile microphone button not working - automatically moves cursor to text input field and shows onscreen keyboard, disabling hold-to-speak functionality. Getting 'Mobile recording failed' error."
+        - working: true
+          agent: "main"
+          comment: "Fixed mobile microphone button interaction issues: ✅ Added e.stopPropagation() to prevent event bubbling, ✅ Added target.blur() to prevent focus changes that trigger mobile keyboard, ✅ Enhanced touch event prevention with specific touchstart/touchend handling, ✅ Removed tabIndex to prevent button becoming focusable, ✅ Added touch-manipulation CSS and webkit-specific touch styles to optimize mobile interaction, ✅ Added mobile-specific CSS properties to prevent text selection and tap highlighting."
+
+  - task: "Story Narration Full Length Fix" 
+    implemented: true
+    working: true
+    file: "backend/agents/voice_agent.py, orchestrator.py, server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user"
+          comment: "User reported stories only play for 15-20 seconds instead of full 5-10 minute duration. Stories should narrate completely but are being cut short."
+        - working: true
+          agent: "main"
+          comment: "Implemented chunked TTS solution for long story narration: ✅ Added text_to_speech_chunked() method to voice_agent.py that splits long text into manageable chunks (1500 chars), ✅ Added intelligent text splitting at sentence boundaries, ✅ Added sequential processing with rate limiting delays, ✅ Updated orchestrator.py to use chunked TTS for story_narration content type, ✅ Added content_type parameter to process_text_input(), ✅ Updated story narration endpoint to use chunked processing for full stories."
+
+  - task: "Mobile Responsive Design Overhaul"
+    implemented: true
+    working: true
+    file: "frontend/src/components/Header.js, ParentalControls.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user"
+          comment: "User reported mobile responsive layout is cramped and not clean looking, especially headers. Layout needs improvement for mobile screens."
+        - working: true
+          agent: "main"
+          comment: "Completed comprehensive mobile responsive design fixes: ✅ Mobile navigation visibility fixed in Header.js (removed hidden md:flex), ✅ Mobile microphone functionality enhanced in SimplifiedChatInterface.js with MediaRecorder compatibility and error handling, ✅ ParentalControls made fully mobile-responsive with horizontal tabs on mobile and sidebar on desktop, ✅ Pause/stop buttons confirmed working on Stories tab, ✅ Delete profile button confirmed implemented in ProfileSetup.js. ✅ Enhanced Header.js for better mobile layout - reduced height (h-12), more compact spacing, improved navigation with stacked icons/text on mobile, smaller logo and user profile elements."
+
 agent_communication:
   - agent: "main"
     message: "MVP implementation complete. Multi-agent backend system with orchestrator pattern, world-class UI/UX, comprehensive profile management, and parental controls. Ready for API key configuration and testing. Note: API keys needed for Gemini (conversation) and Deepgram (voice) to test full functionality."
