@@ -294,12 +294,13 @@ async def narrate_story(story_id: str, request: Dict[str, Any]):
         Here is the story content to narrate:
         {story.get('content', '')}"""
         
-        # Generate the full story narration
+        # Generate the full story narration using chunked TTS for long stories
         session_id = f"story_session_{story_id}_{int(time.time())}"
         response = await orchestrator.process_text_input(
             session_id=session_id,
             text=narration_prompt,
-            user_profile=user_profile
+            user_profile=user_profile,
+            content_type="story_narration"  # Flag for full story processing
         )
         
         return {
