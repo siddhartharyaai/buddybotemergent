@@ -868,18 +868,22 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
         {/* Bottom Voice-Only Interface - No Text Input */}
         <div className={`flex-shrink-0 border-t ${darkMode ? 'border-gray-700 bg-gray-900' : 'border-gray-200 bg-gray-50'}`}>
           
-          {/* Large Centered Microphone Button - Voice Only */}
+          {/* Large Centered Microphone Button - Cross-Platform */}
           <div className="px-4 py-8">
             <div className="flex flex-col items-center">
               <motion.button
-                onMouseDown={handleMicPress}
-                onMouseUp={handleMicRelease}
-                onMouseLeave={handleMicRelease}
-                onTouchStart={handleMicPress}
-                onTouchEnd={handleMicRelease}
-                onTouchCancel={handleMicRelease}
+                // Conditional event handlers based on device type
+                {...(isTouchDevice ? {
+                  onTouchStart: handleTouchStart,
+                  onTouchEnd: handleTouchEnd,
+                  onTouchCancel: handleTouchCancel
+                } : {
+                  onMouseDown: handleMouseDown,
+                  onMouseUp: handleMouseUp,
+                  onMouseLeave: handleMouseLeave
+                })}
                 onContextMenu={(e) => e.preventDefault()}
-                className={`relative w-24 h-24 rounded-full transition-all duration-200 select-none shadow-lg flex items-center justify-center touch-manipulation z-50 ${
+                className={`relative w-24 h-24 rounded-full transition-all duration-200 select-none shadow-lg flex items-center justify-center ${
                   isRecording 
                     ? 'bg-gradient-to-br from-red-500 to-red-600 text-white scale-110 shadow-red-500/50' 
                     : isBotSpeaking
@@ -888,15 +892,14 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
                     ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white hover:from-blue-500 hover:to-blue-600 shadow-blue-600/30'
                     : 'bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:from-blue-400 hover:to-blue-500 shadow-blue-500/30'
                 } ${isLoading ? 'opacity-50' : ''}`}
-                disabled={isLoading}
+                disabled={isLoading || !streamReady}
                 type="button"
-                tabIndex="-1"
-                aria-label="Press and hold to record voice message"
+                aria-label={isTouchDevice ? "Press and hold to record voice message" : "Click and hold to record voice message"}
                 style={{ 
                   WebkitUserSelect: 'none',
                   WebkitTouchCallout: 'none',
                   WebkitTapHighlightColor: 'transparent',
-                  touchAction: 'manipulation',
+                  touchAction: 'none', // Critical: Prevents browser gesture interception
                   userSelect: 'none',
                   outline: 'none',
                   position: 'relative',
