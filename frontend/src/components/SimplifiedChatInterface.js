@@ -650,6 +650,8 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
                 className={`relative w-20 h-20 rounded-full transition-all duration-200 select-none shadow-lg flex items-center justify-center ${
                   isRecording 
                     ? 'bg-gradient-to-br from-red-500 to-red-600 text-white scale-110 shadow-red-500/50' 
+                    : isBotSpeaking
+                    ? 'bg-gradient-to-br from-orange-500 to-orange-600 text-white animate-pulse shadow-orange-500/50'  // Barge-in mode
                     : darkMode
                     ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white hover:from-blue-500 hover:to-blue-600 shadow-blue-600/30'
                     : 'bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:from-blue-400 hover:to-blue-500 shadow-blue-500/30'
