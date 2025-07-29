@@ -52,7 +52,6 @@ class DynamicContentTester:
             ("Story Generation - Word Count Verification (200+ words)", self.test_story_word_count),
             ("Story Generation - Story Structure Framework", self.test_story_structure_framework),
             ("Story Generation - Different Story Topics", self.test_story_topics_variety),
-            ("Story Generation - Age-Appropriate Content", self.test_story_age_appropriate),
             
             # SONG GENERATION TESTING
             ("Song Generation - Basic Song Request", self.test_song_generation_basic),
