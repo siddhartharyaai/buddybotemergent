@@ -610,12 +610,12 @@ QUALITY REQUIREMENTS:
                 enhanced_system_message += f"- Location: {user_profile.get('location', 'Unknown')}\n"
                 enhanced_system_message += f"\n\nProvide rich, thoughtful responses appropriate for this {age}-year-old child. No artificial length restrictions - respond with the depth and detail the conversation deserves!"
             
-            # Initialize chat with session - NO TOKEN LIMITS for dynamic content length
+            # Initialize chat with session - Set high token limit for dynamic content
             chat = LlmChat(
                 api_key=self.gemini_api_key,
                 session_id=session_id,
                 system_message=enhanced_system_message
-            ).with_model("gemini", "gemini-2.0-flash")
+            ).with_model("gemini", "gemini-2.0-flash").with_max_tokens(2000)  # High limit for rich content
             
             # Create user message
             user_message = UserMessage(text=user_input)
