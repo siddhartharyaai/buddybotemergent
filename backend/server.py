@@ -303,10 +303,31 @@ async def process_text_input(text_input: TextInput):
         if not orchestrator:
             raise HTTPException(status_code=500, detail="Multi-agent system not initialized")
         
-        # Get user profile
+        # Get user profile or create a default one
         user_profile = await db.user_profiles.find_one({"id": text_input.user_id})
         if not user_profile:
-            raise HTTPException(status_code=404, detail="User profile not found")
+            # Create a default user profile for testing/new users
+            default_profile = {
+                "id": text_input.user_id,
+                "user_id": text_input.user_id,  # Add both for compatibility
+                "name": "Test User",
+                "age": 7,
+                "preferences": {
+                    "voice_personality": "friendly_companion",
+                    "learning_goals": ["general_knowledge"],
+                    "favorite_topics": []
+                },
+                "created_at": datetime.now().isoformat()
+            }
+            
+            # Store the profile
+            try:
+                await db.user_profiles.insert_one(default_profile)
+                logger.info(f"Created default profile for user {text_input.user_id}")
+            except Exception as e:
+                logger.warning(f"Could not store user profile: {e}")
+            
+            user_profile = default_profile
         
         # Process through orchestrator
         result = await orchestrator.process_text_input(
