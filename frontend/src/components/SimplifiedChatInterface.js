@@ -543,10 +543,13 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
       e.target.blur();
     }
     
-    // For touch events, add additional prevention
+    // For touch events, add additional prevention (check if method exists)
     if (e.type === 'touchstart') {
       e.preventDefault();
-      e.stopImmediatePropagation();
+      // Only call stopImmediatePropagation if it exists
+      if (typeof e.stopImmediatePropagation === 'function') {
+        e.stopImmediatePropagation();
+      }
     }
     
     console.log('🎯 Mic state check - isBotSpeaking:', isBotSpeaking, 'isRecording:', isRecording, 'isLoading:', isLoading);
