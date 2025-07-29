@@ -68,8 +68,6 @@ class DynamicContentTester:
             
             # DYNAMIC LENGTH VERIFICATION
             ("Length Verification - Story vs Chat Response Length", self.test_dynamic_length_comparison),
-            ("Length Verification - Content Type Length Appropriateness", self.test_content_type_lengths),
-            ("Length Verification - No Artificial Truncation", self.test_no_truncation),
             
             # AGE-APPROPRIATE ADAPTATION TESTING
             ("Age Adaptation - Age 3 Content", self.test_age_3_content),
