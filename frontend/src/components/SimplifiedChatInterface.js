@@ -152,11 +152,20 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId }) => 
   };
 
   const sendVoiceMessage = async (audioBlob) => {
-    // Create temporary user message
+    console.log('Sending voice message, blob size:', audioBlob.size, 'type:', audioBlob.type);
+    
+    // Validate audio blob
+    if (!audioBlob || audioBlob.size === 0) {
+      console.error('Invalid audio blob');
+      toast.error('Recording failed - no audio data');
+      return;
+    }
+    
+    // Create temporary user message for processing
     const userMessage = {
       id: Date.now(),
       type: 'user',
-      content: '🎤 Voice message...',
+      content: '🎤 Processing voice...',
       isVoice: true,
       timestamp: new Date()
     };
@@ -165,64 +174,68 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId }) => 
     setIsLoading(true);
 
     try {
-      // Convert to base64
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64Audio = reader.result.split(',')[1];
-        
-        // Create form data
-        const formData = new FormData();
-        formData.append('session_id', sessionId);
-        formData.append('user_id', user.id);
-        formData.append('audio_base64', base64Audio);
-
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/voice/process_audio`, {
-          method: 'POST',
-          body: formData
-        });
-
-        const data = await response.json();
-        
-        if (response.ok && data.status === 'success') {
-          // Update user message with transcript
-          setMessages(prev => prev.map(msg => 
-            msg.id === userMessage.id 
-              ? { ...msg, content: data.transcript }
-              : msg
-          ));
-
-          // Add AI response
-          const aiMessage = {
-            id: Date.now() + 1,
-            type: 'ai',
-            content: data.response_text,
-            audioData: data.response_audio,
-            contentType: data.content_type,
-            metadata: data.metadata,
-            timestamp: new Date()
-          };
-
-          setMessages(prev => [...prev, aiMessage]);
-          
-          // Auto-play AI response
-          if (data.response_audio) {
-            playAudio(data.response_audio);
-          }
-        } else {
-          throw new Error(data.detail || 'Failed to process voice message');
-        }
-      };
+      // Convert audio blob to ArrayBuffer first for better handling
+      const arrayBuffer = await audioBlob.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+      const base64Audio = btoa(String.fromCharCode(...uint8Array));
       
-      reader.readAsDataURL(audioBlob);
+      console.log('Audio converted to base64, length:', base64Audio.length);
+      
+      // Create form data with proper content type
+      const formData = new FormData();
+      formData.append('session_id', sessionId);
+      formData.append('user_id', user.id);
+      formData.append('audio_base64', base64Audio);
+
+      console.log('Sending request to voice endpoint...');
+      
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/voice/process_audio`, {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await response.json();
+      console.log('Voice processing response:', data);
+      
+      if (response.ok && data.status === 'success') {
+        // Update user message with transcript
+        setMessages(prev => prev.map(msg => 
+          msg.id === userMessage.id 
+            ? { ...msg, content: data.transcript || 'Voice message processed' }
+            : msg
+        ));
+
+        // Add AI response
+        const aiMessage = {
+          id: Date.now() + 1,
+          type: 'ai',
+          content: data.response_text || 'I heard you!',
+          audioData: data.response_audio,
+          contentType: data.content_type,
+          metadata: data.metadata,
+          timestamp: new Date()
+        };
+
+        setMessages(prev => [...prev, aiMessage]);
+        
+        // Auto-play AI response if available
+        if (data.response_audio) {
+          playAudio(data.response_audio);
+        }
+        
+        toast.success('Voice message processed!');
+      } else {
+        throw new Error(data.detail || data.message || 'Voice processing failed');
+      }
       
     } catch (error) {
       console.error('Voice message error:', error);
-      toast.error('Failed to process voice message');
+      toast.error(`Voice processing failed: ${error.message}`);
       
       // Update user message to show error
       setMessages(prev => prev.map(msg => 
         msg.id === userMessage.id 
-          ? { ...msg, content: '❌ Voice processing failed' }
+          ? { ...msg, content: '❌ Voice processing failed - try again' }
           : msg
       ));
     } finally {
