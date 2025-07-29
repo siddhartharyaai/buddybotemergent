@@ -891,6 +891,9 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
                   onMouseLeave: handleMouseLeave
                 })}
                 onContextMenu={(e) => e.preventDefault()}
+                onKeyDown={handleMicKeyDown}
+                onKeyUp={handleMicKeyUp}
+                tabIndex="0"
                 className={`relative w-24 h-24 rounded-full transition-all duration-200 select-none shadow-lg flex items-center justify-center ${
                   isRecording 
                     ? 'bg-gradient-to-br from-red-500 to-red-600 text-white scale-110 shadow-red-500/50' 
