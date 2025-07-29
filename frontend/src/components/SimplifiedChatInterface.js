@@ -512,84 +512,115 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const handleMicPress = (e) => {
-    console.log('🎤 Microphone button pressed');
+  // Mobile touch event handlers
+  const handleTouchStart = (e) => {
+    console.log('📱 Touch start detected');
+    e.preventDefault(); // Critical: Prevent scroll/select on mobile
+    e.stopPropagation();
     
-    try {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      // Prevent any focus changes
-      if (e.target && typeof e.target.blur === 'function') {
-        e.target.blur();
+    if (!streamReady || isLoading) {
+      console.log('⚠️ Stream not ready or loading');
+      return;
+    }
+    
+    // Barge-in feature for mobile
+    if (isBotSpeaking) {
+      console.log('🔀 Mobile barge-in: Interrupting bot speech');
+      stopAudio();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        audioRef.current.src = '';
       }
-      
-      // Prevent document focus changes
-      if (typeof document !== 'undefined') {
-        const activeElement = document.activeElement;
-        if (activeElement && activeElement !== e.target && typeof activeElement.blur === 'function') {
-          activeElement.blur();
-        }
-      }
-      
-      console.log('🎯 Current state - isBotSpeaking:', isBotSpeaking, 'isRecording:', isRecording, 'isLoading:', isLoading);
-      
-      // BARGE-IN FEATURE: If bot is speaking, interrupt and start recording
-      if (isBotSpeaking) {
-        console.log('🔀 Barge-in detected: Interrupting bot speech');
-        
-        // Stop all audio playback
-        stopAudio();
-        
-        // Stop any TTS that might be playing
-        if (audioRef.current) {
-          audioRef.current.pause();
-          audioRef.current.currentTime = 0;
-          audioRef.current.src = '';
-        }
-        
-        // Clear bot speaking state
-        setIsBotSpeaking(false);
-        setIsPlaying(false);
-        
-        // Start recording
-        startRecording();
-        return;
-      }
-      
-      // Normal recording start
-      if (!isRecording && !isLoading) {
-        console.log('▶️ Starting recording...');
-        startRecording();
-      } else {
-        console.log('⏸️ Cannot start recording - isRecording:', isRecording, 'isLoading:', isLoading);
-      }
-      
-    } catch (error) {
-      console.error('❌ Error in handleMicPress:', error);
-      toast.error('🎤 Button press error - please try again');
+      setIsBotSpeaking(false);
+      setIsPlaying(false);
+    }
+    
+    if (!isRecording) {
+      console.log('▶️ Starting mobile recording via touch');
+      startRecording();
     }
   };
 
-  const handleMicRelease = (e) => {
-    console.log('🛑 Microphone button released');
+  const handleTouchEnd = (e) => {
+    console.log('📱 Touch end detected');
+    e.preventDefault(); // Critical: Prevent default mobile behavior
+    e.stopPropagation();
     
-    try {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      console.log('⏹️ Current recording state:', isRecording);
-      
-      if (isRecording) {
-        console.log('🔴 Stopping recording...');
-        stopRecording();
-      } else {
-        console.log('ℹ️ Not recording, nothing to stop');
+    if (isRecording) {
+      console.log('🔴 Stopping mobile recording via touch');
+      stopRecording();
+    }
+  };
+
+  const handleTouchCancel = (e) => {
+    console.log('📱 Touch cancelled');
+    e.preventDefault();
+    
+    if (isRecording) {
+      console.log('🔴 Stopping recording due to touch cancel');
+      stopRecording();
+    }
+  };
+
+  // Desktop mouse event handlers (for testing)
+  const handleMouseDown = (e) => {
+    console.log('🖱️ Mouse down detected');
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!streamReady || isLoading) return;
+    
+    if (isBotSpeaking) {
+      console.log('🔀 Desktop barge-in: Interrupting bot speech');
+      stopAudio();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        audioRef.current.src = '';
       }
-      
-    } catch (error) {
-      console.error('❌ Error in handleMicRelease:', error);
-      toast.error('🎤 Button release error');
+      setIsBotSpeaking(false);
+      setIsPlaying(false);
+    }
+    
+    if (!isRecording) {
+      console.log('▶️ Starting desktop recording via mouse');
+      startRecording();
+    }
+  };
+
+  const handleMouseUp = (e) => {
+    console.log('🖱️ Mouse up detected');
+    e.preventDefault();
+    
+    if (isRecording) {
+      console.log('🔴 Stopping desktop recording via mouse');
+      stopRecording();
+    }
+  };
+
+  const handleMouseLeave = (e) => {
+    console.log('🖱️ Mouse leave detected');
+    
+    if (isRecording) {
+      console.log('🔴 Stopping recording due to mouse leave');
+      stopRecording();
+    }
+  };
+
+  // Toggle mode for desktop (alternative to hold)
+  const toggleRecording = () => {
+    console.log('🔄 Toggle recording:', isRecording ? 'STOP' : 'START');
+    
+    if (!streamReady || isLoading) {
+      console.log('⚠️ Stream not ready or loading');
+      return;
+    }
+    
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
     }
   };
 
