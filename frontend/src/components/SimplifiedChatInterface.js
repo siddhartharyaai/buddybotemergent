@@ -878,6 +878,7 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
                 onMouseLeave={handleMicRelease}
                 onTouchStart={handleMicPress}
                 onTouchEnd={handleMicRelease}
+                onTouchCancel={handleMicRelease}
                 onKeyDown={handleMicKeyDown}
                 onKeyUp={handleMicKeyUp}
                 className={`relative w-20 h-20 rounded-full transition-all duration-200 select-none shadow-lg flex items-center justify-center touch-manipulation ${
@@ -890,11 +891,17 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
                     : 'bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:from-blue-400 hover:to-blue-500 shadow-blue-500/30'
                 } ${isLoading ? 'opacity-50' : ''}`}
                 disabled={isLoading}
+                type="button"
+                tabIndex="-1"
                 style={{ 
                   WebkitUserSelect: 'none',
                   WebkitTouchCallout: 'none',
                   WebkitTapHighlightColor: 'transparent',
-                  touchAction: 'manipulation'
+                  touchAction: 'manipulation',
+                  userSelect: 'none',
+                  outline: 'none',
+                  border: 'none',
+                  background: 'none'
                 }}
                 whileHover={{ scale: isLoading ? 1 : 1.05 }}
                 whileTap={{ scale: isLoading ? 1 : 0.95 }}
