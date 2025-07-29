@@ -635,10 +635,20 @@ QUALITY REQUIREMENTS:
             # Generate response
             response = await chat.send_message(user_message)
             
+            # RESPONSE LENGTH VALIDATION FOR STORY CONTENT
+            if content_type == "story" and response:
+                word_count = len(response.split())
+                if word_count < 200:
+                    # Story is too short, request continuation
+                    logger.info(f"Story too short ({word_count} words), requesting continuation")
+                    continuation_message = UserMessage(text="Please continue and complete the story. Tell me what happens next until the end.")
+                    continuation = await chat.send_message(continuation_message)
+                    response = response + " " + continuation
+            
             # Light post-processing (no artificial truncation)
             processed_response = self._post_process_response_enhanced(response, age_group, content_type)
             
-            logger.info(f"Generated {content_type} response for age {age}: {processed_response[:100]}...")
+            logger.info(f"Generated {content_type} response for age {age}: {len(processed_response.split())} words")
             return processed_response
             
         except Exception as e:
