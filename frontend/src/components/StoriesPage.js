@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { 
   BookOpenIcon,
   PlayIcon,
+  StopIcon,
   HeartIcon,
   ClockIcon,
   UserIcon,
