@@ -463,6 +463,7 @@ const App = () => {
         isOpen={isProfileSetupOpen}
         onClose={() => setIsProfileSetupOpen(false)}
         onSave={user ? updateUserProfile : saveUserProfile}
+        onDelete={user ? deleteUserProfile : null}
         initialData={user}
       />
 
