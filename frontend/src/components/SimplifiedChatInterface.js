@@ -44,141 +44,97 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
   };
 
   const startRecording = async () => {
+    console.log('🎤 Starting recording process...');
+    
     try {
-      console.log('🎤 Starting recording...');
-      
       // Reset states
       setCurrentTranscript('');
       setRecordingTimer(0);
       
-      // Detect mobile device
-      const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      console.log('📱 Is mobile device:', isMobile);
+      console.log('🔍 Checking for media devices support...');
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Media devices not supported on this browser');
+      }
       
-      // Simplified audio constraints for better mobile compatibility
-      const audioConstraints = isMobile ? {
-        audio: {
-          // Simplified constraints for mobile
-          sampleRate: { ideal: 44100, min: 8000 },
-          channelCount: 1,
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
-        }
-      } : {
-        audio: {
-          sampleRate: 16000,
-          channelCount: 1,
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-          latency: 0,
-          volume: 1.0
-        }
+      console.log('🔍 Checking for MediaRecorder support...');
+      if (!window.MediaRecorder) {
+        throw new Error('MediaRecorder not supported on this browser');
+      }
+      
+      console.log('🎯 Requesting microphone access...');
+      
+      // Use the simplest possible audio constraints for maximum compatibility
+      const audioConstraints = {
+        audio: true
       };
 
-      console.log('🔧 Audio constraints:', audioConstraints);
-
-      // Request microphone permission with timeout
       let stream;
       try {
-        console.log('🎯 Requesting microphone access...');
-        stream = await Promise.race([
-          navigator.mediaDevices.getUserMedia(audioConstraints),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
-        ]);
+        stream = await navigator.mediaDevices.getUserMedia(audioConstraints);
         console.log('✅ Microphone access granted');
       } catch (permissionError) {
         console.error('❌ Microphone permission error:', permissionError);
+        let errorMessage = '🎤 Microphone access denied. ';
+        
         if (permissionError.name === 'NotAllowedError') {
-          toast.error('🎤 Please allow microphone access in your browser settings and try again.');
+          errorMessage += 'Please allow microphone permission in your browser settings.';
         } else if (permissionError.name === 'NotFoundError') {
-          toast.error('🎤 No microphone found. Please check your device settings.');
+          errorMessage += 'No microphone found on your device.';
+        } else if (permissionError.name === 'NotReadableError') {
+          errorMessage += 'Microphone is being used by another application.';
         } else {
-          toast.error('🎤 Microphone access failed. Please refresh and try again.');
+          errorMessage += 'Please check your microphone settings and try again.';
         }
+        
+        toast.error(errorMessage);
         return;
       }
       
       streamRef.current = stream;
       
-      // Enhanced mobile-compatible MediaRecorder options
-      let options = {};
+      console.log('🎚️ Creating MediaRecorder with default settings...');
       
-      if (isMobile) {
-        // Mobile-first approach - try most compatible formats first
-        const mobileFormats = [
-          'audio/webm',
-          'audio/ogg',
-          'audio/mp4',
-          'audio/wav',
-          '' // Default format
-        ];
-        
-        for (const format of mobileFormats) {
-          if (!format || MediaRecorder.isTypeSupported(format)) {
-            if (format) {
-              options.mimeType = format;
-              console.log('📱 Using mobile format:', format);
-            } else {
-              console.log('📱 Using default mobile format');
-            }
-            break;
-          }
-        }
-        
-        // Lower bitrate for mobile stability
-        options.audioBitsPerSecond = 64000;
-      } else {
-        // Desktop options
-        if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
-          options.mimeType = 'audio/webm;codecs=opus';
-        } else if (MediaRecorder.isTypeSupported('audio/webm')) {
-          options.mimeType = 'audio/webm';
-        }
-        options.audioBitsPerSecond = 128000;
-      }
-
-      console.log('🎚️ MediaRecorder options:', options);
-      
+      // Use the most basic MediaRecorder setup for maximum compatibility
+      let mediaRecorder;
       try {
-        mediaRecorderRef.current = new MediaRecorder(stream, options);
+        mediaRecorder = new MediaRecorder(stream);
         console.log('✅ MediaRecorder created successfully');
       } catch (recorderError) {
         console.error('❌ MediaRecorder creation failed:', recorderError);
-        // Fallback: try with no options
-        try {
-          mediaRecorderRef.current = new MediaRecorder(stream);
-          console.log('✅ MediaRecorder created with default options');
-        } catch (fallbackError) {
-          console.error('❌ MediaRecorder fallback failed:', fallbackError);
-          toast.error('🎤 Recording not supported on this device/browser');
-          return;
-        }
+        
+        // Clean up stream
+        stream.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+        
+        toast.error('🎤 Recording not supported on this device. Please try a different browser.');
+        return;
       }
       
+      mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
-      mediaRecorderRef.current.ondataavailable = (event) => {
-        console.log('📦 Data available event:', event.data.size, 'bytes');
+      console.log('📦 Setting up MediaRecorder events...');
+
+      mediaRecorder.ondataavailable = (event) => {
+        console.log('📦 Audio data received:', event.data.size, 'bytes');
         if (event.data && event.data.size > 0) {
           audioChunksRef.current.push(event.data);
           console.log('✅ Audio chunk added, total chunks:', audioChunksRef.current.length);
         }
       };
 
-      mediaRecorderRef.current.onstop = () => {
+      mediaRecorder.onstop = () => {
         console.log('🛑 Recording stopped, processing audio...');
         console.log('📊 Total chunks collected:', audioChunksRef.current.length);
         
         if (audioChunksRef.current.length === 0) {
           console.error('❌ No audio chunks collected');
-          toast.error('🎤 Recording failed - no audio captured. Please try again.');
+          toast.error('🎤 Recording failed - no audio captured. Please try speaking louder.');
           return;
         }
         
         const audioBlob = new Blob(audioChunksRef.current, { 
-          type: mediaRecorderRef.current.mimeType || 'audio/webm'
+          type: mediaRecorder.mimeType || 'audio/webm'
         });
         console.log('🎵 Audio blob created:', audioBlob.size, 'bytes, type:', audioBlob.type);
         
@@ -200,19 +156,20 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
         }
       };
 
-      mediaRecorderRef.current.onerror = (error) => {
+      mediaRecorder.onerror = (error) => {
         console.error('❌ MediaRecorder error:', error);
-        toast.error('🎤 Recording error. Please try again.');
+        toast.error('🎤 Recording error occurred. Please try again.');
       };
 
-      // Start recording with frequent data collection for mobile
-      const timeslice = isMobile ? 250 : 100; // More frequent on mobile
-      mediaRecorderRef.current.start(timeslice);
+      console.log('🎬 Starting recording...');
+      
+      // Start recording with data collection every 1000ms for stability
+      mediaRecorder.start(1000);
       setIsRecording(true);
       
-      console.log('🎬 Recording started with timeslice:', timeslice + 'ms');
+      console.log('✅ Recording started successfully');
       
-      // Add a live transcript message
+      // Add a live recording message
       const liveMessage = {
         id: `recording-${Date.now()}`,
         type: 'user',
@@ -228,11 +185,27 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
         setRecordingTimer(prev => prev + 1);
       }, 1000);
       
-      console.log('✅ Recording setup complete');
+      console.log('🎉 Recording setup complete');
       
     } catch (error) {
-      console.error('💥 Start recording error:', error);
-      toast.error(`🎤 Recording failed: ${error.message}`);
+      console.error('💥 Critical recording error:', error);
+      
+      // Clean up any resources
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      
+      let errorMessage = '🎤 Recording failed: ';
+      if (error.message.includes('not supported')) {
+        errorMessage += 'Your browser does not support audio recording.';
+      } else if (error.message.includes('permission')) {
+        errorMessage += 'Microphone permission required.';
+      } else {
+        errorMessage += error.message;
+      }
+      
+      toast.error(errorMessage);
     }
   };
 
