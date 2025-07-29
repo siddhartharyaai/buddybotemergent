@@ -28,13 +28,83 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
   const audioRef = useRef(null);
   const recordingIntervalRef = useRef(null);
 
-  // Voice-only suggestions
-  const suggestions = [
-    "Tell me a story",
-    "Sing me a song", 
-    "Ask me a riddle",
-    "Let's play a game"
-  ];
+  // Initialize microphone stream once on component mount
+  useEffect(() => {
+    const initializeMicrophone = async () => {
+      console.log('🎤 === INITIALIZING MICROPHONE STREAM (ONCE) ===');
+      
+      try {
+        // Check for secure context (HTTPS required)
+        if (!window.isSecureContext) {
+          console.error('❌ Not in secure context (HTTPS required)');
+          toast.error('HTTPS required for microphone access');
+          return;
+        }
+        
+        // Check browser support
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          console.error('❌ getUserMedia not supported');
+          toast.error('Microphone not supported in this browser');
+          return;
+        }
+        
+        if (!window.MediaRecorder) {
+          console.error('❌ MediaRecorder not supported');
+          toast.error('Audio recording not supported in this browser');
+          return;
+        }
+        
+        console.log('🎯 Requesting microphone access (ONE TIME)...');
+        
+        // Simple microphone constraints - NO desktop or system audio!
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
+        });
+        
+        console.log('✅ Microphone stream acquired successfully');
+        console.log('📊 Stream details:', {
+          active: stream.active,
+          tracks: stream.getAudioTracks().length,
+          trackEnabled: stream.getAudioTracks()[0]?.enabled,
+          trackReadyState: stream.getAudioTracks()[0]?.readyState
+        });
+        
+        setAudioStream(stream);
+        setStreamReady(true);
+        
+      } catch (error) {
+        console.error('❌ Microphone initialization failed:', error);
+        
+        let message = 'Microphone access failed: ';
+        if (error.name === 'NotAllowedError') {
+          message += 'Permission denied. Please allow microphone access and refresh the page.';
+        } else if (error.name === 'NotFoundError') {
+          message += 'No microphone found on your device.';
+        } else if (error.name === 'NotReadableError') {
+          message += 'Microphone is being used by another application.';
+        } else {
+          message += error.message;
+        }
+        
+        toast.error(message);
+        setStreamReady(false);
+      }
+    };
+    
+    initializeMicrophone();
+    
+    // Cleanup on unmount
+    return () => {
+      if (audioStream) {
+        console.log('🧹 Cleaning up audio stream on unmount');
+        audioStream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []); // Only run once on mount
 
   useEffect(() => {
     scrollToBottom();
