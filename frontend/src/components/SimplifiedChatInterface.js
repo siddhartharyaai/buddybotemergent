@@ -338,7 +338,32 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
 
   const handleMicPress = (e) => {
     e.preventDefault();
-    console.log('Mic button pressed');
+    console.log('Mic button pressed, isBotSpeaking:', isBotSpeaking, 'isRecording:', isRecording);
+    
+    // BARGE-IN FEATURE: If bot is speaking, immediately interrupt and start recording
+    if (isBotSpeaking) {
+      console.log('Barge-in detected: Interrupting bot speech and starting recording');
+      
+      // Immediately stop all audio playback
+      stopAudio();
+      
+      // Stop any TTS that might be playing
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        audioRef.current.src = '';
+      }
+      
+      // Clear bot speaking state
+      setIsBotSpeaking(false);
+      setIsPlaying(false);
+      
+      // Seamlessly switch to recording mode (no acknowledgment needed)
+      startRecording();
+      return;
+    }
+    
+    // Normal mic button behavior when bot is not speaking
     if (!isRecording && !isLoading) {
       startRecording();
     }
