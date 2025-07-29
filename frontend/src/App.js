@@ -446,6 +446,8 @@ const App = () => {
           sessionId={sessionId}
           darkMode={darkMode}
           setDarkMode={setDarkMode}
+          messages={chatMessages}
+          onAddMessage={addMessage}
         />
       </div>
     </div>
