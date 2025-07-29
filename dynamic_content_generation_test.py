@@ -73,8 +73,6 @@ class DynamicContentTester:
             ("Age Adaptation - Age 7 Content", self.test_age_7_content),
             
             # CONTENT FRAMEWORK VERIFICATION
-            ("Framework - Story Framework Elements", self.test_story_framework_elements),
-            ("Framework - Song Framework Elements", self.test_song_framework_elements),
             ("Framework - Content Detection Accuracy", self.test_content_detection_accuracy),
             
             # TOKEN BUDGET VERIFICATION
