@@ -444,8 +444,9 @@ QUALITY REQUIREMENTS:
             age = user_profile.get('age', 5)
             age_group = self._get_age_group(age)
             
-            # Check if this is a content request using enhanced detection
-            is_content_request, content_type = self._is_content_request(user_input)
+            # Detect content type using enhanced detection
+            content_type = self._detect_content_type(user_input)
+            is_content_request = content_type != "conversation"
             
             # Build context-aware system message
             system_message = self.system_messages[age_group]
