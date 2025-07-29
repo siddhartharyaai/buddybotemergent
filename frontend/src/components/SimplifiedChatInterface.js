@@ -48,44 +48,106 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId }) => 
 
   const startRecording = async () => {
     try {
+      console.log('Starting recording...');
+      
+      // Reset states
+      setCurrentTranscript('');
+      setRecordingTimer(0);
+      
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           sampleRate: 16000,
           channelCount: 1,
           echoCancellation: true,
-          noiseSuppression: true
+          noiseSuppression: true,
+          autoGainControl: true
         }
       });
       
-      mediaRecorderRef.current = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
-      });
+      streamRef.current = stream;
+      
+      // Use higher quality audio recording
+      const options = {
+        mimeType: 'audio/webm;codecs=opus',
+        audioBitsPerSecond: 128000
+      };
+      
+      // Fallback for browsers that don't support webm
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options.mimeType = 'audio/wav';
+      }
+      
+      mediaRecorderRef.current = new MediaRecorder(stream, options);
       audioChunksRef.current = [];
 
       mediaRecorderRef.current.ondataavailable = (event) => {
         if (event.data.size > 0) {
           audioChunksRef.current.push(event.data);
+          console.log('Audio chunk received:', event.data.size, 'bytes');
         }
       };
 
       mediaRecorderRef.current.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        console.log('Recording stopped, processing audio...');
+        const audioBlob = new Blob(audioChunksRef.current, { 
+          type: mediaRecorderRef.current.mimeType 
+        });
+        console.log('Audio blob created:', audioBlob.size, 'bytes, type:', audioBlob.type);
         sendVoiceMessage(audioBlob);
-        stream.getTracks().forEach(track => track.stop());
+        
+        // Clean up stream
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop());
+          streamRef.current = null;
+        }
       };
 
-      mediaRecorderRef.current.start();
+      // Start recording with chunks every 100ms for better quality
+      mediaRecorderRef.current.start(100);
       setIsRecording(true);
+      
+      // Add a live transcript message
+      const liveMessage = {
+        id: `recording-${Date.now()}`,
+        type: 'user',
+        content: '🎤 Recording... (hold to continue)',
+        isVoice: true,
+        isLive: true,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, liveMessage]);
+      
+      // Start recording timer
+      recordingIntervalRef.current = setInterval(() => {
+        setRecordingTimer(prev => prev + 1);
+      }, 1000);
+      
+      console.log('Recording started successfully');
+      
     } catch (error) {
       console.error('Microphone access error:', error);
-      toast.error('Microphone access denied');
+      toast.error(`Microphone access denied: ${error.message}`);
     }
   };
 
   const stopRecording = () => {
+    console.log('Stopping recording...');
+    
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+      setRecordingTimer(0);
+      
+      // Clear recording timer
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+        recordingIntervalRef.current = null;
+      }
+      
+      // Remove live recording message
+      setMessages(prev => prev.filter(msg => !msg.isLive));
+      
+      console.log('Recording stop initiated');
     }
   };
 
