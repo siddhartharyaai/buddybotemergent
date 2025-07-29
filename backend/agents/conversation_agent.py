@@ -102,6 +102,20 @@ class ConversationAgent:
                 enhanced_system_message += f"\nRecent conversation context:\n"
                 for ctx in context[-3:]:  # Last 3 context items
                     enhanced_system_message += f"- {ctx.get('text', '')}\n"
+                
+                # CRITICAL: Check for conversation continuity needs
+                last_bot_message = self._get_last_bot_message(context)
+                last_user_message = self._get_last_user_message(context)
+                
+                if self._requires_followthrough(last_bot_message, user_input):
+                    enhanced_system_message += f"\n⚠️  IMPORTANT: You previously asked a question/riddle/game that requires follow-through. "
+                    enhanced_system_message += f"The user responded '{user_input}'. You MUST:\n"
+                    enhanced_system_message += f"1. Address their response directly\n"
+                    enhanced_system_message += f"2. Provide the answer/solution if they don't know\n"
+                    enhanced_system_message += f"3. React emotively (wow, good job, etc.)\n"
+                    enhanced_system_message += f"4. Offer to continue with similar content\n"
+                    enhanced_system_message += f"5. Never ignore their response or change topics abruptly\n"
+                
                 enhanced_system_message += f"\nContinue this conversation naturally and remember what was said before."
             
             # Add memory context if available
