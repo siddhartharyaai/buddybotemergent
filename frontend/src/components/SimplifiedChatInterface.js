@@ -451,55 +451,61 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
   };
 
   const handleMicPress = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+    console.log('🎤 Microphone button pressed');
     
-    console.log('🎤 Mic button pressed, type:', e.type);
-    
-    // Prevent any focus changes that might trigger mobile keyboard
-    if (e.target && typeof e.target.blur === 'function') {
-      e.target.blur();
-    }
-    
-    // Prevent document focus and text selection
-    if (typeof document !== 'undefined') {
-      const activeElement = document.activeElement;
-      if (activeElement && activeElement !== e.target && typeof activeElement.blur === 'function') {
-        activeElement.blur();
-      }
-    }
-    
-    console.log('🎯 Mic state check - isBotSpeaking:', isBotSpeaking, 'isRecording:', isRecording, 'isLoading:', isLoading);
-    
-    // BARGE-IN FEATURE: If bot is speaking, immediately interrupt and start recording
-    if (isBotSpeaking) {
-      console.log('🔀 Barge-in detected: Interrupting bot speech and starting recording');
+    try {
+      e.preventDefault();
+      e.stopPropagation();
       
-      // Immediately stop all audio playback
-      stopAudio();
-      
-      // Stop any TTS that might be playing
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-        audioRef.current.src = '';
+      // Prevent any focus changes
+      if (e.target && typeof e.target.blur === 'function') {
+        e.target.blur();
       }
       
-      // Clear bot speaking state
-      setIsBotSpeaking(false);
-      setIsPlaying(false);
+      // Prevent document focus changes
+      if (typeof document !== 'undefined') {
+        const activeElement = document.activeElement;
+        if (activeElement && activeElement !== e.target && typeof activeElement.blur === 'function') {
+          activeElement.blur();
+        }
+      }
       
-      // Seamlessly switch to recording mode (no acknowledgment needed)
-      startRecording();
-      return;
-    }
-    
-    // Normal mic button behavior when bot is not speaking
-    if (!isRecording && !isLoading) {
-      console.log('▶️ Starting normal recording');
-      startRecording();
-    } else {
-      console.log('⏸️ Cannot start recording - isRecording:', isRecording, 'isLoading:', isLoading);
+      console.log('🎯 Current state - isBotSpeaking:', isBotSpeaking, 'isRecording:', isRecording, 'isLoading:', isLoading);
+      
+      // BARGE-IN FEATURE: If bot is speaking, interrupt and start recording
+      if (isBotSpeaking) {
+        console.log('🔀 Barge-in detected: Interrupting bot speech');
+        
+        // Stop all audio playback
+        stopAudio();
+        
+        // Stop any TTS that might be playing
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current.currentTime = 0;
+          audioRef.current.src = '';
+        }
+        
+        // Clear bot speaking state
+        setIsBotSpeaking(false);
+        setIsPlaying(false);
+        
+        // Start recording
+        startRecording();
+        return;
+      }
+      
+      // Normal recording start
+      if (!isRecording && !isLoading) {
+        console.log('▶️ Starting recording...');
+        startRecording();
+      } else {
+        console.log('⏸️ Cannot start recording - isRecording:', isRecording, 'isLoading:', isLoading);
+      }
+      
+    } catch (error) {
+      console.error('❌ Error in handleMicPress:', error);
+      toast.error('🎤 Button press error - please try again');
     }
   };
 
