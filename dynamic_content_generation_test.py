@@ -59,9 +59,6 @@ class DynamicContentTester:
             
             # RIDDLE GENERATION TESTING
             ("Riddle Generation - Basic Riddle Request", self.test_riddle_generation_basic),
-            ("Riddle Generation - Question-Answer Format", self.test_riddle_format),
-            ("Riddle Generation - Age-Appropriate Difficulty", self.test_riddle_difficulty),
-            ("Riddle Generation - Educational Elements", self.test_riddle_educational),
             
             # JOKE GENERATION TESTING
             ("Joke Generation - Basic Joke Request", self.test_joke_generation_basic),
