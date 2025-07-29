@@ -225,12 +225,14 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
       console.error('Voice message error:', error);
       toast.error(`Voice processing failed: ${error.message}`);
       
-      // Update user message to show error
-      setMessages(prev => prev.map(msg => 
-        msg.id === userMessage.id 
-          ? { ...msg, content: '❌ Voice processing failed - try again' }
-          : msg
-      ));
+      // Add error message since we can't update existing message
+      const errorMessage = {
+        id: Date.now() + 1,
+        type: 'system',
+        content: '❌ Voice processing failed - try again',
+        timestamp: new Date()
+      };
+      onAddMessage(errorMessage);
     } finally {
       setIsLoading(false);
     }
