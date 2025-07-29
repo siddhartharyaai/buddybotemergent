@@ -85,6 +85,7 @@ class VoiceAgent:
             
             if response.status_code == 200:
                 result = response.json()
+                logger.info(f"STT response structure: {result}")
                 
                 # Extract transcript
                 if result.get("results") and result["results"].get("channels"):
@@ -99,9 +100,15 @@ class VoiceAgent:
                         if transcript.strip():
                             logger.info(f"STT successful: '{transcript}'")
                             return transcript.strip()
-                
-                logger.warning("STT response missing expected structure or empty transcript")
-                return None
+                        else:
+                            logger.warning("STT returned empty transcript")
+                            return None
+                    else:
+                        logger.warning("STT response missing alternatives")
+                        return None
+                else:
+                    logger.warning(f"STT response missing expected structure: {result}")
+                    return None
             else:
                 logger.error(f"STT API error: {response.status_code} - {response.text}")
                 return None
