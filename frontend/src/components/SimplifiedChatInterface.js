@@ -899,9 +899,7 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
                   WebkitTapHighlightColor: 'transparent',
                   touchAction: 'manipulation',
                   userSelect: 'none',
-                  outline: 'none',
-                  border: 'none',
-                  background: 'none'
+                  outline: 'none'
                 }}
                 whileHover={{ scale: isLoading ? 1 : 1.05 }}
                 whileTap={{ scale: isLoading ? 1 : 0.95 }}
