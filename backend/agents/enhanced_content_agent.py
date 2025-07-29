@@ -1035,3 +1035,48 @@ The End! ✨""",
             "metadata": {},
             "enhanced": False
         }
+
+    async def get_stories(self) -> List[Dict[str, Any]]:
+        """Get all available stories"""
+        stories = self.content_library.get("stories", [])
+        
+        # Format stories for API response
+        formatted_stories = []
+        for story in stories:
+            formatted_stories.append({
+                "id": story["id"],
+                "title": story["title"],
+                "description": story.get("moral", "A wonderful story for children"),
+                "content": story["content"],
+                "age_group": story.get("age_groups", ["3-12"])[0] if story.get("age_groups") else "3-12",
+                "duration": "5-10 min",  # Estimated duration
+                "category": story.get("category", "stories"),
+                "tags": story.get("tags", []),
+                "moral": story.get("moral", ""),
+                "reaction": story.get("reaction", ""),
+                "followup": story.get("followup", "")
+            })
+        
+        return formatted_stories
+
+    async def get_story_by_id(self, story_id: str) -> Optional[Dict[str, Any]]:
+        """Get a specific story by ID"""
+        stories = self.content_library.get("stories", [])
+        
+        for story in stories:
+            if story["id"] == story_id:
+                return {
+                    "id": story["id"],
+                    "title": story["title"],
+                    "description": story.get("moral", "A wonderful story for children"),
+                    "content": story["content"],
+                    "age_group": story.get("age_groups", ["3-12"])[0] if story.get("age_groups") else "3-12",
+                    "duration": "5-10 min",  # Estimated duration
+                    "category": story.get("category", "stories"),
+                    "tags": story.get("tags", []),
+                    "moral": story.get("moral", ""),
+                    "reaction": story.get("reaction", ""),
+                    "followup": story.get("followup", "")
+                }
+        
+        return None
