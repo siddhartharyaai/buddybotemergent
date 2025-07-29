@@ -19,13 +19,14 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
   const [currentTranscript, setCurrentTranscript] = useState('');
   const [recordingTimer, setRecordingTimer] = useState(0);
+  const [audioStream, setAudioStream] = useState(null); // Persistent stream
+  const [streamReady, setStreamReady] = useState(false);
   
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const messagesEndRef = useRef(null);
   const audioRef = useRef(null);
   const recordingIntervalRef = useRef(null);
-  const streamRef = useRef(null);
 
   // Voice-only suggestions
   const suggestions = [
