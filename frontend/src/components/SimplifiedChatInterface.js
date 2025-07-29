@@ -280,7 +280,7 @@ const SimplifiedChatInterface = ({ user, darkMode, setDarkMode, sessionId, messa
           timestamp: new Date()
         };
 
-        setMessages(prev => [...prev, aiMessage]);
+        onAddMessage(aiMessage);
         
         // Auto-play AI response
         if (data.response_audio) {
