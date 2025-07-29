@@ -13,6 +13,7 @@ import base64
 import json
 from typing import Dict, List, Any
 from datetime import datetime
+import time
 
 # Import models
 from models.user_models import UserProfile, UserProfileCreate, UserProfileUpdate, ParentalControls, ParentalControlsCreate, ParentalControlsUpdate
