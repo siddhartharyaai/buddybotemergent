@@ -147,6 +147,34 @@ async def update_user_profile(user_id: str, profile_data: UserProfileUpdate):
         logger.error(f"Error updating user profile: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to update user profile")
 
+@api_router.delete("/users/profile/{user_id}")
+async def delete_user_profile(user_id: str):
+    """Delete user profile and all associated data"""
+    try:
+        # Delete user profile
+        profile_result = await db.user_profiles.delete_one({"id": user_id})
+        
+        if profile_result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="User profile not found")
+        
+        # Delete associated parental controls
+        await db.parental_controls.delete_many({"user_id": user_id})
+        
+        # Delete conversation sessions
+        await db.conversation_sessions.delete_many({"user_id": user_id})
+        
+        # Delete memory snapshots
+        await db.memory_snapshots.delete_many({"user_id": user_id})
+        
+        logger.info(f"Successfully deleted user profile and all data for user: {user_id}")
+        return {"message": "Profile deleted successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting user profile: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to delete user profile")
+
 # Parental Controls
 @api_router.get("/users/{user_id}/parental-controls", response_model=ParentalControls)
 async def get_parental_controls(user_id: str):
